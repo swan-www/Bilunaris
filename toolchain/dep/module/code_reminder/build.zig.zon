@@ -1,0 +1,6 @@
+.{
+    .name = "code_reminder",
+    .version = "1.0.1",
+    .minimum_zig_version = "0.12.0",
+    .paths = .{""},
+}

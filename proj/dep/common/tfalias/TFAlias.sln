@@ -1,0 +1,67 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32407.343
+MinimumVisualStudioVersion = 16.0.0.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A97A7741-26DD-48B8-95AB-410BBC40B7B5}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\Jenkins\PVS-Studio\Filters.pvsconfig = ..\..\..\Jenkins\PVS-Studio\Filters.pvsconfig
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OS", "..\..\..\..\src\dep\common\tfalias\Examples_3\Unit_Tests\PC Visual Studio 2019\Libraries\OS\OS.vcxproj", "{30DD3D57-0026-48C8-BFD1-6392F319E23A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{339CF6F6-3272-49F6-BF3A-2CEC4685EB8A} = {339CF6F6-3272-49F6-BF3A-2CEC4685EB8A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer", "..\..\..\..\src\dep\common\tfalias\Examples_3\Unit_Tests\PC Visual Studio 2019\Libraries\Renderer\Renderer.vcxproj", "{DB6193E0-3C12-450F-B344-DC4DAED8C421}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F3C4507C-E714-4773-AF45-5FA9FB0BB4AF} = {F3C4507C-E714-4773-AF45-5FA9FB0BB4AF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpirvTools", "..\..\..\..\src\dep\common\tfalias\Examples_3\Unit_Tests\PC Visual Studio 2019\Libraries\Tools\SpirvCross.vcxproj", "{F3C4507C-E714-4773-AF45-5FA9FB0BB4AF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gainputstatic", "..\..\..\..\src\dep\common\tfalias\Common_3\Application\ThirdParty\OpenSource\gainput\Win64\lib\gainputstatic.vcxproj", "{339CF6F6-3272-49F6-BF3A-2CEC4685EB8A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TFAlias", "TFAlias.vcxproj", "{A4C8FF4E-EDC5-445D-A7DA-42A481F01A2E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{30DD3D57-0026-48C8-BFD1-6392F319E23A} = {30DD3D57-0026-48C8-BFD1-6392F319E23A}
+		{DB6193E0-3C12-450F-B344-DC4DAED8C421} = {DB6193E0-3C12-450F-B344-DC4DAED8C421}
+		{339CF6F6-3272-49F6-BF3A-2CEC4685EB8A} = {339CF6F6-3272-49F6-BF3A-2CEC4685EB8A}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{30DD3D57-0026-48C8-BFD1-6392F319E23A}.Debug|x64.ActiveCfg = Debug|x64
+		{30DD3D57-0026-48C8-BFD1-6392F319E23A}.Debug|x64.Build.0 = Debug|x64
+		{30DD3D57-0026-48C8-BFD1-6392F319E23A}.Release|x64.ActiveCfg = Release|x64
+		{30DD3D57-0026-48C8-BFD1-6392F319E23A}.Release|x64.Build.0 = Release|x64
+		{DB6193E0-3C12-450F-B344-DC4DAED8C421}.Debug|x64.ActiveCfg = Debug|x64
+		{DB6193E0-3C12-450F-B344-DC4DAED8C421}.Debug|x64.Build.0 = Debug|x64
+		{DB6193E0-3C12-450F-B344-DC4DAED8C421}.Release|x64.ActiveCfg = Release|x64
+		{DB6193E0-3C12-450F-B344-DC4DAED8C421}.Release|x64.Build.0 = Release|x64
+		{F3C4507C-E714-4773-AF45-5FA9FB0BB4AF}.Debug|x64.ActiveCfg = Debug|x64
+		{F3C4507C-E714-4773-AF45-5FA9FB0BB4AF}.Debug|x64.Build.0 = Debug|x64
+		{F3C4507C-E714-4773-AF45-5FA9FB0BB4AF}.Release|x64.ActiveCfg = Release|x64
+		{F3C4507C-E714-4773-AF45-5FA9FB0BB4AF}.Release|x64.Build.0 = Release|x64
+		{339CF6F6-3272-49F6-BF3A-2CEC4685EB8A}.Debug|x64.ActiveCfg = Debug|x64
+		{339CF6F6-3272-49F6-BF3A-2CEC4685EB8A}.Debug|x64.Build.0 = Debug|x64
+		{339CF6F6-3272-49F6-BF3A-2CEC4685EB8A}.Release|x64.ActiveCfg = Release|x64
+		{339CF6F6-3272-49F6-BF3A-2CEC4685EB8A}.Release|x64.Build.0 = Release|x64
+		{A4C8FF4E-EDC5-445D-A7DA-42A481F01A2E}.Debug|x64.ActiveCfg = Debug|x64
+		{A4C8FF4E-EDC5-445D-A7DA-42A481F01A2E}.Debug|x64.Build.0 = Debug|x64
+		{A4C8FF4E-EDC5-445D-A7DA-42A481F01A2E}.Release|x64.ActiveCfg = Release|x64
+		{A4C8FF4E-EDC5-445D-A7DA-42A481F01A2E}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {948F21A0-5B36-35C9-B219-88B1DAC0D0C2}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+EndGlobal

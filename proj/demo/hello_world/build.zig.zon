@@ -1,0 +1,11 @@
+.{
+    .name = "hello_world",
+    .version = "1.0.0",
+    .minimum_zig_version = "0.12.0",
+    .dependencies =
+    .{
+        .alias_build_util = .{ .path ="../../../toolchain/common/module/alias_build_util", },
+		.code_reminder = .{ .path ="../../../toolchain/dep/module/code_reminder", },
+    },
+    .paths = .{""},
+}

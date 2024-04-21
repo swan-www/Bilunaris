@@ -1,0 +1,186 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Visual Studio
+**/.vs/
+**/.vscode/**
+**/x64/
+**.vcxproj.user
+**.user
+**.log
+**.VC.db
+**.ilk
+**.pdb
+**.ipdb
+**.iobj
+**/UpgradeLog.htm
+
+#  Visual Studio User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Pycharm IDE files
+**.idea
+
+# Android build artifacts
+**/.gradle
+**/.agde
+
+##Xcode User settings
+xcuserdata/
+## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
+*.xcscmblueprint
+*.xccheckout
+
+# General Apple
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Binary Shaders
+**/D3D12/Binary/
+**/Vulkan/Binary/
+**/D3D11/Binary/
+**/Metal/Binary/
+**/D3D12/Compiled/
+**/Shaders/Compiled/
+
+# ReloadServer
+**/reload-server.txt
+**/server-log.txt
+
+# Automatically Generated Files
+**/Renderer/IRendererDLL.h
+**/Renderer/Renderer.cpp
+
+# Obj folders
+/**/obj/
+/**/bin/
+/**/macOS\ Xcode/**/Bin/
+/**/macOS\ Xcode/**/build/
+
+# Nuget packages
+**/ThirdParty/OpenSource/hlslparser/Ext/ShaderTranslator/packages/
+
+# Linux / UbuntuCodeLite files
+/**/UbuntuCodelite/.codelite/
+/**/UbuntuCodelite/.cache/
+/**/UbuntuCodelite/.build-debug/
+/**/UbuntuCodelite/.build-release/
+/**/UbuntuCodelite/*/*.mk
+/**/UbuntuCodelite/*/*.txt
+/**/UbuntuCodelite/Makefile
+/**/UbuntuCodelite/*/Debug
+/**/UbuntuCodelite/*/Release
+/**/Linux/*/*.mk
+/**/Linux/*/*.txt
+/**/Linux/*.mk
+/**/Linux/*.txt
+/**/Linux/*/Debug
+/**/Linux/*/Release
+/**/Linux/Debug
+/**/Linux/Release
+/**/Linux/.codelite/
+/**/Linux/.build-debug/
+/**/Linux/.build-release/
+/**/Linux/Makefile
+**/tags
+
+# Generated animation files
+*.ozz
+/**/ThirdParty/OpenSource/ozz-animation/**/*.mk
+/**/Tools/AssetPipeline/Apple/Release/
+/**/Tools/AssetPipeline/Apple/Debug/
+
+#assimp ignores
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/*.mk
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/build/
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/Build/
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/test/
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/tools/
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/Temp/
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/Bin/
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/assimp.txt/
+/**/ThirdParty/OpenSource/assimp/4.1.0/**/Assimp.txt/
+
+#Memleak files
+*.memleaks
+
+#PVS-Studio files
+*.PVS-Studio.*
+
+#MTuner files
+*.MTuner
+
+# Build artifacts
+/**/Ubuntu/**/*.txt
+/**/linux/**/*.txt
+**.results
+**.BenchmarkCompare
+
+#Parser
+/**/Parser/**/TestData/
+
+#Python
+*.pyc
+
+#Benchmarks
+/**/**Benchmarks/**
+
+#ziglang
+toolchain/common/ziglang/*
+!toolchain/common/ziglang/satellite.json
+toolchain/common/zls/*
+/**/zig-cache/
+/**/zig-out/
+
+#vscode task jsons
+!**/.vscode/launch.json
+!**/.vscode/tasks.json
+
+#Alias
+/**/intermediate/

@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A4C8FF4E-EDC5-445D-A7DA-42A481F01A2E}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>TFAlias</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\..\..\..\src\dep\common\tfalias\Common_3\IDE\Visual Studio\TF_Shared.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(SolutionDir)\$(Platform)\$(Configuration)\Intermediate\$(ProjectName)\</IntDir>
+    <LibraryPath>;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(SolutionDir)\$(Platform)\$(Configuration)\Intermediate\$(ProjectName)\</IntDir>
+    <LibraryPath>;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..\src\dep\common\tfalias\Common_3\Resources\AnimationSystem\ThirdParty\OpenSource\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalOptions>/ENTRY:mainCRTStartup %(AdditionalOptions)</AdditionalOptions>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <AdditionalOptions>/ignore:4099</AdditionalOptions>
+    </Link>
+    <Lib>
+      <AdditionalOptions>/ignore:4099</AdditionalOptions>
+      <AdditionalDependencies>OS.lib;Renderer.lib;gainputstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy /Y /F "$(ProjectDir)$(Platform)\$(Configuration)\OS.lib" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\tfalias_os.lib"*
+xcopy /Y /F "$(ProjectDir)$(Platform)\$(Configuration)\Renderer.lib" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\tfalias_renderer.lib"*
+xcopy /Y /F "$(ProjectDir)$(Platform)\$(Configuration)\gainputstatic.lib" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\gainputstatic.lib"*
+
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\OS\ThirdParty\OpenSource\winpixeventruntime\bin\WinPixEventRuntime.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\WinPixEventRuntime.dll"*
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\Graphics\ThirdParty\OpenSource\ags\ags_lib\lib\amd_ags_x64.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\amd_ags_x64.dll"*
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\Graphics\ThirdParty\OpenSource\DirectXShaderCompiler\bin\x64\dxcompiler.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\dxcompiler.dll"*
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\Graphics\ThirdParty\OpenSource\DirectXShaderCompiler\bin\x64\dxil.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\dxil.dll"*</Command>
+    </PostBuildEvent>
+    <FSLShader>
+      <OutDir>$(OutDir)/$(ProjectName)/Shaders</OutDir>
+      <BinaryOutDir>$(OutDir)/$(ProjectName)/CompiledShaders</BinaryOutDir>
+      <Language>DIRECT3D11 DIRECT3D12 VULKAN</Language>
+      <Port>
+      </Port>
+      <CacheArgs>false</CacheArgs>
+    </FSLShader>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\..\..\..\src\dep\common\tfalias\Common_3\Resources\AnimationSystem\ThirdParty\OpenSource\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <AdditionalOptions>/ENTRY:mainCRTStartup %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4099</AdditionalOptions>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>OS.lib;Renderer.lib;gainputstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4099</AdditionalOptions>
+    </Lib>
+    <PostBuildEvent>
+      <Command>xcopy /Y /F "$(ProjectDir)$(Platform)\$(Configuration)\OS.lib" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\tfalias_os.lib"*
+xcopy /Y /F "$(ProjectDir)$(Platform)\$(Configuration)\Renderer.lib" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\tfalias_renderer.lib"*
+xcopy /Y /F "$(ProjectDir)$(Platform)\$(Configuration)\gainputstatic.lib" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\gainputstatic.lib"*
+
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\OS\ThirdParty\OpenSource\winpixeventruntime\bin\WinPixEventRuntime.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\WinPixEventRuntime.dll"*
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\Graphics\ThirdParty\OpenSource\ags\ags_lib\lib\amd_ags_x64.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\amd_ags_x64.dll"*
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\Graphics\ThirdParty\OpenSource\DirectXShaderCompiler\bin\x64\dxcompiler.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\dxcompiler.dll"*
+xcopy /Y /F "$(ProjectDir)..\..\..\..\src\dep\common\tfalias\Common_3\Graphics\ThirdParty\OpenSource\DirectXShaderCompiler\bin\x64\dxil.dll" "$(ProjectDir)..\..\..\..\lib\$(Configuration)\$(LlvmPlatformName)-$(TargetPlatformIdentifier)-msvc\tfalias\dxil.dll"*</Command>
+    </PostBuildEvent>
+    <FSLShader>
+      <OutDir>$(OutDir)/$(ProjectName)/Shaders</OutDir>
+      <BinaryOutDir>$(OutDir)/$(ProjectName)/CompiledShaders</BinaryOutDir>
+      <Language>DIRECT3D11 DIRECT3D12 VULKAN</Language>
+      <CacheArgs>false</CacheArgs>
+    </FSLShader>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\..\..\..\src\dep\common\tfalias\Common_3\Tools\ForgeShadingLanguage\VS\fsl.targets" />
+  </ImportGroup>
+</Project>

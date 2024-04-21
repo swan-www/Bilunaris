@@ -1,0 +1,3 @@
+[submodule "src/dep/common/tfalias"]
+	path = src/dep/common/tfalias
+	url = https://github.com/swan-www/TheForge-ZigMod.git
