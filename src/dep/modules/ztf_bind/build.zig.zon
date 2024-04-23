@@ -1,0 +1,10 @@
+.{
+    .name = "ztf",
+    .version = "1.55.0",
+    .minimum_zig_version = "0.12.0",
+    .dependencies =
+    .{
+        .tfalias = .{ .path ="../../../../dep/ztf/proj/dep/common/tfalias", },
+    },
+    .paths = .{""},
+}
