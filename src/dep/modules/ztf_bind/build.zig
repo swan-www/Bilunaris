@@ -22,25 +22,31 @@ pub fn build(b: *std.Build) !void
         .optimize = optimize,
     });
 
+	const windowsFlag = if(target.result.os.tag == .windows) "-D_WINDOWS" else "";
+
     ztf_glue.linkLibC();
     // zforge_cpp.linkLibCpp();
-    //ztf_glue.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces" });
+	ztf_glue.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces" });
     //ztf_glue.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Graphics/Interfaces" });
     //ztf_glue.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Resources/ResourceLoader/Interfaces" });
     //ztf_glue.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces" });
     //ztf_glue.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Log" });
     ztf_glue.addCSourceFiles(.{
         .files = &.{
-            "glue/IFont_glue.cpp",
-            "glue/IGraphics_glue.cpp",
-            "glue/IResourceLoader_glue.cpp",
-            "glue/IFileSystem_glue.cpp",
-            "glue/ILog_glue.cpp",
-            "glue/IMemory_glue.cpp",
-            "glue/Log_glue.cpp",
+			"glue/MathTypes_glue.cpp",
+			"glue/ICameraController_c.cpp",
+            "glue/IFont_c.cpp",
+			"glue/IOperatingSystem_c.cpp",
+            //"glue/IGraphics_glue.cpp",
+            //"glue/IResourceLoader_glue.cpp",
+            //"glue/IFileSystem_glue.cpp",
+            //"glue/ILog_glue.cpp",
+            //"glue/IMemory_glue.cpp",
+            //"glue/Log_glue.cpp",
         },
 		.flags = &.{
 			"-Wno-unused-command-line-argument",
+			windowsFlag
 		}
     });
 
