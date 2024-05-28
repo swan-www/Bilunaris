@@ -237,8 +237,6 @@ typedef struct ztf_ResetDesc
 {
     ztf_ResetType mType;
 } ztf_ResetDesc;
-
-ZTF_C_API void requestReset(const ztf_ResetDesc* pResetDesc);
 #endif
 
 // Reload

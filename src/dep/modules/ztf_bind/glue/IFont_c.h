@@ -25,15 +25,14 @@ typedef struct PipelineCache PipelineCache;
 typedef struct ztf_FontSystemDesc
 {
 
-	Renderer*	pRenderer = NULL;
-	uint32_t    mFontstashRingSizeBytes = 1024 * 1024;
-
+	Renderer*	pRenderer /*= NULL*/;
+	uint32_t    mFontstashRingSizeBytes /*= 1024 * 1024*/;
 } ztf_FontSystemDesc;
 
 typedef struct ztf_FontSystemLoadDesc
 {
 	PipelineCache*	pCache;
-	ztf_ReloadType		mLoadType;
+	ztf_ReloadType	mLoadType;
 	uint32_t        mColorFormat;  // enum TinyImageFormat
 	uint32_t        mDepthFormat;  // enum TinyImageFormat
 	uint32_t        mWidth;
@@ -46,9 +45,9 @@ typedef struct ztf_FontSystemLoadDesc
 typedef struct ztf_FontDesc
 {
 
-	const char* pFontName = "default";
-	const char* pFontPath = NULL;
-	const char* pFontPassword = NULL;
+	const char* pFontName /*= "default"*/;
+	const char* pFontPath /*= NULL*/;
+	const char* pFontPassword /*= NULL*/;
 
 } ztf_FontDesc;
 
@@ -56,14 +55,14 @@ typedef struct ztf_FontDesc
 typedef struct ztf_FontDrawDesc
 {
 
-	const char* pText = NULL;
+	const char* pText /*= NULL*/;
 
-	uint32_t      mFontID = 0;
+	uint32_t      mFontID /*= 0*/;
 	// Provided color should be A8B8G8R8_SRGB
-	uint32_t      mFontColor = 0xffffffff;
-	float         mFontSize = 16.0f;
-	float         mFontSpacing = 0.0f;
-	float         mFontBlur = 0.0f;
+	uint32_t      mFontColor /*= 0xffffffff*/;
+	float         mFontSize /*= 16.0f*/;
+	float         mFontSpacing /*= 0.0f*/;
+	float         mFontBlur /*= 0.0f*/;
 
 } ztf_FontDrawDesc;
 
