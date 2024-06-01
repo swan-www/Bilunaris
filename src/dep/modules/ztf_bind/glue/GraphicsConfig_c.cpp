@@ -1,4 +1,6 @@
+#define ZTF_BLOCK_GRAPHICS_CONFIG_INCLUDE
 #include "GraphicsConfig_c.h"
+#undef ZTF_BLOCK_GRAPHICS_CONFIG_INCLUDE
 
 #include "../../../../../dep/ztf/src/dep/common/tfalias/Common_3/Graphics/GraphicsConfig.h"
 
@@ -44,33 +46,33 @@ ZTF_C_API ztf_GPUPresetLevel ztf_getGPUPresetLevel(uint32_t vendorId, uint32_t m
 // apply the configuration rules stored in gpu.cfg to to a single GPUSettings
 ZTF_C_API void ztf_applyGPUConfigurationRules(struct ztf_GPUSettings* pGpuSettings, struct ztf_GPUCapBits* pCapBits)
 {
-	applyGPUConfigurationRules((struct GPUSettings*) pGpuSettings, (struct ztf_GPUCapBits*) pCapBits);
+	applyGPUConfigurationRules((struct GPUSettings*) pGpuSettings, (struct GPUCapBits*)pCapBits);
 }
 
 // apply the user extended configuration rules stored in gpu.cfg to the ExtendedSetting structure
 ZTF_C_API void ztf_setupExtendedSettings(ztf_ExtendedSettings* pExtendedSettings, const struct ztf_GPUSettings* pGpuSettings)
 {
-	setupExtendedSettings((ztf_ExtendedSettings*)pExtendedSettings, (const struct ztf_GPUSettings*)pGpuSettings)
+	setupExtendedSettings((ExtendedSettings*)pExtendedSettings, (const struct GPUSettings*)pGpuSettings);
 }
 
 // return if the the GPUSettings validate the current driver rejection rules
 ZTF_C_API bool ztf_checkDriverRejectionSettings(const struct ztf_GPUSettings* pGpuSettings)
 {
-	return checkDriverRejectionSettings((const struct ztf_GPUSettings*) pGpuSettings);
+	return checkDriverRejectionSettings((const struct GPUSettings*) pGpuSettings);
 }
 
 // ------ utilities ------
 ZTF_C_API const char*    ztf_presetLevelToString(ztf_GPUPresetLevel preset)
 {
-	return presetLevelToString((ztf_GPUPresetLevel)preset);
+	return presetLevelToString((GPUPresetLevel)preset);
 }
 ZTF_C_API ztf_GPUPresetLevel ztf_stringToPresetLevel(const char* presetLevel)
 {
-	return (ztf_GPUPresetLevel)stringToPresetLevel(presetLevel)
+	return (ztf_GPUPresetLevel)stringToPresetLevel(presetLevel);
 }
 ZTF_C_API bool           ztf_gpuVendorEquals(uint32_t vendorId, const char* vendorName)
 {
-	return gpuVendorEquals(vendorId, vendorName)
+	return gpuVendorEquals(vendorId, vendorName);
 }
 ZTF_C_API const char*    ztf_getGPUVendorName(uint32_t modelId)
 {

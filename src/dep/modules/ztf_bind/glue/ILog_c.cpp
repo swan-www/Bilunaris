@@ -1,8 +1,10 @@
-#include "ILog_c.h"
-
-#include "Config_c.h"
 #include "../../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces/ILog.h"
 #include "../../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Log/Log.h"
+#include "../../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces/IThread.h"
+
+#define ZTF_BLOCK_CONFIG_INCLUDE
+#include "ILog_c.h"
+#undef ZTF_BLOCK_CONFIG_INCLUDE
 
 #include <stdarg.h>
 
@@ -14,7 +16,7 @@ extern "C"
 
 ZTF_C_API void ztf_initLog(const char* appName, ztf_LogLevel level)
 {
-    initLog(appName, level);
+    initLog(appName, (LogLevel)level);
 }
 
 ZTF_C_API void ztf_exitLog(void)
@@ -42,30 +44,42 @@ ZTF_C_API void ztf_writeLogVaList(uint32_t level, const char* filename, int line
 //+V576, function:writeLog, format_arg:4, ellipsis_arg:5
 ZTF_C_API void ztf_writeLog(uint32_t level, const char* filename, int line_number, const char* message, ...)
 {
-    writeLog(level, filename, line_number, message, ...)
+    va_list args;
+    va_start(args, message);
+    writeLogVaList(level, filename, line_number, message, args);
+    va_end(args);
 }
 
 //+V576, function:writeRawLog, format_arg:3, ellipsis_arg:4
 ZTF_C_API void ztf_writeRawLog(uint32_t level, bool error, const char* message, ...)
 {
-    writeRawLog(level, error, message, ...)
+    va_list args;
+    va_start(args, message);
+    writeRawLogVaList(level, error, message, args);
+    va_end(args);
 }
-
 
 //+V576, function:_FailedAssert, format_arg:4, ellipsis_arg:5
 ZTF_C_API void ztf_FailedAssert(const char* file, int line, const char* statement, const char* msg, ...)
 {
-    _FailedAssert(file, line, statement, msg, ...);
+    va_list args;
+    va_start(args, msg);
+    _FailedAssertVaList(file, line, statement, msg, args);
+    va_end(args);
 }
 
 ZTF_C_API struct ztf_HumanReadableValue ztf_humanReadableSSize(ssize_t size)
 {
-    return humanReadableSSize(size);
+    HumanReadableValue val = humanReadableSSize(size);
+    ztf_HumanReadableValue copiedVal = *(ztf_HumanReadableValue*)&val;
+    return copiedVal;
 }
 
 ZTF_C_API struct ztf_HumanReadableValue ztf_humanReadableTimeD(double nanoseconds)
 {
-    return humanReadableTimeD(nanoseconds);
+    HumanReadableValue val = humanReadableTimeD(nanoseconds);
+    ztf_HumanReadableValue copiedVal = *(ztf_HumanReadableValue*)&val;
+    return copiedVal;
 }
 
 ZTF_C_API void ztf_EnableInteractiveMode(bool isInteractivenMode)
@@ -87,7 +101,10 @@ ZTF_C_API void ztf_FailedAssertImpl(const char* file, int line, const char* stat
 //+V576, function:_OutputDebugString, format_arg:1, ellipsis_arg:2
 ZTF_C_API void ztf_OutputDebugString(const char* str, ...)
 {
-    _OutputDebugString(str, ...);
+    va_list arglist;
+    va_start(arglist, str);
+    ztf_OutputDebugStringV(str, arglist);
+    va_end(arglist);
 }
 
 ZTF_C_API void ztf_OutputDebugStringV(const char* str, va_list args)

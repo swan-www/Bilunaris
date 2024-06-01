@@ -248,9 +248,9 @@ typedef struct PipelineReflection PipelineReflection;
         uint32_t mGroupCountZ;
     } ztf_IndirectDispatchArguments;
 
-#define INDIRECT_DRAW_ELEM_INDEX(m)       (offsetof(ztf_IndirectDrawArguments, m) / sizeof(uint32_t))
-#define INDIRECT_DRAW_INDEX_ELEM_INDEX(m) (offsetof(ztf_IndirectDrawIndexArguments, m) / sizeof(uint32_t))
-#define INDIRECT_DISPATCH_ELEM_INDEX(m)   (offsetof(ztf_IndirectDispatchArguments, m) / sizeof(uint32_t))
+#define ZTF_INDIRECT_DRAW_ELEM_INDEX(m)       (offsetof(ztf_IndirectDrawArguments, m) / sizeof(uint32_t))
+#define ZTF_INDIRECT_DRAW_INDEX_ELEM_INDEX(m) (offsetof(ztf_IndirectDrawIndexArguments, m) / sizeof(uint32_t))
+#define ZTF_INDIRECT_DISPATCH_ELEM_INDEX(m)   (offsetof(ztf_IndirectDispatchArguments, m) / sizeof(uint32_t))
 
     typedef enum ztf_IndirectArgumentType
     {
@@ -371,7 +371,7 @@ typedef struct PipelineReflection PipelineReflection;
 
     // This include is placed here because it uses data types defined previously in this file
     // and forward enums are not allowed for some compilers (Xcode).
-//#include "IShaderReflection.h"
+#include "IShaderReflection_c.h"
 
     typedef enum ztf_PrimitiveTopology
     {
@@ -3322,10 +3322,6 @@ typedef struct PipelineReflection PipelineReflection;
         uint32_t             mExtent[2];
     } ztf_BindRenderTargetsDesc;
 
-#define ZTF_DECLARE_RENDERER_FUNCTION(ret, name, ...)       \
-    typedef ret(ZTF_FORGE_CALLCONV* ztf_##name##Fn)(__VA_ARGS__); \
-    ZTF_C_RENDERER_API extern ztf_##name##Fn ztf_##name;
-
     // clang-format off
     // Utilities functions
     ZTF_C_RENDERER_API void ztf_setRendererInitializationError(const char* reason);
@@ -3334,150 +3330,150 @@ typedef struct PipelineReflection PipelineReflection;
     // API functions
 
     // Multiple renderer API (optional)
-    ZTF_C_RENDERER_API void ZTF_FORGE_CALLCONV ztf_initRendererContext(const char* appName, const ztf_RendererContextDesc* pSettings, ztf_RendererContext** ppContext);
-    ZTF_C_RENDERER_API void ZTF_FORGE_CALLCONV ztf_exitRendererContext(ztf_RendererContext* pContext);
+    ZTF_C_RENDERER_API void ztf_initRendererContext(const char* appName, const ztf_RendererContextDesc* pSettings, ztf_RendererContext** ppContext);
+    ZTF_C_RENDERER_API void ztf_exitRendererContext(ztf_RendererContext* pContext);
 
     // allocates memory and initializes the renderer -> returns pRenderer
     //
-    ZTF_C_RENDERER_API void ZTF_FORGE_CALLCONV ztf_initRenderer(const char* appName, const ztf_RendererDesc* pSettings, ztf_Renderer** ppRenderer);
-    ZTF_C_RENDERER_API void ZTF_FORGE_CALLCONV ztf_exitRenderer(ztf_Renderer* pRenderer);
+    ZTF_C_RENDERER_API void ztf_initRenderer(const char* appName, const ztf_RendererDesc* pSettings, ztf_Renderer** ppRenderer);
+    ZTF_C_RENDERER_API void ztf_exitRenderer(ztf_Renderer* pRenderer);
 
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addFence, ztf_Renderer* pRenderer, ztf_Fence** ppFence)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeFence, ztf_Renderer* pRenderer, ztf_Fence* pFence)
-
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addSemaphore, ztf_Renderer* pRenderer, ztf_Semaphore** ppSemaphore)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeSemaphore, ztf_Renderer* pRenderer, ztf_Semaphore* pSemaphore)
-
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addQueue, ztf_Renderer* pRenderer, ztf_QueueDesc* pQDesc, ztf_Queue** ppQueue)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeQueue, ztf_Renderer* pRenderer, ztf_Queue* pQueue)
-
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addSwapChain, ztf_Renderer* pRenderer, const ztf_SwapChainDesc* pDesc, ztf_SwapChain** ppSwapChain)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeSwapChain, ztf_Renderer* pRenderer, ztf_SwapChain* pSwapChain)
-
-    // memory functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addResourceHeap, ztf_Renderer* pRenderer, const ztf_ResourceHeapDesc* pDesc, ztf_ResourceHeap** ppHeap)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeResourceHeap, ztf_Renderer* pRenderer, ztf_ResourceHeap* pHeap)
+    ZTF_C_RENDERER_API void ztf_addFence(ztf_Renderer* pRenderer, ztf_Fence** ppFence);
+    ZTF_C_RENDERER_API void ztf_removeFence(ztf_Renderer* pRenderer, ztf_Fence* pFence);
+                       
+    ZTF_C_RENDERER_API void ztf_addSemaphore(ztf_Renderer* pRenderer, ztf_Semaphore** ppSemaphore);
+    ZTF_C_RENDERER_API void ztf_removeSemaphore(ztf_Renderer* pRenderer, ztf_Semaphore* pSemaphore);
+                       
+    ZTF_C_RENDERER_API void ztf_addQueue(ztf_Renderer* pRenderer, ztf_QueueDesc* pQDesc, ztf_Queue** ppQueue);
+    ZTF_C_RENDERER_API void ztf_removeQueue(ztf_Renderer* pRenderer, ztf_Queue* pQueue);
+                       
+    ZTF_C_RENDERER_API void ztf_addSwapChain(ztf_Renderer* pRenderer, const ztf_SwapChainDesc* pDesc, ztf_SwapChain** ppSwapChain);
+    ZTF_C_RENDERER_API void ztf_removeSwapChain(ztf_Renderer* pRenderer, ztf_SwapChain* pSwapChain);
+                       
+    // memory function 
+    ZTF_C_RENDERER_API void ztf_addResourceHeap(ztf_Renderer* pRenderer, const ztf_ResourceHeapDesc* pDesc, ztf_ResourceHeap** ppHeap);
+    ZTF_C_RENDERER_API void ztf_removeResourceHeap(ztf_Renderer* pRenderer, ztf_ResourceHeap* pHeap);
 
     // command pool functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addCmdPool, ztf_Renderer* pRenderer, const ztf_CmdPoolDesc* pDesc, ztf_CmdPool** ppCmdPool)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeCmdPool, ztf_Renderer* pRenderer, ztf_CmdPool* pCmdPool)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addCmd, ztf_Renderer* pRenderer, const ztf_CmdDesc* pDesc, ztf_Cmd** ppCmd)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeCmd, ztf_Renderer* pRenderer, ztf_Cmd* pCmd)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addCmd_n, ztf_Renderer* pRenderer, const ztf_CmdDesc* pDesc, uint32_t cmdCount, ztf_Cmd*** pppCmds)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeCmd_n, ztf_Renderer* pRenderer, uint32_t cmdCount, ztf_Cmd** ppCmds)
+    ZTF_C_RENDERER_API void ztf_addCmdPool( ztf_Renderer* pRenderer, const ztf_CmdPoolDesc* pDesc, ztf_CmdPool** ppCmdPool);
+    ZTF_C_RENDERER_API void ztf_removeCmdPool( ztf_Renderer* pRenderer, ztf_CmdPool* pCmdPool);
+    ZTF_C_RENDERER_API void ztf_addCmd( ztf_Renderer* pRenderer, const ztf_CmdDesc* pDesc, ztf_Cmd** ppCmd);
+    ZTF_C_RENDERER_API void ztf_removeCmd( ztf_Renderer* pRenderer, ztf_Cmd* pCmd);
+    ZTF_C_RENDERER_API void ztf_addCmd_n( ztf_Renderer* pRenderer, const ztf_CmdDesc* pDesc, uint32_t cmdCount, ztf_Cmd*** pppCmds);
+    ZTF_C_RENDERER_API void ztf_removeCmd_n( ztf_Renderer* pRenderer, uint32_t cmdCount, ztf_Cmd** ppCmds);
 
     //
     // All buffer, texture loading handled by resource system -> IResourceLoader.*
     //
 
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addRenderTarget, ztf_Renderer* pRenderer, const ztf_RenderTargetDesc* pDesc, ztf_RenderTarget** ppRenderTarget)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeRenderTarget, ztf_Renderer* pRenderer, ztf_RenderTarget* pRenderTarget)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addSampler, ztf_Renderer* pRenderer, const ztf_SamplerDesc* pDesc, ztf_Sampler** ppSampler)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeSampler, ztf_Renderer* pRenderer, ztf_Sampler* pSampler)
-
-    // shader functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addShaderBinary, ztf_Renderer* pRenderer, const ztf_BinaryShaderDesc* pDesc, ztf_Shader** ppShaderProgram)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeShader, ztf_Renderer* pRenderer, ztf_Shader* pShaderProgram)
-
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addRootSignature, ztf_Renderer* pRenderer, const ztf_RootSignatureDesc* pDesc, ztf_RootSignature** ppRootSignature)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeRootSignature, ztf_Renderer* pRenderer, ztf_RootSignature* pRootSignature)
-    ZTF_DECLARE_RENDERER_FUNCTION(uint32_t, getDescriptorIndexFromName, const ztf_RootSignature* pRootSignature, const char* pName)
-
-    // pipeline functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addPipeline, ztf_Renderer* pRenderer, const ztf_PipelineDesc* pPipelineSettings, ztf_Pipeline** ppPipeline)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removePipeline, ztf_Renderer* pRenderer, ztf_Pipeline* pPipeline)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addPipelineCache, ztf_Renderer* pRenderer, const ztf_PipelineCacheDesc* pDesc, ztf_PipelineCache** ppPipelineCache)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, getPipelineCacheData, ztf_Renderer* pRenderer, ztf_PipelineCache* pPipelineCache, size_t* pSize, void* pData)
-#if defined(SHADER_STATS_AVAILABLE)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addPipelineStats, ztf_Renderer* pRenderer, ztf_Pipeline* pPipeline, bool generateDisassembly, ztf_PipelineStats* pOutStats);
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removePipelineStats, ztf_Renderer* pRenderer, ztf_PipelineStats* pStats);
-#endif
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removePipelineCache, ztf_Renderer* pRenderer, ztf_PipelineCache* pPipelineCache)
-
-    // Descriptor Set functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addDescriptorSet, ztf_Renderer* pRenderer, const ztf_DescriptorSetDesc* pDesc, ztf_DescriptorSet** ppDescriptorSet)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeDescriptorSet, ztf_Renderer* pRenderer, ztf_DescriptorSet* pDescriptorSet)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, updateDescriptorSet, ztf_Renderer* pRenderer, uint32_t index, ztf_DescriptorSet* pDescriptorSet, uint32_t count, const ztf_DescriptorData* pParams)
-
-    // command buffer functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, resetCmdPool, ztf_Renderer* pRenderer, ztf_CmdPool* pCmdPool)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, beginCmd, ztf_Cmd* pCmd)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, endCmd, ztf_Cmd* pCmd)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBindRenderTargets, ztf_Cmd* pCmd, const ztf_BindRenderTargetsDesc* pDesc)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdSetSampleLocations, ztf_Cmd* pCmd, ztf_SampleCount samplesCount, uint32_t gridSizeX, uint32_t gridSizeY, ztf_SampleLocations* plocations);
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdSetViewport, ztf_Cmd* pCmd, float x, float y, float width, float height, float minDepth, float maxDepth)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdSetScissor, ztf_Cmd* pCmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdSetStencilReferenceValue, ztf_Cmd* pCmd, uint32_t val)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBindPipeline, ztf_Cmd* pCmd, ztf_Pipeline* pPipeline)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBindDescriptorSet, ztf_Cmd* pCmd, uint32_t index, ztf_DescriptorSet* pDescriptorSet)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBindPushConstants, ztf_Cmd* pCmd, ztf_RootSignature* pRootSignature, uint32_t paramIndex, const void* pConstants)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBindDescriptorSetWithRootCbvs, ztf_Cmd* pCmd, uint32_t index, ztf_DescriptorSet* pDescriptorSet, uint32_t count, const ztf_DescriptorData* pParams)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBindIndexBuffer, ztf_Cmd* pCmd, Buffer* pBuffer, uint32_t indexType, uint64_t offset)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBindVertexBuffer, ztf_Cmd* pCmd, uint32_t bufferCount, ztf_Buffer** ppBuffers, const uint32_t* pStrides, const uint64_t* pOffsets)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdDraw, ztf_Cmd* pCmd, uint32_t vertexCount, uint32_t firstVertex)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdDrawInstanced, ztf_Cmd* pCmd, uint32_t vertexCount, uint32_t firstVertex, uint32_t instanceCount, uint32_t firstInstance)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdDrawIndexed, ztf_Cmd* pCmd, uint32_t indexCount, uint32_t firstIndex, uint32_t firstVertex)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdDrawIndexedInstanced, ztf_Cmd* pCmd, uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdDispatch, ztf_Cmd* pCmd, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+    ZTF_C_RENDERER_API void ztf_addRenderTarget( ztf_Renderer* pRenderer, const ztf_RenderTargetDesc* pDesc, ztf_RenderTarget** ppRenderTarget)                                                 ;
+    ZTF_C_RENDERER_API void ztf_removeRenderTarget( ztf_Renderer* pRenderer, ztf_RenderTarget* pRenderTarget)                                                                                   ;
+    ZTF_C_RENDERER_API void ztf_addSampler( ztf_Renderer* pRenderer, const ztf_SamplerDesc* pDesc, ztf_Sampler** ppSampler)                                                                     ;
+    ZTF_C_RENDERER_API void ztf_removeSampler( ztf_Renderer* pRenderer, ztf_Sampler* pSampler)                                                                                                  ;
+                                                                                                                                                                                            
+    // shader function                                                                                                                                                                      
+    ZTF_C_RENDERER_API void ztf_addShaderBinary( ztf_Renderer* pRenderer, const ztf_BinaryShaderDesc* pDesc, ztf_Shader** ppShaderProgram)                                                      ;
+    ZTF_C_RENDERER_API void ztf_removeShader( ztf_Renderer* pRenderer, ztf_Shader* pShaderProgram)                                                                                              ;
+                                                                                                                                                                                            
+    ZTF_C_RENDERER_API void ztf_addRootSignature( ztf_Renderer* pRenderer, const ztf_RootSignatureDesc* pDesc, ztf_RootSignature** ppRootSignature)                                             ;
+    ZTF_C_RENDERER_API void ztf_removeRootSignature( ztf_Renderer* pRenderer, ztf_RootSignature* pRootSignature)                                                                                ;
+    ZTF_C_RENDERER_API uint32_t ztf_getDescriptorIndexFromName( const ztf_RootSignature* pRootSignature, const char* pName)                                                                     ;
+                                                                                                                                                                                            
+    // pipeline functions                                                                                                                                                                   
+    ZTF_C_RENDERER_API void ztf_addPipeline( ztf_Renderer* pRenderer, const ztf_PipelineDesc* pPipelineSettings, ztf_Pipeline** ppPipeline)                                                     ;
+    ZTF_C_RENDERER_API void ztf_removePipeline( ztf_Renderer* pRenderer, ztf_Pipeline* pPipeline)                                                                                               ;
+    ZTF_C_RENDERER_API void ztf_addPipelineCache( ztf_Renderer* pRenderer, const ztf_PipelineCacheDesc* pDesc, ztf_PipelineCache** ppPipelineCache)                                             ;
+    ZTF_C_RENDERER_API void ztf_getPipelineCacheData( ztf_Renderer* pRenderer, ztf_PipelineCache* pPipelineCache, size_t* pSize, void* pData)                                                   ;
+#if defined(SHADER_STATS_AVAILABLE)                                                                                                                                                         
+    ZTF_C_RENDERER_API void ztf_addPipelineStats( ztf_Renderer* pRenderer, ztf_Pipeline* pPipeline, bool generateDisassembly, ztf_PipelineStats* pOutStats);                                    ;
+    ZTF_C_RENDERER_API void ztf_removePipelineStats( ztf_Renderer* pRenderer, ztf_PipelineStats* pStats);                                                                                       ;
+#endif                                                                                                                                                                                      
+    ZTF_C_RENDERER_API void ztf_removePipelineCache( ztf_Renderer* pRenderer, ztf_PipelineCache* pPipelineCache)                                                                                ;
+                                                                                                                                                                                            
+    // Descriptor Set functions                                                                                                                                                             
+    ZTF_C_RENDERER_API void ztf_addDescriptorSet( ztf_Renderer* pRenderer, const ztf_DescriptorSetDesc* pDesc, ztf_DescriptorSet** ppDescriptorSet)                                             ;
+    ZTF_C_RENDERER_API void ztf_removeDescriptorSet( ztf_Renderer* pRenderer, ztf_DescriptorSet* pDescriptorSet)                                                                                ;
+    ZTF_C_RENDERER_API void ztf_updateDescriptorSet( ztf_Renderer* pRenderer, uint32_t index, ztf_DescriptorSet* pDescriptorSet, uint32_t count, const ztf_DescriptorData* pParams)             ;
+                                                                                                                                                                                            
+    // command buffer functions                                                                                                                                                             
+    ZTF_C_RENDERER_API void ztf_resetCmdPool( ztf_Renderer* pRenderer, ztf_CmdPool* pCmdPool)                                                                                                   ;
+    ZTF_C_RENDERER_API void ztf_beginCmd( ztf_Cmd* pCmd)                                                                                                                                        ;
+    ZTF_C_RENDERER_API void ztf_endCmd( ztf_Cmd* pCmd)                                                                                                                                          ;
+    ZTF_C_RENDERER_API void ztf_cmdBindRenderTargets( ztf_Cmd* pCmd, const ztf_BindRenderTargetsDesc* pDesc)                                                                                    ;
+    ZTF_C_RENDERER_API void ztf_cmdSetSampleLocations( ztf_Cmd* pCmd, ztf_SampleCount samplesCount, uint32_t gridSizeX, uint32_t gridSizeY, ztf_SampleLocations* plocations);                   ;
+    ZTF_C_RENDERER_API void ztf_cmdSetViewport( ztf_Cmd* pCmd, float x, float y, float width, float height, float minDepth, float maxDepth)                                                     ;
+    ZTF_C_RENDERER_API void ztf_cmdSetScissor( ztf_Cmd* pCmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height)                                                                          ;
+    ZTF_C_RENDERER_API void ztf_cmdSetStencilReferenceValue( ztf_Cmd* pCmd, uint32_t val)                                                                                                       ;
+    ZTF_C_RENDERER_API void ztf_cmdBindPipeline( ztf_Cmd* pCmd, ztf_Pipeline* pPipeline)                                                                                                        ;
+    ZTF_C_RENDERER_API void ztf_cmdBindDescriptorSet( ztf_Cmd* pCmd, uint32_t index, ztf_DescriptorSet* pDescriptorSet)                                                                         ;
+    ZTF_C_RENDERER_API void ztf_cmdBindPushConstants( ztf_Cmd* pCmd, ztf_RootSignature* pRootSignature, uint32_t paramIndex, const void* pConstants)                                            ;
+    ZTF_C_RENDERER_API void ztf_cmdBindDescriptorSetWithRootCbvs( ztf_Cmd* pCmd, uint32_t index, ztf_DescriptorSet* pDescriptorSet, uint32_t count, const ztf_DescriptorData* pParams)          ;
+    ZTF_C_RENDERER_API void ztf_cmdBindIndexBuffer( ztf_Cmd* pCmd, Buffer* pBuffer, uint32_t indexType, uint64_t offset)                                                                        ;
+    ZTF_C_RENDERER_API void ztf_cmdBindVertexBuffer( ztf_Cmd* pCmd, uint32_t bufferCount, ztf_Buffer** ppBuffers, const uint32_t* pStrides, const uint64_t* pOffsets)                           ;
+    ZTF_C_RENDERER_API void ztf_cmdDraw(ztf_Cmd* pCmd, uint32_t vertexCount, uint32_t firstVertex)                                                                                              ;
+    ZTF_C_RENDERER_API void ztf_cmdDrawInstanced( ztf_Cmd* pCmd, uint32_t vertexCount, uint32_t firstVertex, uint32_t instanceCount, uint32_t firstInstance)                                    ;
+    ZTF_C_RENDERER_API void ztf_cmdDrawIndexed( ztf_Cmd* pCmd, uint32_t indexCount, uint32_t firstIndex, uint32_t firstVertex)                                                                  ;
+    ZTF_C_RENDERER_API void ztf_cmdDrawIndexedInstanced( ztf_Cmd* pCmd, uint32_t indexCount, uint32_t firstIndex, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance)         ;
+    ZTF_C_RENDERER_API void ztf_cmdDispatch(ztf_Cmd* pCmd, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)                                                                    ;
 
     // Transition Commands
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdResourceBarrier, ztf_Cmd* pCmd, uint32_t bufferBarrierCount, ztf_BufferBarrier* pBufferBarriers, uint32_t textureBarrierCount, ztf_TextureBarrier* pTextureBarriers, uint32_t rtBarrierCount, ztf_RenderTargetBarrier* pRtBarriers)
+    ZTF_C_RENDERER_API void ztf_cmdResourceBarrier(ztf_Cmd* pCmd, uint32_t bufferBarrierCount, ztf_BufferBarrier* pBufferBarriers, uint32_t textureBarrierCount, ztf_TextureBarrier* pTextureBarriers, uint32_t rtBarrierCount, ztf_RenderTargetBarrier* pRtBarriers);
 
     // queue/fence/swapchain functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, acquireNextImage, ztf_Renderer* pRenderer, ztf_SwapChain* pSwapChain, ztf_Semaphore* pSignalSemaphore, ztf_Fence* pFence, uint32_t* pImageIndex)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, queueSubmit, ztf_Queue* pQueue, const ztf_QueueSubmitDesc* pDesc)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, queuePresent, ztf_Queue* pQueue, const ztf_QueuePresentDesc* pDesc)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, waitQueueIdle, ztf_Queue* pQueue)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, getFenceStatus, ztf_Renderer* pRenderer, ztf_Fence* pFence, ztf_FenceStatus* pFenceStatus)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, waitForFences, ztf_Renderer* pRenderer, uint32_t fenceCount, ztf_Fence** ppFences)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, toggleVSync, ztf_Renderer* pRenderer, ztf_SwapChain** ppSwapchain)
-
-    //Returns the recommended format for the swapchain.
-    //If true is passed for the hintHDR parameter, it will return an HDR format IF the platform supports it
-    //If false is passed or the platform does not support HDR a non HDR format is returned.
-    //If true is passed for the hintSrgb parameter, it will return format that is will do gamma correction automatically
-    //If false is passed for the hintSrgb parameter the gamma correction should be done as a postprocess step before submitting image to swapchain
-    ZTF_DECLARE_RENDERER_FUNCTION(TinyImageFormat, getSupportedSwapchainFormat, ztf_Renderer* pRenderer, const ztf_SwapChainDesc* pDesc, ztf_ColorSpace colorSpace)
-    ZTF_DECLARE_RENDERER_FUNCTION(uint32_t, getRecommendedSwapchainImageCount, ztf_Renderer* pRenderer, const ztf_WindowHandle* hwnd)
-
-    //indirect Draw functions
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addIndirectCommandSignature, ztf_Renderer* pRenderer, const ztf_CommandSignatureDesc* pDesc, ztf_CommandSignature** ppCommandSignature)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeIndirectCommandSignature, ztf_Renderer* pRenderer, ztf_CommandSignature* pCommandSignature)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdExecuteIndirect, ztf_Cmd* pCmd, ztf_CommandSignature* pCommandSignature, unsigned int maxCommandCount, ztf_Buffer* pIndirectBuffer, uint64_t bufferOffset, ztf_Buffer* pCounterBuffer, uint64_t counterBufferOffset)
+    ZTF_C_RENDERER_API void ztf_acquireNextImage( ztf_Renderer* pRenderer, ztf_SwapChain* pSwapChain, ztf_Semaphore* pSignalSemaphore, ztf_Fence* pFence, uint32_t* pImageIndex)                ;
+    ZTF_C_RENDERER_API void ztf_queueSubmit(ztf_Queue* pQueue, const ztf_QueueSubmitDesc* pDesc)                                                                                                ;
+    ZTF_C_RENDERER_API void ztf_queuePresent(ztf_Queue* pQueue, const ztf_QueuePresentDesc* pDesc)                                                                                              ;
+    ZTF_C_RENDERER_API void ztf_waitQueueIdle(ztf_Queue* pQueue)                                                                                                                                ;
+    ZTF_C_RENDERER_API void ztf_getFenceStatus(ztf_Renderer* pRenderer, ztf_Fence* pFence, ztf_FenceStatus* pFenceStatus)                                                                       ;
+    ZTF_C_RENDERER_API void ztf_waitForFences(ztf_Renderer* pRenderer, uint32_t fenceCount, ztf_Fence** ppFences)                                                                               ;
+    ZTF_C_RENDERER_API void ztf_toggleVSync(ztf_Renderer* pRenderer, ztf_SwapChain** ppSwapchain)                                                                                               ;
+                                                                                                                                                                                            
+    //Returns the recommended format for the swapchain.                                                                                                                                     
+    //If true is passed for the hintHDR parameter, it will return an HDR format IF the platform supports it                                                                                 
+    //If false is passed or the platform does not support HDR a non HDR format is returned.                                                                                                 
+    //If true is passed for the hintSrgb parameter, it will return format that is will do gamma correction automatically                                                                    
+    //If false is passed for the hintSrgb parameter the gamma correction should be done as a postprocess step before submitting image to swapchain                                          
+    ZTF_C_RENDERER_API TinyImageFormat ztf_getSupportedSwapchainFormat( ztf_Renderer* pRenderer, const ztf_SwapChainDesc* pDesc, ztf_ColorSpace colorSpace)                                     ;
+    ZTF_C_RENDERER_API uint32_t ztf_getRecommendedSwapchainImageCount( ztf_Renderer* pRenderer, const ztf_WindowHandle* hwnd)                                                                   ;
+                                                                                                                                                                                            
+    //indirect Draw functions                                                                                                                                                              
+    ZTF_C_RENDERER_API void ztf_addIndirectCommandSignature( ztf_Renderer* pRenderer, const ztf_CommandSignatureDesc* pDesc, ztf_CommandSignature** ppCommandSignature)                         ;
+    ZTF_C_RENDERER_API void ztf_removeIndirectCommandSignature( ztf_Renderer* pRenderer, ztf_CommandSignature* pCommandSignature)                                                               ;
+    ZTF_C_RENDERER_API void ztf_cmdExecuteIndirect( ztf_Cmd* pCmd, ztf_CommandSignature* pCommandSignature, unsigned int maxCommandCount, ztf_Buffer* pIndirectBuffer, uint64_t bufferOffset, ztf_Buffer* pCounterBuffer, uint64_t counterBufferOffset);
 
     /************************************************************************/
     // GPU Query Interface
     /************************************************************************/
-    ZTF_DECLARE_RENDERER_FUNCTION(void, getTimestampFrequency, ztf_Queue* pQueue, double* pFrequency)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, addQueryPool, ztf_Renderer* pRenderer, const ztf_QueryPoolDesc* pDesc, ztf_QueryPool** ppQueryPool)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, removeQueryPool, ztf_Renderer* pRenderer, ztf_QueryPool* pQueryPool)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBeginQuery, ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, ztf_QueryDesc* pQuery)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdEndQuery, ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, ztf_QueryDesc* pQuery)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdResolveQuery, ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, uint32_t startQuery, uint32_t queryCount)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdResetQuery, ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, uint32_t startQuery, uint32_t queryCount)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, getQueryData, ztf_Renderer* pRenderer, ztf_QueryPool* pQueryPool, uint32_t queryIndex, ztf_QueryData* pOutData)
-    /************************************************************************/
-    // Stats Info Interface
-    /************************************************************************/
-    ZTF_DECLARE_RENDERER_FUNCTION(void, calculateMemoryStats, ztf_Renderer* pRenderer, char** ppStats)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, calculateMemoryUse, ztf_Renderer* pRenderer, uint64_t* usedBytes, uint64_t* totalAllocatedBytes)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, freeMemoryStats, ztf_Renderer* pRenderer, char* pStats)
-    /************************************************************************/
-    // Debug Marker Interface
-    /************************************************************************/
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdBeginDebugMarker, ztf_Cmd* pCmd, float r, float g, float b, const char* pName)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdEndDebugMarker, ztf_Cmd* pCmd)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdAddDebugMarker, ztf_Cmd* pCmd, float r, float g, float b, const char* pName)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, cmdWriteMarker, ztf_Cmd* pCmd, const ztf_MarkerDesc* pDesc);
-    /************************************************************************/
-    // Resource Debug Naming Interface
-    /************************************************************************/
-    ZTF_DECLARE_RENDERER_FUNCTION(void, setBufferName, ztf_Renderer* pRenderer, ztf_Buffer* pBuffer, const char* pName)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, setTextureName, ztf_Renderer* pRenderer, ztf_Texture* pTexture, const char* pName)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, setRenderTargetName, ztf_Renderer* pRenderer, ztf_RenderTarget* pRenderTarget, const char* pName)
-    ZTF_DECLARE_RENDERER_FUNCTION(void, setPipelineName, ztf_Renderer* pRenderer, ztf_Pipeline* pPipeline, const char* pName)
-    /************************************************************************/
-    /************************************************************************/
+    ZTF_C_RENDERER_API void ztf_getTimestampFrequency( ztf_Queue* pQueue, double* pFrequency)                                                                                                   ;
+    ZTF_C_RENDERER_API void ztf_addQueryPool( ztf_Renderer* pRenderer, const ztf_QueryPoolDesc* pDesc, ztf_QueryPool** ppQueryPool)                                                             ;
+    ZTF_C_RENDERER_API void ztf_removeQueryPool( ztf_Renderer* pRenderer, ztf_QueryPool* pQueryPool)                                                                                            ;
+    ZTF_C_RENDERER_API void ztf_cmdBeginQuery( ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, ztf_QueryDesc* pQuery)                                                                                 ;
+    ZTF_C_RENDERER_API void ztf_cmdEndQuery( ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, ztf_QueryDesc* pQuery)                                                                                   ;
+    ZTF_C_RENDERER_API void ztf_cmdResolveQuery( ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, uint32_t startQuery, uint32_t queryCount)                                                            ;
+    ZTF_C_RENDERER_API void ztf_cmdResetQuery( ztf_Cmd* pCmd, ztf_QueryPool* pQueryPool, uint32_t startQuery, uint32_t queryCount)                                                              ;
+    ZTF_C_RENDERER_API void ztf_getQueryData( ztf_Renderer* pRenderer, ztf_QueryPool* pQueryPool, uint32_t queryIndex, ztf_QueryData* pOutData)                                                 ;
+    /************************************************************************/                                                                                                              
+    // Stats Info Interface                                                                                                                                                                 
+    /************************************************************************/                                                                                                              
+    ZTF_C_RENDERER_API void ztf_calculateMemoryStats( ztf_Renderer* pRenderer, char** ppStats)                                                                                                  ;
+    ZTF_C_RENDERER_API void ztf_calculateMemoryUse( ztf_Renderer* pRenderer, uint64_t* usedBytes, uint64_t* totalAllocatedBytes)                                                                ;
+    ZTF_C_RENDERER_API void ztf_freeMemoryStats( ztf_Renderer* pRenderer, char* pStats)                                                                                                         ;
+    /************************************************************************/                                                                                                              
+    // Debug Marker Interface                                                                                                                                                               
+    /************************************************************************/                                                                                                              
+    ZTF_C_RENDERER_API void ztf_cmdBeginDebugMarker( ztf_Cmd* pCmd, float r, float g, float b, const char* pName)                                                                               ;
+    ZTF_C_RENDERER_API void ztf_cmdEndDebugMarker( ztf_Cmd* pCmd)                                                                                                                               ;
+    ZTF_C_RENDERER_API void ztf_cmdAddDebugMarker( ztf_Cmd* pCmd, float r, float g, float b, const char* pName)                                                                                 ;
+    ZTF_C_RENDERER_API void ztf_cmdWriteMarker( ztf_Cmd* pCmd, const ztf_MarkerDesc* pDesc);                                                                                                    ;
+    /************************************************************************/                                                                                                              
+    // Resource Debug Naming Interface                                                                                                                                                      
+    /************************************************************************/                                                                                                              
+    ZTF_C_RENDERER_API void ztf_setBufferName( ztf_Renderer* pRenderer, ztf_Buffer* pBuffer, const char* pName)                                                                                 ;
+    ZTF_C_RENDERER_API void ztf_setTextureName( ztf_Renderer* pRenderer, ztf_Texture* pTexture, const char* pName)                                                                              ;
+    ZTF_C_RENDERER_API void ztf_setRenderTargetName( ztf_Renderer* pRenderer, ztf_RenderTarget* pRenderTarget, const char* pName)                                                               ;
+    ZTF_C_RENDERER_API void ztf_setPipelineName( ztf_Renderer* pRenderer, ztf_Pipeline* pPipeline, const char* pName)                                                                           ;
+    /************************************************************************/                                                                                                              
+    /************************************************************************/                                                                                                              
     // clang-format on
 
 #ifdef __cplusplus

@@ -10,6 +10,8 @@ extern "C"
 {
 #endif
 
+#ifndef ZTF_BLOCK_GRAPHICS_CONFIG_INCLUDE
+
 #define FORGE_RENDERER_CONFIG_H
 
 #pragma warning(push, 0)
@@ -50,6 +52,8 @@ extern "C"
        defined(NX64)) > 1
 #define ZTF_USE_MULTIPLE_RENDER_APIS
 #endif
+
+#endif //ZTF_BLOCK_GRAPHICS_CONFIG_INCLUDE
 
 // ------------------------------- gpu configuration rules ------------------------------- //
 

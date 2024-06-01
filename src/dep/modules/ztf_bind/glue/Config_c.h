@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef ZTF_BLOCK_CONFIG_INCLUDE
+
 #include <stdint.h>
 #include <stdlib.h> 
 
@@ -96,6 +98,35 @@ typedef SSIZE_T ssize_t;
 #error Unknown language dialect
 #endif
 
+#if !defined(NDEBUG)
+#define ZTF_ENABLE_MEMORY_TRACKING
+#endif
+
+//////////////////////////////////////////////
+//// General options
+//////////////////////////////////////////////
+// #define ENABLE_MATH_CHECKS // Enables low level math library debug checks like SIMD variable alignment checks
+#define ENABLE_FORGE_SCRIPTING
+#define ENABLE_FORGE_RELOAD_SHADER
+#define ENABLE_FORGE_UI
+#define ENABLE_FORGE_FONTS
+#define ENABLE_FORGE_INPUT
+#define ENABLE_FORGE_ANIMATION_DEBUG
+// #define ENABLE_FORGE_GPU_ANIMATION_DEBUG
+#define ENABLE_FORGE_MATERIALS
+#define ENABLE_ZIP_FILESYSTEM
+#define ENABLE_SCREENSHOT
+#define ENABLE_PROFILER
+#define ENABLE_MESHOPTIMIZER
+#define ENABLE_THREAD_PERFORMANCE_STATS
+// #define ENABLE_VMA_LOG // Very verbose, prints for each allocation
+
+// ENABLE_FORGE_ANDROID_SHADERC can be disabled if all shaders are compiled offline.
+// This way we also avoid to link to this library
+#define ENABLE_FORGE_ANDROID_SHADERC
+
 #ifdef __cplusplus
 }
 #endif
+
+#endif //ZTF_BLOCK_CONFIG_INCLUDE

@@ -40,15 +40,17 @@ pub fn build(b: *std.Build) !void
             "glue/IFont_c.cpp",
 			"glue/IOperatingSystem_c.cpp",
             "glue/IGraphics_c.cpp",
-            //"glue/IResourceLoader_glue.cpp",
-            //"glue/IFileSystem_glue.cpp",
-            //"glue/ILog_glue.cpp",
-            //"glue/IMemory_glue.cpp",
-            //"glue/Log_glue.cpp",
+			"glue/GraphicsConfig_c.cpp",
+			"glue/ILog_c.cpp",
+
+			"glue/IMemory_c.cpp",
+			"glue/IThread_c.cpp",
+			//"glue/IFileSystem_c.cpp",
+			//"glue/IResourceLoader_c.cpp",
         },
 		.flags = &.{
 			"-Wno-unused-command-line-argument",
-			"-Wno-everything",
+			//"-Wno-everything",
 			windowsFlag
 		}
     });
@@ -66,8 +68,8 @@ pub fn build(b: *std.Build) !void
         .name = "ztf_zig",
         .target = target,
         .optimize = optimize,
-		//.root_source_file = .{ .path = "bindings/ITF.zig" },
+		.root_source_file = .{ .path = "bindings/ITF.zig" },
     });
 	_= &ztf_zig;
-	//b.installArtifact(ztf_zig);
+	b.installArtifact(ztf_zig);
 }
