@@ -57,21 +57,70 @@ pub fn build(b: *std.Build) !void
 		}
     });
 
+	const ztf_glue_headers = [_][]const u8{
+		"glue/MathTypes_glue.h",
+		"glue/ICameraController_c.h",
+		"glue/IFont_c.h",
+		"glue/IOperatingSystem_c.h",
+		"glue/IGraphics_c.h",
+		"glue/GraphicsConfig_c.h",
+		"glue/ILog_c.h",
+		"glue/IMemory_c.h",
+		"glue/IThread_c.h",
+		"glue/IFileSystem_c.h",
+		"glue/IResourceLoader_c.h",
+		"glue/IApp_c.h",
+		"glue/IInput_c.h",
+		"glue/IUI_c.h",
+	};
+
+	for (ztf_glue_headers) |h| ztf_glue.installHeader(h, h);
 	b.installArtifact(ztf_glue);
 
-	const ztf = b.createModule(.{
-        .target = target,
-        .optimize = optimize,
-        .root_source_file = .{ .path = "bindings/ITF.zig" },
-    });
-	_= &ztf;
+	var translate_ztf_step = b.step("translate_ztf", "");
+	b.getInstallStep().dependOn(translate_ztf_step);
 
 	const ztf_zig = b.addStaticLibrary(.{
         .name = "ztf_zig",
         .target = target,
         .optimize = optimize,
-		.root_source_file = .{ .path = "bindings/ITF.zig" },
     });
-	_= &ztf_zig;
-	b.installArtifact(ztf_zig);
+	_ = &ztf_zig;
+
+	for (ztf_glue_headers) |h|
+	{
+		const translateCOfHeader = b.addTranslateC(.{
+			.root_source_file = .{ .path = h },
+			.target = target,
+        	.optimize = optimize,
+		});
+		translateCOfHeader.step.dependOn(&ztf_glue.step);
+
+		const translatedHeaderModule = b.createModule(.{
+			.target = target,
+			.optimize = optimize,
+			.root_source_file = translateCOfHeader.getOutput(),
+		});
+		_ = &translatedHeaderModule;
+		//ztf_zig.installHeader(src_path: []const u8, dest_rel_path: []const u8)
+
+		translate_ztf_step.dependOn(&translateCOfHeader.step);
+	}
+	
+	//const ztf = b.createModule(.{
+    //    .target = target,
+    //    .optimize = optimize,
+    //    .root_source_file = .{ .path = "bindings/ITF.zig" },
+    //});
+	//_= &ztf;
+//
+	//const ztf_zig = b.addStaticLibrary(.{
+    //    .name = "ztf_zig",
+    //    .target = target,
+    //    .optimize = optimize,
+	//	.root_source_file = .{ .path = "bindings/ITF.zig" },
+    //});
+	//_= &ztf_zig;
+	//b.installArtifact(ztf_zig);
+
 }
