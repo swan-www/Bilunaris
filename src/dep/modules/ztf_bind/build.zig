@@ -58,23 +58,28 @@ pub fn build(b: *std.Build) !void
     });
 
 	const ztf_glue_headers = [_][]const u8{
-		"glue/MathTypes_glue.h",
-		"glue/ICameraController_c.h",
-		"glue/IFont_c.h",
-		"glue/IOperatingSystem_c.h",
-		"glue/IGraphics_c.h",
-		"glue/GraphicsConfig_c.h",
-		"glue/ILog_c.h",
-		"glue/IMemory_c.h",
-		"glue/IThread_c.h",
-		"glue/IFileSystem_c.h",
-		"glue/IResourceLoader_c.h",
-		"glue/IApp_c.h",
-		"glue/IInput_c.h",
-		"glue/IUI_c.h",
+		"MathTypes_glue.h",
+		//"glue/ICameraController_c.h",
+		//"glue/IFont_c.h",
+		//"glue/IOperatingSystem_c.h",
+		//"glue/IGraphics_c.h",
+		//"glue/GraphicsConfig_c.h",
+		//"glue/ILog_c.h",
+		//"glue/IMemory_c.h",
+		//"glue/IThread_c.h",
+		//"glue/IFileSystem_c.h",
+		//"glue/IResourceLoader_c.h",
+		//"glue/IApp_c.h",
+		//"glue/IInput_c.h",
+		//"glue/IUI_c.h",
 	};
 
-	for (ztf_glue_headers) |h| ztf_glue.installHeader(h, h);
+	for (ztf_glue_headers) |h| 
+	{
+		const header_src_path = try std.fs.path.join(b.allocator, &.{ "glue", h});
+		defer b.allocator.free(header_src_path);
+		ztf_glue.installHeader(header_src_path, header_src_path);
+	}
 	b.installArtifact(ztf_glue);
 
 	var translate_ztf_step = b.step("translate_ztf", "");
@@ -89,22 +94,24 @@ pub fn build(b: *std.Build) !void
 
 	for (ztf_glue_headers) |h|
 	{
+		const header_src_path = try std.fs.path.join(b.allocator, &.{ "glue", h});
+		defer b.allocator.free(header_src_path);
 		const translateCOfHeader = b.addTranslateC(.{
-			.root_source_file = .{ .path = h },
+			.root_source_file = .{ .path = header_src_path },
 			.target = target,
         	.optimize = optimize,
 		});
 		translateCOfHeader.step.dependOn(&ztf_glue.step);
 
-		const translatedHeaderModule = b.createModule(.{
-			.target = target,
-			.optimize = optimize,
-			.root_source_file = translateCOfHeader.getOutput(),
-		});
-		_ = &translatedHeaderModule;
-		//ztf_zig.installHeader(src_path: []const u8, dest_rel_path: []const u8)
+		const header_name_no_ext = std.fs.path.stem(h);
+		const zig_file_output_path_no_ext = try std.fs.path.join(b.allocator,&.{ "ZTF/", header_name_no_ext});
+		defer b.allocator.free(zig_file_output_path_no_ext);
+		const zig_file_output_path = try std.mem.concat(b.allocator, u8, &.{zig_file_output_path_no_ext, ".zig"});
+		defer b.allocator.free(zig_file_output_path);
 
-		translate_ztf_step.dependOn(&translateCOfHeader.step);
+		const installFile = b.addInstallFile(translateCOfHeader.getOutput(), zig_file_output_path);
+		installFile.step.dependOn(&translateCOfHeader.step);
+		translate_ztf_step.dependOn(&installFile.step);	
 	}
 	
 	//const ztf = b.createModule(.{
