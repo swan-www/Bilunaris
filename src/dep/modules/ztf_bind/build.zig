@@ -46,7 +46,8 @@ pub fn build(b: *std.Build) !void
 			"glue/IMemory_c.cpp",
 			"glue/IThread_c.cpp",
 			"glue/IFileSystem_c.cpp",
-			//"glue/IResourceLoader_c.cpp",
+			"glue/IResourceLoader_c.cpp",
+			"glue/IApp_c.cpp",
         },
 		.flags = &.{
 			"-Wno-unused-command-line-argument",
