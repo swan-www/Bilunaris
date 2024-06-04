@@ -42,12 +42,13 @@ pub fn build(b: *std.Build) !void
             "glue/IGraphics_c.cpp",
 			"glue/GraphicsConfig_c.cpp",
 			"glue/ILog_c.cpp",
-
 			"glue/IMemory_c.cpp",
 			"glue/IThread_c.cpp",
 			"glue/IFileSystem_c.cpp",
 			"glue/IResourceLoader_c.cpp",
 			"glue/IApp_c.cpp",
+			"glue/IInput_c.cpp",
+			"glue/IUI_c.cpp",
         },
 		.flags = &.{
 			"-Wno-unused-command-line-argument",

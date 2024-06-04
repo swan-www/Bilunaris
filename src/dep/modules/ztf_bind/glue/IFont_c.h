@@ -88,14 +88,14 @@ ZTF_C_API void ztf_unloadFontSystem(ztf_ReloadType unloadType);
 
 /// Renders UI-style text to the screen using a loaded font w/ The Forge
 /// This function will assert if Font Rendering has not been initialized
-ZTF_C_API void ztf_cmdDrawTextWithFont(Cmd* pCmd, ztf_Float2* screenCoordsInPx, const ztf_FontDrawDesc* pDrawDesc);
+ZTF_C_API void ztf_cmdDrawTextWithFont(Cmd* pCmd, ztf_Float2 screenCoordsInPx, const ztf_FontDrawDesc* pDrawDesc);
 
 /// Renders text as an object in the world using a loaded font w/ The Forge
 /// This function will assert if Font Rendering has not been initialized
 ZTF_C_API void ztf_cmdDrawWorldSpaceTextWithFont(Cmd* pCmd, const ztf_Matrix4* pMatWorld, const CameraMatrix* pMatProjView, const ztf_FontDrawDesc* pDrawDesc);
 
 /// Debugging feature - draws the contents of the internal font atlas
-ZTF_C_API void ztf_cmdDrawDebugFontAtlas(Cmd* pCmd, ztf_Float2* screenCoordsInPx);
+ZTF_C_API void ztf_cmdDrawDebugFontAtlas(Cmd* pCmd, ztf_Float2 screenCoordsInPx);
 
 /****************************************************************************/
 // MARK: - Other Font System Functionality
@@ -114,7 +114,7 @@ ZTF_C_API void ztf_fntResetFontAtlas(ztf_Int2 const* newAtlasSize);
 ZTF_C_API void ztf_fntExpandAtlas(ztf_Int2 const* additionalSize);
 
 /// Returns the bounds of text that would be drawn to supplied specification
-ZTF_C_API ztf_Float2* ztf_fntMeasureFontText(const char* pText, const ztf_FontDrawDesc* pDrawDesc);
+ZTF_C_API ztf_Float2 ztf_fntMeasureFontText(const char* pText, const ztf_FontDrawDesc* pDrawDesc);
 
 #ifdef __cplusplus
 }

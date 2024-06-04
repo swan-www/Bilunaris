@@ -35,18 +35,18 @@ ZTF_C_API void ztf_unloadFontSystem(ztf_ReloadType unloadType)
 	unloadFontSystem(mappedType);
 }
 
-ZTF_C_API void ztf_cmdDrawTextWithFont(Cmd* pCmd, ztf_Float2* screenCoordsInPx, const ztf_FontDrawDesc* pDrawDesc)
+ZTF_C_API void ztf_cmdDrawTextWithFont(Cmd* pCmd, ztf_Float2 screenCoordsInPx, const ztf_FontDrawDesc* pDrawDesc)
 {
-	cmdDrawTextWithFont(pCmd, *static_cast<float2*>(screenCoordsInPx), (const FontDrawDesc*)(pDrawDesc));
+	cmdDrawTextWithFont(pCmd, float2{screenCoordsInPx.x, screenCoordsInPx.y}, (const FontDrawDesc*)(pDrawDesc));
 }
 
 ZTF_C_API void ztf_cmdDrawWorldSpaceTextWithFont(Cmd* pCmd, const ztf_Matrix4* pMatWorld, const CameraMatrix* pMatProjView, const ztf_FontDrawDesc* pDrawDesc)
 {
 	cmdDrawWorldSpaceTextWithFont(pCmd, static_cast<const Matrix4*>(pMatWorld), pMatProjView, (const FontDrawDesc*)(pDrawDesc));
 }
-ZTF_C_API void ztf_cmdDrawDebugFontAtlas(Cmd* pCmd, ztf_Float2* screenCoordsInPx)
+ZTF_C_API void ztf_cmdDrawDebugFontAtlas(Cmd* pCmd, ztf_Float2 screenCoordsInPx)
 {
-	cmdDrawDebugFontAtlas(pCmd, *static_cast<const float2*>(screenCoordsInPx));
+	cmdDrawDebugFontAtlas(pCmd, float2{screenCoordsInPx.x, screenCoordsInPx.y});
 }
 
 ZTF_C_API void ztf_fntDefineFonts(const ztf_FontDesc* pDescs, uint32_t count, uint32_t* pOutIDs)
@@ -70,9 +70,10 @@ ZTF_C_API void ztf_fntExpandAtlas(ztf_Int2 const* additionalSize)
 	fntExpandAtlas(*static_cast<int2 const*>(additionalSize));
 }
 
-ZTF_C_API ztf_Float2* ztf_fntMeasureFontText(const char* pText, const ztf_FontDrawDesc* pDrawDesc)
+ZTF_C_API ztf_Float2 ztf_fntMeasureFontText(const char* pText, const ztf_FontDrawDesc* pDrawDesc)
 {
-	return new float2(fntMeasureFontText(pText, (const FontDrawDesc*)(pDrawDesc)));
+	float2 val = fntMeasureFontText(pText, (const FontDrawDesc*)(pDrawDesc));
+	return ztf_Float2{val.x, val.y};
 }
 
 #ifdef __cplusplus
