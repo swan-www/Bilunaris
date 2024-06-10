@@ -4,6 +4,8 @@
 
 #include "Config_c.h"
 
+#include "IOperatingSystem_c.h"
+
 #ifdef __cplusplus
 extern "C"
 {

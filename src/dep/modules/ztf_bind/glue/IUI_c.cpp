@@ -18,6 +18,84 @@ extern "C"
         exitUserInterface();
     }
 
+    ZTF_C_API void ztf_defaultInitCollapsingHeaderWidget(ztf_CollapsingHeaderWidget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_CollapsingHeaderWidget));
+        pWidget->mHeaderIsVisible = true;
+    }
+
+    ZTF_C_API void ztf_defaultInitDebugTexturesWidget(ztf_DebugTexturesWidget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_DebugTexturesWidget));
+        pWidget->mTextureDisplaySize = ztf_Float2{512.f, 512.f};
+    }
+
+    ZTF_C_API void ztf_defaultInitSliderFloatWidget(ztf_SliderFloatWidget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_SliderFloatWidget));
+        strcpy(&pWidget->mFormat[0], "%.3f");
+        pWidget->mStep = 0.01f;
+    }
+
+    ZTF_C_API void ztf_defaultInitSliderFloat2Widget(ztf_SliderFloat2Widget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_SliderFloat2Widget));
+        strcpy(&pWidget->mFormat[0], "%.3f");
+        pWidget->mStep = {0.01f, 0.01f};
+    }
+
+    ZTF_C_API void ztf_defaultInitSliderFloat3Widget(ztf_SliderFloat3Widget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_SliderFloat3Widget));
+        strcpy(&pWidget->mFormat[0], "%.3f");
+        pWidget->mStep = {0.01f, 0.01f, 0.01f};
+    }
+
+    ZTF_C_API void ztf_defaultInitSliderFloat4Widget(ztf_SliderFloat4Widget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_SliderFloat4Widget));
+        strcpy(&pWidget->mFormat[0], "%.3f");
+        pWidget->mStep = {0.01f, 0.01f, 0.01f, 0.01f};
+    }
+
+    ZTF_C_API void ztf_defaultInitSliderIntWidget(ztf_SliderIntWidget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_SliderIntWidget));
+        strcpy(&pWidget->mFormat[0], "%d");
+        pWidget->mStep = 1;
+    }
+
+    ZTF_C_API void ztf_defaultInitSliderUintWidget(ztf_SliderUintWidget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_SliderUintWidget));
+        strcpy(&pWidget->mFormat[0], "%u");
+        pWidget->mStep = 1;
+    }
+
+    ZTF_C_API void ztf_defaultInitTextboxWidget(ztf_TextboxWidget* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_TextboxWidget));
+        pWidget->mFlags = ZTF_UI_TEXT_AUTOSELECT_ALL;
+    }
+
+    ZTF_C_API void ztf_defaultInitUIComponentDesc(ztf_UIComponentDesc* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_UIComponentDesc));
+        pWidget->mStartPosition = ztf_Float2{0.0f, 150.0f};
+        pWidget->mStartSize = ztf_Float2{600.0f, 550.0f};
+        pWidget->mFontID = 0;
+        pWidget->mFontSize = 16.0f;
+    }
+
+    ZTF_C_API void ztf_defaultInitUserInterfaceDesc(ztf_UserInterfaceDesc* pWidget)
+    {
+        memset(pWidget, 0, sizeof(ztf_UserInterfaceDesc));
+        pWidget->mMaxDynamicUIUpdatesPerBatch = 20u;
+        pWidget->mMaxUIFonts = 10u;
+        pWidget->mFrameCount = 2u;
+        pWidget->mEnableRemoteUI = true;
+    }
+
     ZTF_C_API void ztf_loadUserInterface(const ztf_UserInterfaceLoadDesc* pDesc)
     {
         loadUserInterface((const UserInterfaceLoadDesc*) pDesc);

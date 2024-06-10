@@ -326,7 +326,7 @@ ZTF_C_RENDERER_API void ztf_cmdBindDescriptorSetWithRootCbvs(ztf_Cmd* pCmd, uint
 	cmdBindDescriptorSetWithRootCbvs((Cmd*) pCmd, index, (DescriptorSet*) pDescriptorSet, count, (const DescriptorData*) pParams);
 }
 
-ZTF_C_RENDERER_API void ztf_cmdBindIndexBuffer(ztf_Cmd* pCmd, Buffer* pBuffer, uint32_t indexType, uint64_t offset)
+ZTF_C_RENDERER_API void ztf_cmdBindIndexBuffer(ztf_Cmd* pCmd, ztf_Buffer* pBuffer, uint32_t indexType, uint64_t offset)
 {
 	cmdBindIndexBuffer((Cmd*) pCmd, (Buffer*) pBuffer, indexType, offset);
 }

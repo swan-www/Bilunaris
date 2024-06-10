@@ -9,6 +9,34 @@ extern "C"
 {
 #endif
 
+ZTF_C_API void ztf_defaultInitActionMappingDesc(ztf_ActionMappingDesc* pDesc)
+{
+    memset(pDesc, 0, sizeof(ztf_ActionMappingDesc));
+    pDesc->mActionMappingType = ZTF_INPUT_ACTION_MAPPING_NORMAL;
+    pDesc->mActionMappingDeviceTarget = ZTF_INPUT_ACTION_MAPPING_TARGET_CONTROLLER;
+    pDesc->mActionId = UINT_MAX;
+    pDesc->mDelta = 1;
+    pDesc->mDeadzone = 20.f;
+    pDesc->mOutsideRadius = 200.f;
+    pDesc->mScale = 1.f;
+    pDesc->mDeadzone = 20.f;
+    pDesc->mTouchScreenArea = ZTF_AREA_LEFT;
+}
+
+ZTF_C_API void ztf_defaultInputActionContext(ztf_InputActionContext* pContext)
+{
+    memset(pContext, 0, sizeof(ztf_InputActionContext));
+    pContext->mActionId = UINT_MAX;
+    pContext->mPhase = ZTF_INPUT_ACTION_PHASE_ENDED;
+    pContext->mDeviceType = ZTF_INPUT_DEVICE_INVALID;
+}
+
+ZTF_C_API void ztf_defaultInputActionDesc(ztf_InputActionDesc* pDesc)
+{
+    memset(pDesc, 0, sizeof(ztf_InputActionDesc));
+    pDesc->mActionId = UINT_MAX;
+}
+
 ZTF_C_API bool ztf_initInputSystem(ztf_InputSystemDesc* pDesc)
 {
     return initInputSystem((InputSystemDesc*) pDesc);

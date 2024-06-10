@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h> 
 
 #include "ztf_bind_common.h"
@@ -39,6 +40,10 @@ extern "C"
 #include "../../../../../dep/ztf/src/dep/common/tfalias/Common_3/Graphics/Vulkan/VulkanConfig.h"
 #elif defined(__linux__)
 #include "../../../../../dep/ztf/src/dep/common/tfalias/Common_3/Graphics/Vulkan/VulkanConfig.h"
+#endif
+
+#ifdef DIRECT3D12
+    typedef struct IDxcBlobEncoding IDxcBlobEncoding;
 #endif
 
 #pragma warning(pop)

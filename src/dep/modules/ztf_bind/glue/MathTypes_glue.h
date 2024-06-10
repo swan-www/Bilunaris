@@ -8,6 +8,8 @@ extern "C"
 {
 #endif
 
+typedef unsigned int uint;
+
 typedef struct ztf_Float2 { float x, y; } ztf_Float2;
 typedef struct ztf_Float3 { float x, y, z; } ztf_Float3;
 typedef struct ztf_Float4 { float x, y, z, w; } ztf_Float4;

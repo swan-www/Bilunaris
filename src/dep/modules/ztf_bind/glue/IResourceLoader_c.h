@@ -133,12 +133,12 @@ extern "C"
 
     typedef struct ztf_MeshletData
     {
-        float3 center;
+        ztf_Float3 center;
         float  radius;
 
         /// Normal cone, useful for backface culling
-        float3 coneApex;
-        float3 coneAxis;
+        ztf_Float3 coneApex;
+        ztf_Float3 coneAxis;
         float  coneCutoff; // = cos(angle/2)
     } ztf_MeshletData;
 
@@ -202,36 +202,36 @@ extern "C"
     _Static_assert(sizeof(ztf_Geometry) == 352, "If Geometry size changes we need to rebuild all custom binary meshes");
     _Static_assert(sizeof(ztf_Geometry) % 16 == 0, "Geometry size must be a multiple of 16");
 
+    typedef struct ztf_Hair
+    {
+        uint32_t mVertexCountPerStrand;
+        uint32_t mGuideCountPerStrand;
+    } ztf_Hair;
+
+    typedef struct ztf_ShadowData
+    {
+        void* pIndices;
+        void* pAttributes[ZTF_MAX_SEMANTICS];
+
+        // Strides for the data in pAttributes, this might not match Geometry::mVertexStrides since those are generated based on
+        // GeometryLoadDesc::pVertexLayout, e.g. if the normals are packed on the GPU as half2 then:
+        //         - Geometry::mVertexStrides will be sizeof(half2)
+        //         - ShadowData::mVertexStrides might be sizeof(float3) = 12 (or maybe sizeof(float4) = 16)
+        // If the data readed from the file in pAttributes is already packed then ShadowData::mVertexStrides[i] ==
+        // Geometry::mVertexStrides[i]
+        uint32_t mVertexStrides[ZTF_MAX_SEMANTICS];
+
+        // We might have a different number of attributes than mVertexCount.
+        // This happens for example for Hair
+        uint32_t mAttributeCount[ZTF_MAX_SEMANTICS];
+
+        // TODO: Consider if we want to store here mIndexStride to access ShadowData::pIndices,
+        //       right now it depends on the number of vertexes in the mesh (uint16_t if mVertexCount < 64k otherwise uint32_t)
+    } ztf_ShadowData;
+
     // Outputs data that's only needed in the CPU side, OTOH the Geometry object holds GPU related information and buffers
     typedef struct ztf_GeometryData
     {
-        struct ztf_Hair
-        {
-            uint32_t mVertexCountPerStrand;
-            uint32_t mGuideCountPerStrand;
-        };
-
-        struct ztf_ShadowData
-        {
-            void* pIndices;
-            void* pAttributes[ZTF_MAX_SEMANTICS];
-
-            // Strides for the data in pAttributes, this might not match Geometry::mVertexStrides since those are generated based on
-            // GeometryLoadDesc::pVertexLayout, e.g. if the normals are packed on the GPU as half2 then:
-            //         - Geometry::mVertexStrides will be sizeof(half2)
-            //         - ShadowData::mVertexStrides might be sizeof(float3) = 12 (or maybe sizeof(float4) = 16)
-            // If the data readed from the file in pAttributes is already packed then ShadowData::mVertexStrides[i] ==
-            // Geometry::mVertexStrides[i]
-            uint32_t mVertexStrides[ZTF_MAX_SEMANTICS];
-
-            // We might have a different number of attributes than mVertexCount.
-            // This happens for example for Hair
-            uint32_t mAttributeCount[ZTF_MAX_SEMANTICS];
-
-            // TODO: Consider if we want to store here mIndexStride to access ShadowData::pIndices,
-            //       right now it depends on the number of vertexes in the mesh (uint16_t if mVertexCount < 64k otherwise uint32_t)
-        };
-
         /// Shadow copy of the geometry vertex and index data if requested through the load flags
         ztf_ShadowData* pShadow;
 
@@ -309,7 +309,7 @@ extern "C"
         /// Linked gpu node / Unlinked Renderer index
         uint32_t            mNodeIndex;
         /// Specifies how to arrange the vertex data loaded from the file into GPU memory
-        const VertexLayout* pVertexLayout;
+        const ztf_VertexLayout* pVertexLayout;
 
         /// Optional preallocated unified buffer for geometry.
         /// When this parameter is specified, Geometry::pDrawArgs values are going
@@ -394,8 +394,6 @@ extern "C"
         // Optional - If we want to run the update on user specified command buffer instead
         ztf_Cmd* pCmd;
 
-        ZTF_C_RENDERER_API ztf_TextureSubresourceUpdate getSubresourceUpdateDesc(uint32_t mip, uint32_t layer);
-
         /// Internal
         struct
         {
@@ -404,6 +402,8 @@ extern "C"
             bool              mSkipBarrier;
         } mInternal;
     } ztf_TextureUpdateDesc;
+
+    ZTF_C_RENDERER_API ztf_TextureSubresourceUpdate getSubresourceUpdateDesc(ztf_TextureUpdateDesc* self, uint32_t mip, uint32_t layer);
 
     typedef struct ztf_TextureCopyDesc
     {
@@ -462,11 +462,11 @@ extern "C"
 
     // MARK: - Resource Loader Functions
 
-    ZTF_C_RENDERER_API void ztf_initResourceLoaderInterface(ztf_Renderer* pRenderer, ztf_ResourceLoaderDesc* pDesc = nullptr);
+    ZTF_C_RENDERER_API void ztf_initResourceLoaderInterface(ztf_Renderer* pRenderer, ztf_ResourceLoaderDesc* pDesc);
     ZTF_C_RENDERER_API void ztf_exitResourceLoaderInterface(ztf_Renderer* pRenderer);
 
     /// Multiple Renderer (unlinked GPU) variants. The Resource Loader must be shared between Renderers.
-    ZTF_C_RENDERER_API void ztf_initResourceLoaderInterface2(ztf_Renderer** ppRenderers, uint32_t rendererCount, ztf_ResourceLoaderDesc* pDesc = nullptr);
+    ZTF_C_RENDERER_API void ztf_initResourceLoaderInterface2(ztf_Renderer** ppRenderers, uint32_t rendererCount, ztf_ResourceLoaderDesc* pDesc);
     ZTF_C_RENDERER_API void ztf_exitResourceLoaderInterface2(ztf_Renderer** ppRenderers, uint32_t rendererCount);
 
     // MARK: App Material Management
@@ -515,7 +515,7 @@ extern "C"
     /// Use releaseGeometryBufferPart to release chunk.
     /// Make sure all chunks are released before removeGeometryBuffer.
     ZTF_C_RENDERER_API void ztf_addGeometryBufferPart(ztf_BufferChunkAllocator* buffer, uint32_t size, uint32_t alignment, ztf_BufferChunk* pOut,
-                                                  ztf_BufferChunk* pPreferredChunk = NULL);
+                                                  ztf_BufferChunk* pPreferredChunk);
 
     /// Release previously claimed chunk to buffer.
     /// Buffer must be the one passed to claimGeometryBufferPart for this chunk.
@@ -534,7 +534,7 @@ extern "C"
     /// Copies data from GPU to the CPU, typically for transferring it to another GPU in unlinked mode.
     /// For optimal use, the amount of data to transfer should be minimized as much as possible and applications should
     /// provide additional graphics/compute work that the GPU can execute alongside the copy.
-    FORGE_RENDERER_API void ztf_copyResource(ztf_TextureCopyDesc* pTextureDesc, ztf_SyncToken* token);
+    ZTF_C_RENDERER_API void ztf_copyResource(ztf_TextureCopyDesc* pTextureDesc, ztf_SyncToken* token);
 
     // MARK: removeResource
 

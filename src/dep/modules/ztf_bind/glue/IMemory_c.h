@@ -40,7 +40,7 @@ extern "C"
         ZTF_C_API void ztf_exitMemAlloc(void);
 
 #ifdef ZTF_ENABLE_MEMORY_TRACKING
-        ZTF_C_API MemoryStatistics ztf_memGetStatistics(void);
+        ZTF_C_API ztf_MemoryStatistics ztf_memGetStatistics(void);
 #endif
 
         ZTF_C_API void* ztf_malloc_internal(size_t size, const char* f, int l, const char* sf);

@@ -3408,7 +3408,7 @@ typedef struct PipelineReflection PipelineReflection;
     ZTF_C_RENDERER_API void ztf_cmdBindDescriptorSet( ztf_Cmd* pCmd, uint32_t index, ztf_DescriptorSet* pDescriptorSet)                                                                         ;
     ZTF_C_RENDERER_API void ztf_cmdBindPushConstants( ztf_Cmd* pCmd, ztf_RootSignature* pRootSignature, uint32_t paramIndex, const void* pConstants)                                            ;
     ZTF_C_RENDERER_API void ztf_cmdBindDescriptorSetWithRootCbvs( ztf_Cmd* pCmd, uint32_t index, ztf_DescriptorSet* pDescriptorSet, uint32_t count, const ztf_DescriptorData* pParams)          ;
-    ZTF_C_RENDERER_API void ztf_cmdBindIndexBuffer( ztf_Cmd* pCmd, Buffer* pBuffer, uint32_t indexType, uint64_t offset)                                                                        ;
+    ZTF_C_RENDERER_API void ztf_cmdBindIndexBuffer( ztf_Cmd* pCmd, ztf_Buffer* pBuffer, uint32_t indexType, uint64_t offset)                                                                        ;
     ZTF_C_RENDERER_API void ztf_cmdBindVertexBuffer( ztf_Cmd* pCmd, uint32_t bufferCount, ztf_Buffer** ppBuffers, const uint32_t* pStrides, const uint64_t* pOffsets)                           ;
     ZTF_C_RENDERER_API void ztf_cmdDraw(ztf_Cmd* pCmd, uint32_t vertexCount, uint32_t firstVertex)                                                                                              ;
     ZTF_C_RENDERER_API void ztf_cmdDrawInstanced( ztf_Cmd* pCmd, uint32_t vertexCount, uint32_t firstVertex, uint32_t instanceCount, uint32_t firstInstance)                                    ;

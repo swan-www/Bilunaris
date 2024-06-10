@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "ztf_bind_common.h"
 
@@ -142,7 +143,7 @@ typedef struct ztf_FileStreamUserData
 /// It is best to use IFileSystem IO shortcuts "fsReadFromStream(&stream,...)"
 typedef struct ztf_FileStream
 {
-    IFileSystem* pIO;
+    ztf_IFileSystem* pIO;
     ztf_FileMode                mMode;
     ztf_ResourceMount           mMount;
     struct ztf_FileStreamUserData mUser; // access to this field is IO exclusive
@@ -152,7 +153,7 @@ typedef struct ztf_FileSystemInitDesc
 {
     const char* pAppName;
     void* pPlatformData;
-    const char* pResourceMounts[RM_COUNT];
+    const char* pResourceMounts[ZTF_RM_COUNT];
 } ztf_FileSystemInitDesc;
 
 struct ztf_IFileSystem

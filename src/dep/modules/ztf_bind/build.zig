@@ -59,19 +59,19 @@ pub fn build(b: *std.Build) !void
 
 	const ztf_glue_headers = [_][]const u8{
 		"MathTypes_glue.h",
-		//"glue/ICameraController_c.h",
-		//"glue/IFont_c.h",
-		//"glue/IOperatingSystem_c.h",
-		//"glue/IGraphics_c.h",
-		//"glue/GraphicsConfig_c.h",
-		//"glue/ILog_c.h",
-		//"glue/IMemory_c.h",
-		//"glue/IThread_c.h",
-		//"glue/IFileSystem_c.h",
-		//"glue/IResourceLoader_c.h",
-		//"glue/IApp_c.h",
-		//"glue/IInput_c.h",
-		//"glue/IUI_c.h",
+		"ICameraController_c.h",
+		"IFont_c.h",
+		"IOperatingSystem_c.h",
+		"IGraphics_c.h",
+		"GraphicsConfig_c.h",
+		"ILog_c.h",
+		"IMemory_c.h",
+		"IThread_c.h",
+		"IFileSystem_c.h",
+		"IResourceLoader_c.h",
+		"IApp_c.h",
+		"IInput_c.h",
+		"IUI_c.h",
 	};
 
 	for (ztf_glue_headers) |h| 
@@ -101,6 +101,7 @@ pub fn build(b: *std.Build) !void
 			.target = target,
         	.optimize = optimize,
 		});
+		translateCOfHeader.defineCMacroRaw("_WINDOWS=");
 		translateCOfHeader.step.dependOn(&ztf_glue.step);
 
 		const header_name_no_ext = std.fs.path.stem(h);

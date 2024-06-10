@@ -396,45 +396,46 @@ typedef enum ztf_InputActionMappingDeviceTarget
 typedef struct ztf_ActionMappingDesc
 { //-V802 : Very user-facing struct, and order is highly important to convenience
     // The type of the action mapping
-    ztf_InputActionMappingType mActionMappingType = ZTF_INPUT_ACTION_MAPPING_NORMAL;
+    ztf_InputActionMappingType mActionMappingType;
 
     // Type of device this action targets
     // NOTE: cannot be INPUT_ACTION_MAPPING_TARGET_ALL.  This will cause an assertion in addActionMappings(...).
-    ztf_InputActionMappingDeviceTarget mActionMappingDeviceTarget = ZTF_INPUT_ACTION_MAPPING_TARGET_CONTROLLER;
+    ztf_InputActionMappingDeviceTarget mActionMappingDeviceTarget;
 
     // A unique ID associated with the action.
-    uint32_t mActionId = UINT_MAX;
+    uint32_t mActionId;
 
     // Device buttons that triggers the action (from the GamepadButton/KeyboardButton/MouseButton/TouchGesture enums)
     // For INPUT_ACTION_MAPPING_NORMAL, only the first element will be used (unless it's targetting touch device.  mDeviceButtons will not
     // be used but any touch will act as a "button" press). For INPUT_ACTION_MAPPING_COMPOSITE, all four elements will be used to map 2 axes
     // (element 0->+X, 1->-X, 2->+Y, 3->-Y) For INPUT_ACTION_MAPPING_COMBO, the first two elements will be used (element 0 is the button to
     // hold, element 1 causes the action to trigger)
-    int32_t mDeviceButtons[4] = {0};
+    int32_t mDeviceButtons[4];
 
     // Used for axis buttons
     // For example, if targetting the left joystick, and we want to handle both the x and y axes,
     // then mDeviceButtons[0] should be the start axis (GAMEPAD_BUTTON_LEFT_STICK_X), and mNumAxis should be 2.
     // mNumAxis should be either 1 or 2 when targetting an axis button.
-    uint8_t mNumAxis = 1;
-    uint8_t mDelta = 1; // always use delta by default for axis (absolute pos is always provided in the ctx anyway)
+    uint8_t mNumAxis;
+    uint8_t mDelta; // always use delta by default for axis (absolute pos is always provided in the ctx anyway)
 
     // User id associated with the action (relevant for controller and touch inputs to track fingers)
-    uint8_t mUserId = 0;
+    uint8_t mUserId;
 
     // Used with INPUT_ACTION_MAPPING_TOUCH_VIRTUAL_JOYSTICK to tune virtual joystick behavior
-    float mDeadzone = 20.f;
-    float mOutsideRadius = 200.f;
-    float mScale = 1.f; // Scales the values from this action mapping for virtual joysticks and mice.
+    float mDeadzone;
+    float mOutsideRadius;
+    float mScale; // Scales the values from this action mapping for virtual joysticks and mice.
 
     // Used with INPUT_ACTION_MAPPING_TOUCH_VIRTUAL_JOYSTICK and TOUCH_AXIS mappings
-    ztf_TouchScreenArea mTouchScreenArea = ZTF_AREA_LEFT;
+    ztf_TouchScreenArea mTouchScreenArea;
 
-    bool mScaleByDT = false;
+    bool mScaleByDT;
     // INPUT_ACTION_MAPPING_COMPOSITE normally maps to 4 elements (2 axes) (element 0->+X, 1->-X, 2->+Y, 3->-Y)
     // Set this to `true` to make INPUT_ACTION_MAPPING_COMPOSITE map to only 2 elements (1 axis) (element 0->+X, 1->-X)
-    bool mCompositeUseSingleAxis = false;
+    bool mCompositeUseSingleAxis;
 } ztf_ActionMappingDesc;
+ZTF_C_API void ztf_defaultInitActionMappingDesc(ztf_ActionMappingDesc* pDesc);
 
 // UI System reserved input action mapping IDs
 // These are reserved action mapping IDs used to drive the UI system
@@ -521,59 +522,59 @@ typedef enum ztf_DefaultInputAction
     ZTF_EXIT,                      // Esc
 
     // Default actions for UI
-    ZTF_UI_KEY_TAB = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_TAB,
-    ZTF_UI_KEY_LEFT_ARROW = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_LEFT_ARROW,
-    ZTF_UI_KEY_RIGHT_ARROW = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_RIGHT_ARROW,
-    ZTF_UI_KEY_UP_ARROW = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_UP_ARROW,
-    ZTF_UI_KEY_DOWN_ARROW = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_DOWN_ARROW,
-    ZTF_UI_KEY_PAGE_UP = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_PAGE_UP,
-    ZTF_UI_KEY_PAGE_DOWN = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_PAGE_DOWN,
-    ZTF_UI_KEY_HOME = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_HOME,
-    ZTF_UI_KEY_END = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_END,
-    ZTF_UI_KEY_INSERT = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_INSERT,
-    ZTF_UI_KEY_DELETE = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_DELETE,
-    ZTF_UI_KEY_BACK_SPACE = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_BACK_SPACE,
-    ZTF_UI_KEY_SPACE = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_SPACE,
-    ZTF_UI_KEY_ENTER = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_ENTER,
-    ZTF_UI_KEY_ESCAPE = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_ESCAPE,
-    ZTF_UI_KEY_CONTROL_L = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_CONTROL_L,
-    ZTF_UI_KEY_CONTROL_R = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_CONTROL_R,
-    ZTF_UI_KEY_SHIFT_L = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_SHIFT_L,
-    ZTF_UI_KEY_SHIFT_R = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_SHIFT_R,
-    ZTF_UI_KEY_ALT_L = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_ALT_L,
-    ZTF_UI_KEY_ALT_R = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_ALT_R,
-    ZTF_UI_KEY_SUPER_L = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_SUPER_L,
-    ZTF_UI_KEY_SUPER_R = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_SUPER_R,
-    ZTF_UI_KEY_A = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_A,
-    ZTF_UI_KEY_C = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_C,
-    ZTF_UI_KEY_V = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_V,
-    ZTF_UI_KEY_X = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_X,
-    ZTF_UI_KEY_Y = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_Y,
-    ZTF_UI_KEY_Z = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_Z,
-    ZTF_UI_KEY_F2 = ztf_UISystemInputAction::ZTF_UI_ACTION_KEY_F2,
+    ZTF_UI_KEY_TAB = ZTF_UI_ACTION_KEY_TAB,
+    ZTF_UI_KEY_LEFT_ARROW = ZTF_UI_ACTION_KEY_LEFT_ARROW,
+    ZTF_UI_KEY_RIGHT_ARROW = ZTF_UI_ACTION_KEY_RIGHT_ARROW,
+    ZTF_UI_KEY_UP_ARROW = ZTF_UI_ACTION_KEY_UP_ARROW,
+    ZTF_UI_KEY_DOWN_ARROW = ZTF_UI_ACTION_KEY_DOWN_ARROW,
+    ZTF_UI_KEY_PAGE_UP = ZTF_UI_ACTION_KEY_PAGE_UP,
+    ZTF_UI_KEY_PAGE_DOWN = ZTF_UI_ACTION_KEY_PAGE_DOWN,
+    ZTF_UI_KEY_HOME = ZTF_UI_ACTION_KEY_HOME,
+    ZTF_UI_KEY_END = ZTF_UI_ACTION_KEY_END,
+    ZTF_UI_KEY_INSERT = ZTF_UI_ACTION_KEY_INSERT,
+    ZTF_UI_KEY_DELETE = ZTF_UI_ACTION_KEY_DELETE,
+    ZTF_UI_KEY_BACK_SPACE = ZTF_UI_ACTION_KEY_BACK_SPACE,
+    ZTF_UI_KEY_SPACE = ZTF_UI_ACTION_KEY_SPACE,
+    ZTF_UI_KEY_ENTER = ZTF_UI_ACTION_KEY_ENTER,
+    ZTF_UI_KEY_ESCAPE = ZTF_UI_ACTION_KEY_ESCAPE,
+    ZTF_UI_KEY_CONTROL_L = ZTF_UI_ACTION_KEY_CONTROL_L,
+    ZTF_UI_KEY_CONTROL_R = ZTF_UI_ACTION_KEY_CONTROL_R,
+    ZTF_UI_KEY_SHIFT_L = ZTF_UI_ACTION_KEY_SHIFT_L,
+    ZTF_UI_KEY_SHIFT_R = ZTF_UI_ACTION_KEY_SHIFT_R,
+    ZTF_UI_KEY_ALT_L = ZTF_UI_ACTION_KEY_ALT_L,
+    ZTF_UI_KEY_ALT_R = ZTF_UI_ACTION_KEY_ALT_R,
+    ZTF_UI_KEY_SUPER_L = ZTF_UI_ACTION_KEY_SUPER_L,
+    ZTF_UI_KEY_SUPER_R = ZTF_UI_ACTION_KEY_SUPER_R,
+    ZTF_UI_KEY_A = ZTF_UI_ACTION_KEY_A,
+    ZTF_UI_KEY_C = ZTF_UI_ACTION_KEY_C,
+    ZTF_UI_KEY_V = ZTF_UI_ACTION_KEY_V,
+    ZTF_UI_KEY_X = ZTF_UI_ACTION_KEY_X,
+    ZTF_UI_KEY_Y = ZTF_UI_ACTION_KEY_Y,
+    ZTF_UI_KEY_Z = ZTF_UI_ACTION_KEY_Z,
+    ZTF_UI_KEY_F2 = ZTF_UI_ACTION_KEY_F2,
 
     // Mouse specific buttons
-    ZTF_UI_MOUSE_LEFT = ztf_UISystemInputAction::ZTF_UI_ACTION_MOUSE_LEFT,
-    ZTF_UI_MOUSE_RIGHT = ztf_UISystemInputAction::ZTF_UI_ACTION_MOUSE_RIGHT,
-    ZTF_UI_MOUSE_MIDDLE = ztf_UISystemInputAction::ZTF_UI_ACTION_MOUSE_MIDDLE,
-    ZTF_UI_MOUSE_SCROLL_UP = ztf_UISystemInputAction::ZTF_UI_ACTION_MOUSE_SCROLL_UP,
-    ZTF_UI_MOUSE_SCROLL_DOWN = ztf_UISystemInputAction::ZTF_UI_ACTION_MOUSE_SCROLL_DOWN,
+    ZTF_UI_MOUSE_LEFT = ZTF_UI_ACTION_MOUSE_LEFT,
+    ZTF_UI_MOUSE_RIGHT = ZTF_UI_ACTION_MOUSE_RIGHT,
+    ZTF_UI_MOUSE_MIDDLE = ZTF_UI_ACTION_MOUSE_MIDDLE,
+    ZTF_UI_MOUSE_SCROLL_UP = ZTF_UI_ACTION_MOUSE_SCROLL_UP,
+    ZTF_UI_MOUSE_SCROLL_DOWN = ZTF_UI_ACTION_MOUSE_SCROLL_DOWN,
 
     // Navigation
-    ZTF_UI_NAV_TOGGLE_UI = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_TOGGLE_UI,
-    ZTF_UI_NAV_ACTIVATE = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_ACTIVATE,
-    ZTF_UI_NAV_CANCEL = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_CANCEL,
-    ZTF_UI_NAV_INPUT = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_INPUT,
-    ZTF_UI_NAV_MENU = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_MENU,
-    ZTF_UI_NAV_TWEAK_WINDOW_LEFT = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_TWEAK_WINDOW_LEFT,
-    ZTF_UI_NAV_TWEAK_WINDOW_RIGHT = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_TWEAK_WINDOW_RIGHT,
-    ZTF_UI_NAV_TWEAK_WINDOW_UP = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_TWEAK_WINDOW_UP,
-    ZTF_UI_NAV_TWEAK_WINDOW_DOWN = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_TWEAK_WINDOW_DOWN,
-    ZTF_UI_NAV_SCROLL_MOVE_WINDOW = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_SCROLL_MOVE_WINDOW,
-    ZTF_UI_NAV_FOCUS_PREV = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_FOCUS_PREV,
-    ZTF_UI_NAV_FOCUS_NEXT = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_FOCUS_NEXT,
-    ZTF_UI_NAV_TWEAK_SLOW = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_TWEAK_SLOW,
-    ZTF_UI_NAV_TWEAK_FAST = ztf_UISystemInputAction::ZTF_UI_ACTION_NAV_TWEAK_FAST
+    ZTF_UI_NAV_TOGGLE_UI = ZTF_UI_ACTION_NAV_TOGGLE_UI,
+    ZTF_UI_NAV_ACTIVATE = ZTF_UI_ACTION_NAV_ACTIVATE,
+    ZTF_UI_NAV_CANCEL = ZTF_UI_ACTION_NAV_CANCEL,
+    ZTF_UI_NAV_INPUT = ZTF_UI_ACTION_NAV_INPUT,
+    ZTF_UI_NAV_MENU = ZTF_UI_ACTION_NAV_MENU,
+    ZTF_UI_NAV_TWEAK_WINDOW_LEFT = ZTF_UI_ACTION_NAV_TWEAK_WINDOW_LEFT,
+    ZTF_UI_NAV_TWEAK_WINDOW_RIGHT = ZTF_UI_ACTION_NAV_TWEAK_WINDOW_RIGHT,
+    ZTF_UI_NAV_TWEAK_WINDOW_UP = ZTF_UI_ACTION_NAV_TWEAK_WINDOW_UP,
+    ZTF_UI_NAV_TWEAK_WINDOW_DOWN = ZTF_UI_ACTION_NAV_TWEAK_WINDOW_DOWN,
+    ZTF_UI_NAV_SCROLL_MOVE_WINDOW = ZTF_UI_ACTION_NAV_SCROLL_MOVE_WINDOW,
+    ZTF_UI_NAV_FOCUS_PREV = ZTF_UI_ACTION_NAV_FOCUS_PREV,
+    ZTF_UI_NAV_FOCUS_NEXT = ZTF_UI_ACTION_NAV_FOCUS_NEXT,
+    ZTF_UI_NAV_TWEAK_SLOW = ZTF_UI_ACTION_NAV_TWEAK_SLOW,
+    ZTF_UI_NAV_TWEAK_FAST = ZTF_UI_ACTION_NAV_TWEAK_FAST
 } ztf_DefaultInputAction;
 
 typedef enum ztf_InputDeviceType
@@ -599,9 +600,9 @@ typedef enum ztf_InputActionPhase
 
 typedef struct ztf_InputActionContext
 {
-    void* pUserData = NULL;
+    void* pUserData;
     /// Indices of fingers for detected gesture
-    int32_t mFingerIndices[ZTF_MAX_INPUT_MULTI_TOUCHES] = {0};
+    int32_t mFingerIndices[ZTF_MAX_INPUT_MULTI_TOUCHES];
     union
     {
         /// Gesture input
@@ -618,30 +619,32 @@ typedef struct ztf_InputActionContext
         wchar_t* pText;
     };
 
-    ztf_Float2* pPosition = NULL;
-    const bool* pCaptured = NULL;
-    int32_t     mScrollValue = 0;
-    uint32_t    mActionId = UINT_MAX;
+    ztf_Float2* pPosition;
+    const bool* pCaptured;
+    int32_t     mScrollValue;
+    uint32_t    mActionId;
     /// What phase is the action currently in
-    uint8_t     mPhase = ZTF_INPUT_ACTION_PHASE_ENDED;
-    uint8_t     mDeviceType = ZTF_INPUT_DEVICE_INVALID;
+    uint8_t     mPhase;
+    uint8_t     mDeviceType;
     /// User management (which user does this action apply to)
-    uint8_t     mUserId = 0u;
+    uint8_t     mUserId;
 } ztf_InputActionContext;
+ZTF_C_API void ztf_defaultInputActionContext(ztf_InputActionContext* pDesc);
 
 typedef bool (*ztf_InputActionCallback)(ztf_InputActionContext* pContext);
 
 typedef struct ztf_InputActionDesc
 { //-V802 : Very user-facing struct, and order is highly important to convenience
     /// Action ID
-    uint32_t            mActionId = UINT_MAX;
+    uint32_t            mActionId;
     /// Callback when an action is initiated, performed or canceled
-    ztf_InputActionCallback pFunction = NULL;
+    ztf_InputActionCallback pFunction;
     /// User data which will be assigned to InputActionContext::pUserData when calling pFunction
-    void* pUserData = NULL;
+    void* pUserData;
     /// User management (which user does this action apply to)
-    uint8_t             mUserId = 0u;
+    uint8_t             mUserId;
 } ztf_InputActionDesc;
+ZTF_C_API void ztf_defaultInputActionDesc(ztf_InputActionDesc* pDesc);
 
 typedef enum ztf_GlobalInputActionType
 {
@@ -655,20 +658,20 @@ typedef enum ztf_GlobalInputActionType
 // These are handled differently than actions from an action mapping.
 typedef struct ztf_GlobalInputActionDesc
 {
-    ztf_GlobalInputActionType mGlobalInputActionType = ZTF_ANY_BUTTON_ACTION;
+    ztf_GlobalInputActionType mGlobalInputActionType;
 
     /// Callback when an action is initiated, performed or canceled
-    ztf_InputActionCallback pFunction = NULL;
+    ztf_InputActionCallback pFunction;
     /// User data which will be assigned to InputActionContext::pUserData when calling pFunction
-    void* pUserData = NULL;
+    void* pUserData;
 } ztf_GlobalInputActionDesc;
 
 typedef struct ztf_InputSystemDesc
 {
-    ztf_Renderer* pRenderer = NULL;
-    ztf_WindowDesc* pWindow = NULL;
+    ztf_Renderer* pRenderer;
+    ztf_WindowDesc* pWindow;
 
-    const char* pJoystickTexture = NULL; // Keep this variable NULL to not show any joysticks on touch devices
+    const char* pJoystickTexture; // Keep this variable NULL to not show any joysticks on touch devices
 } ztf_InputSystemDesc;
 
 ZTF_C_API bool ztf_initInputSystem(ztf_InputSystemDesc* pDesc);
@@ -681,9 +684,9 @@ ZTF_C_API void ztf_updateInputSystem(float deltaTime, uint32_t width, uint32_t h
  * that have the action ID specified in pDesc.
  */
 ZTF_C_API void ztf_addInputAction(const ztf_InputActionDesc* pDesc,
-                              const ztf_InputActionMappingDeviceTarget actionMappingTarget = ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+                              const ztf_InputActionMappingDeviceTarget actionMappingTarget);
 ZTF_C_API void ztf_removeInputAction(const ztf_InputActionDesc* pDesc,
-                                 const ztf_InputActionMappingDeviceTarget actionMappingTarget = ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+                                 const ztf_InputActionMappingDeviceTarget actionMappingTarget);
 ZTF_C_API void ztf_setGlobalInputAction(const ztf_GlobalInputActionDesc* pDesc);
 //////////////////////////////////////////////////////////////
 

@@ -75,35 +75,35 @@ typedef enum ztf_WidgetType
 
 typedef struct ztf_UIWidget
 {
-    ztf_WidgetType mType = {};     // Type of the underlying widget
-    void* pWidget = NULL; // Underlying widget
+    ztf_WidgetType mType;     // Type of the underlying widget
+    void* pWidget; // Underlying widget
 
-    void* pOnHoverUserData = NULL;
-    ztf_WidgetCallback pOnHover = NULL; // Widget is hovered, usable, and not blocked by anything.
-    void* pOnActiveUserData = NULL;
-    ztf_WidgetCallback pOnActive = NULL; // Widget is currently active (ex. button being held)
-    void* pOnFocusUserData = NULL;
-    ztf_WidgetCallback pOnFocus = NULL; // Widget is currently focused (for keyboard/gamepad nav)
-    void* pOnEditedUserData = NULL;
-    ztf_WidgetCallback pOnEdited = NULL; // Widget just changed its underlying value or was pressed.
-    void* pOnDeactivatedUserData = NULL;
-    ztf_WidgetCallback pOnDeactivated = NULL; // Widget was just made inactive from an active state.  This is useful for undo/redo patterns.
-    void* pOnDeactivatedAfterEditUserData = NULL;
-    ztf_WidgetCallback pOnDeactivatedAfterEdit = NULL; // Widget was just made inactive from an active state and changed its underlying value.
+    void* pOnHoverUserData;
+    ztf_WidgetCallback pOnHover; // Widget is hovered, usable, and not blocked by anything.
+    void* pOnActiveUserData;
+    ztf_WidgetCallback pOnActive; // Widget is currently active (ex. button being held)
+    void* pOnFocusUserData;
+    ztf_WidgetCallback pOnFocus; // Widget is currently focused (for keyboard/gamepad nav)
+    void* pOnEditedUserData;
+    ztf_WidgetCallback pOnEdited; // Widget just changed its underlying value or was pressed.
+    void* pOnDeactivatedUserData;
+    ztf_WidgetCallback pOnDeactivated; // Widget was just made inactive from an active state.  This is useful for undo/redo patterns.
+    void* pOnDeactivatedAfterEditUserData;
+    ztf_WidgetCallback pOnDeactivatedAfterEdit; // Widget was just made inactive from an active state and changed its underlying value.
                                                    // This is useful for undo/redo patterns.
 
-    char mLabel[ZTF_MAX_LABEL_STR_LENGTH]{};
+    char mLabel[ZTF_MAX_LABEL_STR_LENGTH];
 
     // Set this to process deferred callbacks that may cause global program state changes.
-    bool mDeferred = false;
+    bool mDeferred;
 
-    bool mHovered = false;
-    bool mActive = false;
-    bool mFocused = false;
-    bool mEdited = false;
-    bool mDeactivated = false;
-    bool mDeactivatedAfterEdit = false;
-    bool mSameLine = false;
+    bool mHovered;
+    bool mActive;
+    bool mFocused;
+    bool mEdited;
+    bool mDeactivated;
+    bool mDeactivatedAfterEdit;
+    bool mSameLine;
 
     // Stores the screen space position of the widget
     ztf_Float2 mDisplayPosition;
@@ -112,19 +112,20 @@ typedef struct ztf_UIWidget
 typedef struct ztf_CollapsingHeaderWidget
 {
     // array of UIWidget*
-    ztf_UIWidget** pGroupedWidgets = NULL;
-    uint32_t   mWidgetsCount = 0;
-    bool       mCollapsed = false;
-    bool       mPreviousCollapsed = false;
-    bool       mDefaultOpen = false;
-    bool       mHeaderIsVisible = true;
+    ztf_UIWidget** pGroupedWidgets;
+    uint32_t   mWidgetsCount;
+    bool       mCollapsed;
+    bool       mPreviousCollapsed;
+    bool       mDefaultOpen;
+    bool       mHeaderIsVisible;
 } ztf_CollapsingHeaderWidget;
+ZTF_C_API void ztf_defaultInitCollapsingHeaderWidget(ztf_CollapsingHeaderWidget* pWidget);
 
 typedef struct ztf_ColumnWidget
 {
     // array of UIWidget*
-    ztf_UIWidget** pPerColumnWidgets = NULL;
-    uint32_t   mWidgetsCount = 0;
+    ztf_UIWidget** pPerColumnWidgets;
+    uint32_t   mWidgetsCount;
 } ztf_ColumnWidget;
 
 typedef struct ztf_Texture ztf_Texture;
@@ -132,17 +133,18 @@ typedef struct ztf_Texture ztf_Texture;
 typedef struct ztf_DebugTexturesWidget
 {
     // C Array of const Texture*
-    const struct ztf_Texture* const* pTextures = NULL;
-    uint32_t                     mTexturesCount = 0;
-    ztf_Float2                  mTextureDisplaySize = ztf_Float2{512.f, 512.f};
+    const struct ztf_Texture* const* pTextures;
+    uint32_t                     mTexturesCount;
+    ztf_Float2                  mTextureDisplaySize;
 
 } ztf_DebugTexturesWidget;
+ZTF_C_API void ztf_defaultInitDebugTexturesWidget(ztf_DebugTexturesWidget* pWidget);
 
 typedef struct ztf_LabelWidget ztf_LabelWidget;
 
 typedef struct ztf_ColorLabelWidget
 {
-    ztf_Float4 mColor = ztf_Float4{0.f, 0.f, 0.f, 0.f};
+    ztf_Float4 mColor;
 } ztf_ColorLabelWidget;
 
 typedef struct ztf_HorizontalSpaceWidget ztf_HorizontalSpaceWidget;
@@ -151,134 +153,140 @@ typedef struct ztf_SeparatorWidget ztf_SeparatorWidget;
 
 typedef struct ztf_VerticalSeparatorWidget
 {
-    uint32_t mLineCount = 0;
+    uint32_t mLineCount;
 } ztf_VerticalSeparatorWidget;
 
 typedef struct ztf_ButtonWidget ztf_ButtonWidget;
 
 typedef struct ztf_SliderFloatWidget
 {
-    char   mFormat[ZTF_MAX_FORMAT_STR_LENGTH] = {"%.3f"};
-    float* pData = NULL;
-    float  mMin = 0.f;
-    float  mMax = 0.f;
-    float  mStep = 0.01f;
+    char   mFormat[ZTF_MAX_FORMAT_STR_LENGTH];
+    float* pData;
+    float  mMin;
+    float  mMax;
+    float  mStep;
 } ztf_SliderFloatWidget;
+ZTF_C_API void ztf_defaultInitSliderFloatWidget(ztf_SliderFloatWidget* pWidget);
 
-typedef struct Sztf_liderFloat2Widget
+typedef struct ztf_SliderFloat2Widget
 {
-    char    mFormat[ZTF_MAX_FORMAT_STR_LENGTH] = {"%.3f"};
-    ztf_Float2* pData = NULL;
-    ztf_Float2  mMin = ztf_Float2{0.f, 0.f};
-    ztf_Float2  mMax = ztf_Float2{0.f, 0.f};
-    ztf_Float2  mStep = ztf_Float2{0.01f, 0.01f};
+    char    mFormat[ZTF_MAX_FORMAT_STR_LENGTH];
+    ztf_Float2* pData;
+    ztf_Float2  mMin;
+    ztf_Float2  mMax;
+    ztf_Float2  mStep;
 } ztf_SliderFloat2Widget;
+ZTF_C_API void ztf_defaultInitSliderFloat2Widget(ztf_SliderFloat2Widget* pWidget);
 
 typedef struct ztf_SliderFloat3Widget
 {
-    char    mFormat[ZTF_MAX_FORMAT_STR_LENGTH] = {"%.3f"};
-    ztf_Float3* pData = NULL;
-    ztf_Float3  mMin = ztf_Float3{0.f, 0.f, 0.f};
-    ztf_Float3  mMax = ztf_Float3{0.f, 0.f, 0.f};
-    ztf_Float3  mStep = ztf_Float3{0.01f, 0.01f, 0.01f};
+    char    mFormat[ZTF_MAX_FORMAT_STR_LENGTH];
+    ztf_Float3* pData;
+    ztf_Float3  mMin;
+    ztf_Float3  mMax;
+    ztf_Float3  mStep;
 } ztf_SliderFloat3Widget;
+ZTF_C_API void ztf_defaultInitSliderFloat3Widget(ztf_SliderFloat3Widget* pWidget);
 
 typedef struct ztf_SliderFloat4Widget
 {
-    char    mFormat[MAX_FORMAT_STR_LENGTH] = {"%.3f"};
-    ztf_Float4* pData = NULL;
-    ztf_Float4  mMin = ztf_Float4{0.f, 0.f, 0.f, 0.f};
-    ztf_Float4  mMax = ztf_Float4{0.f, 0.f, 0.f, 0.f};
-    ztf_Float4  mStep = ztf_Float4{0.01f, 0.01f, 0.01f, 0.01f};
+    char    mFormat[ZTF_MAX_FORMAT_STR_LENGTH];
+    ztf_Float4* pData;
+    ztf_Float4  mMin;
+    ztf_Float4  mMax;
+    ztf_Float4  mStep;
 } ztf_SliderFloat4Widget;
+ZTF_C_API void ztf_defaultInitSliderFloat4Widget(ztf_SliderFloat4Widget* pWidget);
 
 typedef struct ztf_SliderIntWidget
 {
-    char     mFormat[ZTF_MAX_FORMAT_STR_LENGTH] = {"%d"};
-    int32_t* pData = NULL;
-    int32_t  mMin = 0;
-    int32_t  mMax = 0;
-    int32_t  mStep = 1;
+    char     mFormat[ZTF_MAX_FORMAT_STR_LENGTH];
+    int32_t* pData;
+    int32_t  mMin;
+    int32_t  mMax;
+    int32_t  mStep;
 } ztf_SliderIntWidget;
+ZTF_C_API void ztf_defaultInitSliderIntWidget(ztf_SliderIntWidget* pWidget);
 
 typedef struct ztf_SliderUintWidget
 {
-    char      mFormat[ZTF_MAX_FORMAT_STR_LENGTH] = {"%u"};
-    uint32_t* pData = NULL;
-    uint32_t  mMin = 0;
-    uint32_t  mMax = 0;
-    uint32_t  mStep = 1;
+    char      mFormat[ZTF_MAX_FORMAT_STR_LENGTH];
+    uint32_t* pData;
+    uint32_t  mMin;
+    uint32_t  mMax;
+    uint32_t  mStep;
 } ztf_SliderUintWidget;
+ZTF_C_API void ztf_defaultInitSliderUintWidget(ztf_SliderUintWidget* pWidget);
 
 typedef struct ztf_RadioButtonWidget
 {
-    int32_t* pData = NULL;
-    int32_t  mRadioId = 0;
+    int32_t* pData;
+    int32_t  mRadioId;
 } ztf_RadioButtonWidget;
 
 typedef struct ztf_CheckboxWidget
 {
-    bool* pData = NULL;
+    bool* pData;
 } ztf_CheckboxWidget;
 
 typedef struct ztf_OneLineCheckboxWidget
 {
-    bool* pData = NULL;
-    ztf_Float4 mColor = ztf_Float4{0.f, 0.f, 0.f, 0.f};
+    bool* pData;
+    ztf_Float4 mColor;
 } ztf_OneLineCheckboxWidget;
 
 typedef struct ztf_CursorLocationWidget
 {
-    ztf_Float2 mLocation = ztf_Float2{0.f, 0.f};
+    ztf_Float2 mLocation;
 } ztf_CursorLocationWidget;
 
 typedef struct ztf_DropdownWidget
 {
-    uint32_t* pData = NULL;
+    uint32_t* pData;
     // pNames is a C array of size mCount
-    const char* const* pNames = NULL;
-    uint32_t           mCount = 0;
+    const char* const* pNames;
+    uint32_t           mCount;
 } ztf_DropdownWidget;
 
 typedef struct ztf_ProgressBarWidget
 {
-    size_t* pData = NULL;
-    size_t  mMaxProgress = 0;
+    size_t* pData;
+    size_t  mMaxProgress;
 } ztf_ProgressBarWidget;
 
 typedef struct ztf_ColorSliderWidget
 {
-    ztf_Float4* pData = NULL;
+    ztf_Float4* pData;
 } ztf_ColorSliderWidget;
 
 typedef struct ztf_HistogramWidget
 {
-    float* pValues = NULL;
-    uint32_t    mCount = 0;
-    float* mMinScale = NULL;
-    float* mMaxScale = NULL;
-    ztf_Float2  mHistogramSize = ztf_Float2{0.f, 0.f};
-    const char* mHistogramTitle = NULL;
+    float* pValues;
+    uint32_t    mCount;
+    float* mMinScale;
+    float* mMaxScale;
+    ztf_Float2  mHistogramSize;
+    const char* mHistogramTitle;
 } ztf_HistogramWidget;
 
 typedef struct ztf_PlotLinesWidget
 {
-    float* mValues = NULL;
-    uint32_t    mNumValues = 0;
-    float* mScaleMin = NULL;
-    float* mScaleMax = NULL;
-    ztf_Float2* mPlotScale = NULL;
-    const char* mTitle = NULL;
+    float* mValues;
+    uint32_t    mNumValues;
+    float* mScaleMin;
+    float* mScaleMax;
+    ztf_Float2* mPlotScale;
+    const char* mTitle;
 } ztf_PlotLinesWidget;
 
 typedef struct ztf_ColorPickerWidget
 {
-    ztf_Float4* pData = NULL;
+    ztf_Float4* pData;
 } ztf_ColorPickerWidget;
 
 typedef struct ztf_Color3PickerWidget
 {
-    ztf_Float3* pData = NULL;
+    ztf_Float3* pData;
 } ztf_Color3PickerWidget;
 
 typedef enum ztf_UITextFlags
@@ -291,51 +299,52 @@ typedef void (*ztf_TextboxCallback)(bool* keysDown);
 
 typedef struct ztf_TextboxWidget
 {
-    ztf_bstring* pText = NULL;
-    unsigned char   mFlags = ZTF_UI_TEXT_AUTOSELECT_ALL;
-    ztf_TextboxCallback pCallback = NULL;
+    ztf_bstring* pText;
+    unsigned char   mFlags;
+    ztf_TextboxCallback pCallback;
 } ztf_TextboxWidget;
+ZTF_C_API void ztf_defaultInitTextboxWidget(ztf_TextboxWidget* pWidget);
 
 typedef struct ztf_DynamicTextWidget
 {
-    ztf_bstring* pText = NULL;
-    ztf_Float4* pColor = NULL;
-    unsigned char mFlags = 0;
+    ztf_bstring* pText;
+    ztf_Float4* pColor;
+    unsigned char mFlags;
 } ztf_DynamicTextWidget;
 
 typedef struct ztf_FilledRectWidget
 {
-    ztf_Float2 mPos = ztf_Float2{0.f, 0.f};
-    ztf_Float2 mScale = ztf_Float2{0.f, 0.f};
-    ztf_Float4 mColor = ztf_Float4{0.f, 0.f, 0.f, 0.f};
+    ztf_Float2 mPos;
+    ztf_Float2 mScale;
+    ztf_Float4 mColor;
 } ztf_FilledRectWidget;
 
 typedef struct ztf_DrawTextWidget
 {
-    ztf_Float2 mPos = ztf_Float2{0.f, 0.f};
-    ztf_Float4 mColor = ztf_Float4{0.f, 0.f, 0.f, 0.f};
+    ztf_Float2 mPos;
+    ztf_Float4 mColor;
 } ztf_DrawTextWidget;
 
 typedef struct ztf_DrawTooltipWidget
 {
-    bool* mShowTooltip = NULL;
-    char* mText = NULL;
+    bool* mShowTooltip;
+    char* mText;
 } ztf_DrawTooltipWidget;
 
 typedef struct ztf_DrawLineWidget
 {
-    ztf_Float2 mPos1 = ztf_Float2{0.f, 0.f};
-    ztf_Float2 mPos2 = ztf_Float2{0.f, 0.f};
-    ztf_Float4 mColor = ztf_Float4{0.f, 0.f, 0.f, 0.f};
-    bool   mAddItem = false;
+    ztf_Float2 mPos1;
+    ztf_Float2 mPos2;
+    ztf_Float4 mColor;
+    bool   mAddItem;
 } ztf_DrawLineWidget;
 
 typedef struct ztf_DrawCurveWidget
 {
-    ztf_Float2* mPos = NULL;
-    uint32_t mNumPoints = 0;
-    float    mThickness = 0.f;
-    ztf_Float4   mColor = ztf_Float4{0.f, 0.f, 0.f, 0.f};
+    ztf_Float2* mPos;
+    uint32_t mNumPoints;
+    float    mThickness;
+    ztf_Float4   mColor;
 } ztf_DrawCurveWidget;
 
 typedef struct ztf_CustomWidget
@@ -377,44 +386,45 @@ typedef enum ztf_GuiComponentFlags
 
 typedef struct ztf_UIComponentDesc
 {
-    ztf_Float2 mStartPosition = ztf_Float2{0.0f, 150.0f};
-    ztf_Float2 mStartSize = ztf_Float2{600.0f, 550.0f};
+    ztf_Float2 mStartPosition;
+    ztf_Float2 mStartSize;
 
-    uint32_t mFontID = 0;
-    float    mFontSize = 16.0f;
+    uint32_t mFontID;
+    float    mFontSize;
 } ztf_UIComponentDesc;
+ZTF_C_API void ztf_defaultInitUIComponentDesc(ztf_UIComponentDesc* pWidget);
 
 typedef struct ztf_UIComponent
 {
     //(UIWidget*)[dyn_size]
-    ztf_UIWidget** mWidgets = NULL;
+    ztf_UIWidget** mWidgets;
     //(bool)[dyn_size]
-    bool* mWidgetsClone = NULL;
-    void* pUserData = NULL;
+    bool* mWidgetsClone;
+    void* pUserData;
 
     // Contextual menus when right clicking the title bar
-    char const* const* mContextualMenuLabels = NULL;
-    ztf_WidgetCallback const* mContextualMenuCallbacks = NULL;
-    size_t                mContextualMenuCount = 0;
-    ztf_Float4            mInitialWindowRect = ztf_Float4{0.f, 0.f, 0.f, 0.f};
-    ztf_Float4            mCurrentWindowRect = ztf_Float4{0.f, 0.f, 0.f, 0.f};
-    char                  mTitle[MAX_TITLE_STR_LENGTH] = {0};
-    uintptr_t             pFont = 0;
-    uint32_t              mFontTextureIndex = 0;
-    float                 mAlpha = 0.f;
+    char const* const* mContextualMenuLabels;
+    ztf_WidgetCallback const* mContextualMenuCallbacks;
+    size_t                mContextualMenuCount;
+    ztf_Float4            mInitialWindowRect;
+    ztf_Float4            mCurrentWindowRect;
+    char                  mTitle[ZTF_MAX_TITLE_STR_LENGTH];
+    uintptr_t             pFont;
+    uint32_t              mFontTextureIndex;
+    float                 mAlpha;
 
     // defaults to GUI_COMPONENT_FLAGS_ALWAYS_AUTO_RESIZE
     // on mobile, GUI_COMPONENT_FLAGS_START_COLLAPSED is also set
-    int32_t mFlags = 0;
+    int32_t mFlags;
 
-    bool mActive = false;
+    bool mActive;
 
     // UI Component settings that can be modified at runtime by the client.
-    bool mHasCloseButton = false;
+    bool mHasCloseButton;
 
     // Custom callbacks for raw driver API calls
-    ztf_WindowCallback pPreProcessCallback = NULL;
-    ztf_WindowCallback pPostProcessCallback = NULL;
+    ztf_WindowCallback pPreProcessCallback;
+    ztf_WindowCallback pPostProcessCallback;
 } ztf_UIComponent;
 
 /****************************************************************************/
@@ -424,7 +434,7 @@ typedef struct ztf_UIComponent
 typedef struct ztf_DynamicUIWidgets
 {
     // stb_ds array of UIWidget*
-    ztf_UIWidget** mDynamicProperties = NULL;
+    ztf_UIWidget** mDynamicProperties;
 } ztf_DynamicUIWidgets;
 
 /****************************************************************************/
@@ -433,17 +443,18 @@ typedef struct ztf_DynamicUIWidgets
 
 typedef struct ztf_UserInterfaceDesc
 {
-    ztf_Renderer* pRenderer = NULL;
-    ztf_PipelineCache* pCache = NULL;
-    char const* mSettingsFilename = nullptr;
+    ztf_Renderer* pRenderer;
+    ztf_PipelineCache* pCache;
+    char const* mSettingsFilename;
 
-    uint32_t mMaxDynamicUIUpdatesPerBatch = 20u;
-    uint32_t mMaxUIFonts = 10u;
+    uint32_t mMaxDynamicUIUpdatesPerBatch;
+    uint32_t mMaxUIFonts;
 
-    uint32_t mFrameCount = 2u;
-    bool     mEnableDocking = false;
-    bool     mEnableRemoteUI = true;
+    uint32_t mFrameCount;
+    bool     mEnableDocking;
+    bool     mEnableRemoteUI;
 } ztf_UserInterfaceDesc;
+ZTF_C_API void ztf_defaultInitUserInterfaceDesc(ztf_UserInterfaceDesc* pWidget);
 
 typedef struct ztf_UserInterfaceLoadDesc
 {
@@ -465,7 +476,7 @@ typedef struct ztf_UserInterfaceDrawCommand
     uint32_t mVertexCount;
     uint32_t mIndexCount;
     uint32_t mElemCount;
-} ztf_UserInterfaceDrawElement;
+} ztf_UserInterfaceDrawCommand;
 
 typedef struct ztf_UserInterfaceDrawData
 {
@@ -507,7 +518,7 @@ ZTF_C_API void ztf_unloadUserInterface(uint32_t unloadType);
 /// This function also handles rendering the Forge Profiler's UI Window.
 /// If pUIDrawData* is NULL, the current ImGUI state will be used, otherwise the passed in draw data will be used.
 /// Due to the nature of ImGUI not being thread safe, this call must be made on the main thread if pUIDrawData* is kept NULL.
-ZTF_C_API void ztf_cmdDrawUserInterface(ztf_Cmd* pCmd, ztf_UserInterfaceDrawData* pUIDrawData = NULL);
+ZTF_C_API void ztf_cmdDrawUserInterface(ztf_Cmd* pCmd, ztf_UserInterfaceDrawData* pUIDrawData);
 
 /****************************************************************************/
 // MARK: - Collapsing Header Widget Public Functions
@@ -550,7 +561,7 @@ ZTF_C_API void ztf_uiSetComponentActive(ztf_UIComponent* pGuiComponent, bool act
 /// Create a Widget to be assigned to a given UI Component
 /// User is NOT responsible for freeing this memory at application exit
 ZTF_C_API ztf_UIWidget* ztf_uiCreateComponentWidget(ztf_UIComponent* pGui, const char* pLabel, const void* pWidget, ztf_WidgetType type, //-V1071
-                                            bool clone = true);
+                                            bool clone);
 
 /// Destroy and free memory associated with a Widget
 /// Only necessary for replacement purposes. UI Widget memory will be freed internally on exit

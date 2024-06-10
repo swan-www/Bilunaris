@@ -18,6 +18,13 @@ ZTF_C_RENDERER_API ztf_ResourceLoaderDesc* ztf_getDefaultResourceLoaderDesc()
     return (ztf_ResourceLoaderDesc*)&gDefaultResourceLoaderDesc;
 }
 
+ZTF_C_RENDERER_API ztf_TextureSubresourceUpdate getSubresourceUpdateDesc(ztf_TextureUpdateDesc* self, uint32_t mip, uint32_t layer)
+{
+    TextureSubresourceUpdate result = (((TextureUpdateDesc*)self)->getSubresourceUpdateDesc(mip, layer));
+    ztf_TextureSubresourceUpdate copy = *(ztf_TextureSubresourceUpdate*)&result;
+    return copy;
+}
+
 // MARK: - Resource Loader Functions
 
 ZTF_C_RENDERER_API void ztf_initResourceLoaderInterface(ztf_Renderer* pRenderer, ztf_ResourceLoaderDesc* pDesc)
@@ -151,7 +158,7 @@ ZTF_C_RENDERER_API void ztf_flushResourceUpdates(ztf_FlushResourceUpdateDesc* pD
 /// Copies data from GPU to the CPU, typically for transferring it to another GPU in unlinked mode.
 /// For optimal use, the amount of data to transfer should be minimized as much as possible and applications should
 /// provide additional graphics/compute work that the GPU can execute alongside the copy.
-FORGE_RENDERER_API void ztf_copyResource(ztf_TextureCopyDesc* pTextureDesc, ztf_SyncToken* token)
+ZTF_C_RENDERER_API void ztf_copyResource(ztf_TextureCopyDesc* pTextureDesc, ztf_SyncToken* token)
 {
     copyResource((TextureCopyDesc*) pTextureDesc, (SyncToken*) token);
 }

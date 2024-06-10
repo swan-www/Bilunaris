@@ -21,53 +21,55 @@ typedef struct ztf_App ztf_App;
 typedef struct ztf_AppSettings
 {
     /// Window width
-    int32_t mWidth = -1;
+    int32_t mWidth;
     /// Window height
-    int32_t mHeight = -1;
+    int32_t mHeight;
     /// monitor index
-    int32_t mMonitorIndex = -1;
+    int32_t mMonitorIndex;
     /// x position for window
-    int32_t mWindowX = 0;
+    int32_t mWindowX;
     /// y position for window
-    int32_t mWindowY = 0;
+    int32_t mWindowY;
     /// Set to true if fullscreen mode has been requested
-    bool    mFullScreen = false;
+    bool    mFullScreen;
     /// Set to true if app wants to use an external window
-    bool    mExternalWindow = false;
+    bool    mExternalWindow;
     /// Drag to resize enabled
-    bool    mDragToResize = true;
+    bool    mDragToResize;
     /// Border less window
-    bool    mBorderlessWindow = false;
+    bool    mBorderlessWindow;
     /// Set to true if oversize windows requested
-    bool    mAllowedOverSizeWindows = false;
+    bool    mAllowedOverSizeWindows;
     /// if settings is already initiazlied we don't fill when opening window
-    bool    mInitialized = false;
+    bool    mInitialized;
     /// if requested to quit the application
-    bool    mQuit = false;
+    bool    mQuit;
     /// if benchmarking mode is enabled
-    bool    mBenchmarking = false;
+    bool    mBenchmarking;
     /// if the window is positioned in the center of the screen
-    bool    mCentered = true;
+    bool    mCentered;
     /// if the window is focused or in foreground
-    bool    mFocused = true;
+    bool    mFocused;
     /// Force lowDPI settings for this window
-    bool    mForceLowDPI = false;
+    bool    mForceLowDPI;
     /// if the platform user interface is visible
-    bool    mShowPlatformUI = true;
+    bool    mShowPlatformUI;
 
 #ifdef __ANDROID__
-    bool mVSyncEnabled = true;
+    bool mVSyncEnabled;
 #else
-    bool mVSyncEnabled = false;
+    bool mVSyncEnabled;
 #endif
 
 #if defined(TARGET_IOS)
-    bool    mShowStatusBar = false;
-    float   mContentScaleFactor = 0.f;
+    bool    mShowStatusBar;
+    float   mContentScaleFactor;
     // Use to set iPhone's/Ipad target display refresh rate.
-    int32_t mMaxDisplayRefreshRate = -1;
+    int32_t mMaxDisplayRefreshRate;
 #endif
 } ztf_AppSettings;
+
+ZTF_C_API void ztf_defaultInitAppSettings(ztf_AppSettings* pAppSettings);
 
 //IApp functions
 ZTF_C_API extern bool ztf_appInit(ztf_App* pApp);
