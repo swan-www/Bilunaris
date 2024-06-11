@@ -2,7 +2,7 @@ const std = @import("std");
 const fmt = std.fmt;
 const alias_build_util = @import("alias");
 const tfalias = @import("tfalias");
-const ztf_bind = @import("ztf_bind");
+const ztf = @import("ztf");
 
 const BuildError = error{CouldNotResolveBuildDir};
 
@@ -24,16 +24,27 @@ pub fn build(b: *std.Build) !void {
 
 	const tfalias_example_directory = try std.fs.path.join(b.allocator, &.{tfalias_dir.str, "Examples_3/Unit_Tests/src/01_Transformations"});
 	defer b.allocator.free(tfalias_example_directory);
-	const ztf_bind_lib = b.dependency("ztf_bind", .{
+	const ztf_build = b.dependency("ztf", .{
         .target = target,
         .optimize = optimize,
     });
 
-	exe.linkLibrary(ztf_bind_lib.artifact("tfalias_gainput"));
-	exe.linkLibrary(ztf_bind_lib.artifact("tfalias_os"));
-	exe.linkLibrary(ztf_bind_lib.artifact("tfalias_renderer"));
-	exe.linkLibrary(ztf_bind_lib.artifact("tfalias_spirvtools"));
-	exe.linkLibrary(ztf_bind_lib.artifact("ztf_glue"));
+	const ztf_pkg = b.dependency("ztf", .{
+			.target = target,
+			.optimize = optimize
+	});
+	
+	exe.root_module.addImport("ztf", ztf_pkg.module("ztf"));
+	for (ztf.ztf_headers) |h| 
+	{
+		exe.root_module.addImport(h.outputName, ztf_pkg.module(h.outputName));
+	}
+
+	exe.linkLibrary(ztf_build.artifact("tfalias_gainput"));
+	exe.linkLibrary(ztf_build.artifact("tfalias_os"));
+	exe.linkLibrary(ztf_build.artifact("tfalias_renderer"));
+	exe.linkLibrary(ztf_build.artifact("tfalias_spirvtools"));
+	exe.linkLibrary(ztf_build.artifact("ztf"));
 	//Links required engine dependency libs, and installs required shared libraries.
 	try tfalias.linkRequiredLibs(b, &target, optimize, exe);
 

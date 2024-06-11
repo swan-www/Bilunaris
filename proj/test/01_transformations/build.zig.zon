@@ -6,7 +6,7 @@
     .{
 		.tfalias = .{ .path = "../../../dep/ztf/proj/dep/common/tfalias"},
 		.alias = .{ .path = "../../../dep/ztf/toolchain/common/module/alias_build_util"},
-		.ztf_bind = .{ .path = "../../../src/dep/modules/ztf_bind"},
+		.ztf = .{ .path = "../../../src/dep/modules/ztf"},
 		.zmath = .{ .path = "../../../src/dep/modules/zmath"},
     },
     .paths = .{""},
