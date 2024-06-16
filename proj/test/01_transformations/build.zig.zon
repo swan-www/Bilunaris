@@ -8,6 +8,7 @@
 		.alias = .{ .path = "../../../dep/ztf/toolchain/common/module/alias_build_util"},
 		.ztf = .{ .path = "../../../src/dep/modules/ztf"},
 		.zmath = .{ .path = "../../../src/dep/modules/zmath"},
+		.lun_render = .{ .path = "../../../src/modules/render"},
     },
     .paths = .{""},
 }

@@ -9,7 +9,7 @@
         {
             "label": "zig-debug-win64",
             "type": "shell",
-            "command": "${fileWorkspaceFolder}/toolchain/common/ziglang/zig.exe build -Dtarget=x86_64-windows-msvc -Doptimize=Debug",
+            "command": "${fileWorkspaceFolder}/toolchain/common/ziglang/zig.exe build --summary all -Dtarget=x86_64-windows-msvc -Doptimize=Debug",
             "options": {
                 "cwd": "${fileDirname}"
             },
@@ -21,7 +21,7 @@
         {
             "label": "zig-release-win64",
             "type": "shell",
-            "command": "${fileWorkspaceFolder}/toolchain/common/ziglang/zig.exe build -Dtarget=x86_64-windows-msvc -Doptimize=ReleaseFast",
+            "command": "${fileWorkspaceFolder}/toolchain/common/ziglang/zig.exe build --summary all -Dtarget=x86_64-windows-msvc -Doptimize=ReleaseFast",
             "options": {
                 "cwd": "${fileDirname}"
             },

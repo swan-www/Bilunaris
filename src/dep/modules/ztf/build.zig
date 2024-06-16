@@ -48,33 +48,8 @@ pub fn build(b: *std.Build) !void
 	const windowsFlag = if(target.result.os.tag == .windows) "-D_WINDOWS" else "";
 
     ztf.linkLibC();
-    // zforge_cpp.linkLibCpp();
 	ztf.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces" });
     ztf.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces" });
-    
-    //ztf_glue.addCSourceFiles(.{
-    //    .files = &.{
-	//		"glue/MathTypes_glue.cpp",
-	//		"glue/ICameraController_c.cpp",
-    //        "glue/IFont_c.cpp",
-	//		"glue/IOperatingSystem_c.cpp",
-    //        "glue/IGraphics_c.cpp",
-	//		"glue/GraphicsConfig_c.cpp",
-	//		"glue/ILog_c.cpp",
-	//		"glue/IMemory_c.cpp",
-	//		"glue/IThread_c.cpp",
-	//		"glue/IFileSystem_c.cpp",
-	//		"glue/IResourceLoader_c.cpp",
-	//		"glue/IApp_c.cpp",
-	//		"glue/IInput_c.cpp",
-	//		"glue/IUI_c.cpp",
-    //    },
-	//	.flags = &.{
-	//		"-Wno-unused-command-line-argument",
-	//		//"-Wno-everything",
-	//		windowsFlag
-	//	}
-    //});
 
 	for (ztf_headers) |h| 
 	{
@@ -111,6 +86,13 @@ pub fn build(b: *std.Build) !void
     });
 	_ = &ztf_zig;
 
+	const translate_fixup_exe = b.addExecutable(.{
+        .name = "translate_fixup_exe",
+		.target = target,
+        .optimize = optimize,
+        .root_source_file = .{ .path = "append_file.zig"},
+    });
+
 	for (ztf_headers) |h|
 	{
 		const header_src_path = try std.fs.path.join(b.allocator, &.{ "glue", h.headerName});
@@ -122,16 +104,45 @@ pub fn build(b: *std.Build) !void
 		});
 		translateCOfHeader.defineCMacroRaw("_WINDOWS=");
 		translateCOfHeader.step.dependOn(&ztf.step);
+		translateCOfHeader.step.dependOn(&translate_fixup_exe.step);
 
 		const zig_file_output_path_no_ext = try std.fs.path.join(b.allocator,&.{ "ZTF/", h.outputName});
 		defer b.allocator.free(zig_file_output_path_no_ext);
 		const zig_file_output_path = try std.mem.concat(b.allocator, u8, &.{zig_file_output_path_no_ext, ".zig"});
 		defer b.allocator.free(zig_file_output_path);
+		const zig_file_name = try std.mem.concat(b.allocator, u8, &.{h.outputName, ".zig"});
+		defer b.allocator.free(zig_file_name);
 
-		const installFile = b.addInstallFile(translateCOfHeader.getOutput(), zig_file_output_path);
-		_ = translateCOfHeader.addModule(h.outputName);
+		const translate_fixup_wf = b.addWriteFiles();
+		const copied_translate = translate_fixup_wf.addCopyFile(translateCOfHeader.getOutput(), zig_file_output_path);
+		translate_fixup_wf.step.dependOn(&ztf.step);
+		translate_fixup_wf.step.dependOn(&translate_fixup_exe.step);
 
-		installFile.step.dependOn(&translateCOfHeader.step);
-		translate_ztf_step.dependOn(&installFile.step);	
+    	const translate_fixup_run = b.addRunArtifact(translate_fixup_exe);
+		_ = translate_fixup_run.addFileArg(translateCOfHeader.getOutput());
+		_ = translate_fixup_run.addFileArg(copied_translate);
+		//const copied_translate = translate_fixup_run.addOutputFileArg(zig_file_name);
+		//const copied_translate = translateCOfHeader.getOutput();
+		translate_fixup_run.step.dependOn(&translateCOfHeader.step);
+
+		//const translate_fixup_wf = b.addWriteFiles();
+		//translate_fixup_wf.addCopyFileToSource(generated_protocol_file, "src/protocol.zig");
+		//wf.step.dependOn(&translateCOfHeader.step);
+
+		//const update_protocol_step = b.step("update-protocol", "update src/protocol.zig to latest");
+		//update_protocol_step.dependOn(&wf.step);
+
+		const installFile = b.addInstallFile(copied_translate, zig_file_output_path);
+		const translated_module = b.addModule(h.outputName, .{
+			.target = target,
+			.optimize = optimize,
+			.root_source_file = copied_translate,
+		});
+
+		//translateCOfHeader.addModule(h.outputName);
+		ztf_module.addImport(h.outputName, translated_module);	
+
+		installFile.step.dependOn(&translate_fixup_run.step);
+		translate_ztf_step.dependOn(&installFile.step);
 	}
 }
