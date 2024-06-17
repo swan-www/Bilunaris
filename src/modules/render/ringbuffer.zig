@@ -1,5 +1,8 @@
 const std = @import("std");
+const fmt = std.fmt;
 const ztf = @import("ztf");
+const builtin = @import("builtin");
+const dbg = (builtin.mode == builtin.Mode.Debug);
 
 const ZtfGfx = ztf.gfx;
 const ZtfResourceLoader = ztf.resource_loader;
@@ -7,8 +10,10 @@ const GfxRenderer = ZtfGfx.ztf_Renderer;
 const GfxBuffer = ZtfGfx.ztf_Buffer;
 const GfxBufferDesc = ZtfGfx.ztf_BufferDesc;
 const GfxQueue = ZtfGfx.ztf_Queue;
+const GfxCmdPoolDesc = ZtfGfx.ztf_CmdPoolDesc;
 const GfxCmdPool = ZtfGfx.ztf_CmdPool;
 const GfxCmd = ZtfGfx.ztf_Cmd;
+const GfxCmdDesc = ZtfGfx.ztf_CmdDesc;
 const GfxFence = ZtfGfx.ztf_Fence;
 const GfxSemaphore = ZtfGfx.ztf_Semaphore;
 
@@ -32,6 +37,7 @@ pub const GPURingBufferOffset = extern struct
 
 pub const MAX_GPU_CMD_POOLS_PER_RING = 64;
 pub const MAX_GPU_CMDS_PER_POOL = 4;
+pub const ENABLE_GRAPHICS_DEBUG = dbg;
 
 pub const GPUCmdRingDesc = extern struct
 {
@@ -125,9 +131,10 @@ pub fn getGPURingBufferOffset(args : *GetGPURingBufferOffsetArgs) GetGPURingBuff
 pub const AddGpuCmdRingError = error{
 	PoolCountExceedsMaxPoolsPerRing,
 	CmdCountExceedsMaxCmdsPerPool,
-};
+} | std.fmt.BufPrintError;
 
-pub fn addGpuCmdRing(renderer : *GfxRenderer, desc : const *GpuCmdRingDesc, out : *GpuCmdRing ) AddGpuCmdRingError!void
+
+pub fn addGpuCmdRing(renderer : *GfxRenderer, desc : *const GPUCmdRingDesc, out : *GpuCmdRing ) AddGpuCmdRingError!void
 {
 	if(desc.*.mPoolCount > MAX_GPU_CMD_POOLS_PER_RING)
 	{
@@ -156,10 +163,60 @@ pub fn addGpuCmdRing(renderer : *GfxRenderer, desc : const *GpuCmdRingDesc, out 
 	out.*.mPoolCount = desc.*.mPoolCount;
 	out.*.mCmdPerPoolCount = desc.*.mCmdPerPoolCount;
 
-	var pool_desc : CmdPoolDesc{
+	var pool_desc = GfxCmdPoolDesc{
 		.mTransient = false,
-		.pQueue = pDesc.*.pQueue,
+		.pQueue = desc.*.pQueue,
 	};
-
 	
+	for (0..desc.*.mPoolCount) |pool_index|
+	{
+        ZtfGfx.ztf_addCmdPool(renderer, &pool_desc, &out.*.pCmdPools[pool_index]);
+		var cmd_desc = GfxCmdDesc{};
+		cmd_desc.pPool = out.*.pCmdPools[pool_index];
+		for(0..desc.*.mCmdPerPoolCount) |cmd_index|
+		{
+			if(ENABLE_GRAPHICS_DEBUG)
+			{
+				const static_buffer = struct {
+					var data: [ZtfGfx.ZTF_MAX_DEBUG_NAME_LENGTH]u8 = std.mem.zeroes([ZtfGfx.ZTF_MAX_DEBUG_NAME_LENGTH]u8);
+				};
+				try fmt.bufPrint(static_buffer.data, "GpuCmdRing Pool {u} Cmd {u}", .{ pool_index, cmd_index});
+				desc.pName = static_buffer.data;
+			}
+
+			ZtfGfx.ztf_addCmd(renderer, &cmd_desc, &out.*.pCmds[pool_index][cmd_index]);
+
+			if(desc.*.mAddSyncPrimitives)
+			{
+				ZtfGfx.ztf_addFence(renderer, &out.*.pFences[pool_index][cmd_index]);
+				ZtfGfx.ztf_addSemaphore(renderer, &out.*.pSemaphores[pool_index][cmd_index]);
+			}
+		}
+    }
+
+	out.*.mPoolIndex = std.math.maxInt(u32);
+	out.*.mCmdIndex = std.math.maxInt(u32);
+	out.*.mFenceIndex = std.math.maxInt(u32);
+}
+
+pub fn removeGpuCmdRing(renderer : *GfxRenderer, ring : *GpuCmdRing ) !void
+{
+	for (0..ring.*.mPoolCount) |pool_index|
+	{
+		for(0..ring.*.mCmdPerPoolCount) |cmd_index|
+		{
+			ZtfGfx.ztf_removeCmd(renderer, ring.*.pCmds[pool_index][cmd_index]);
+			if (ring.*.pSemaphores[pool_index][cmd_index])
+            {
+                ZtfGfx.ztf_removeSemaphore(renderer, ring.*.pSemaphores[pool_index][cmd_index]);
+            }
+            if (ring.*.pFences[pool_index][cmd_index])
+            {
+                ZtfGfx.ztf_removeFence(renderer, ring.*.pFences[pool_index][cmd_index]);
+            }
+		}
+		ZtfGfx.ztf_removeCmdPool(renderer, ring.*.pCmdPools[pool_index]);
+	}
+
+	ring.* = std.mem.zeroInit(GpuCmdRing, .{});
 }
