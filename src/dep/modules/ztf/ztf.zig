@@ -12,3 +12,4 @@ pub const math = @import("ZtfMathTypes");
 pub const ui = @import("ZtfUI");
 pub const gfx = @import("ZtfGraphics");
 pub const mem = @import("ZtfMemory");
+pub const bstring = @import("ZtfBString");

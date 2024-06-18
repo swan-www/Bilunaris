@@ -1,16 +1,21 @@
 const std = @import("std");
 const zmath = @import("zmath");
 
-const ztf = @import("ztf");
-const lun_render = @import("lun_render");
-
-const ztf_ui = ztf.ui;
-const ztf_math = ztf.math;
-const ztf_cc = ztf.camera_controller;
-const ztf_gfx = ztf.gfx;
-
 const Mat4 = zmath.Mat;
 const Vec4 = zmath.Vec;
+
+const Ztf = @import("ztf");
+
+const ZtfUI = Ztf.ui;
+const ZtfMath = Ztf.math;
+const ZtfCC = Ztf.camera_controller;
+const ZtfGfx = Ztf.gfx;
+const ZtfFont = Ztf.font;
+const ZtfBString = Ztf.BString;
+
+const LunRender = @import("lun_render");
+
+const RingBuffer = LunRender.ringbuffer;
 
 const MAX_PLANETS = 20;
 const QUEST_VR : bool = false;
@@ -45,7 +50,7 @@ const UniformBlock_C = extern struct
     mProjectView : CameraMatrix_C,
     mToWorldMat : [MAX_PLANETS]Mat4,
     mColor : [MAX_PLANETS]Vec4,
-    mGeometryWeight : [MAX_PLANETS]ztf_math.ztf_Float4,
+    mGeometryWeight : [MAX_PLANETS]ZtfMath.ztf_Float4,
 
     // Point Light Information
     mLightPosition : @Vector(3, f32),
@@ -65,60 +70,90 @@ const gRotSelfScale : f32 = 0.0004;
 const gRotOrbitYScale : f32 = 0.001;
 const gRotOrbitZScale : f32 = 0.00001;
 
-const GPURingBuffer = lun_render.ringbuffer.GPURingBuffer;
+var GPURingBuffer = RingBuffer.GPURingBuffer{};
 
-//const pRenderer : *ztf_gfx.ztf_Renderer = NULL;
-//
-//const pGraphicsQueue : *ztf_gfx.ztf_Queue = NULL;
-//GpuCmdRing gGraphicsCmdRing = {};
-//
-//SwapChain*    pSwapChain = NULL;
-//RenderTarget* pDepthBuffer = NULL;
-//Semaphore*    pImageAcquiredSemaphore = NULL;
-//
-//Shader*      pSphereShader = NULL;
-//Buffer*      pSphereVertexBuffer = NULL;
-//Buffer*      pSphereIndexBuffer = NULL;
-//uint32_t     gSphereIndexCount = 0;
-//Pipeline*    pSpherePipeline = NULL;
-//VertexLayout gSphereVertexLayout = {};
-//uint32_t     gSphereLayoutType = 0;
-//
-//Shader*        pSkyBoxDrawShader = NULL;
-//Buffer*        pSkyBoxVertexBuffer = NULL;
-//Pipeline*      pSkyBoxDrawPipeline = NULL;
-//RootSignature* pRootSignature = NULL;
-//Sampler*       pSamplerSkyBox = NULL;
-//Texture*       pSkyBoxTextures[6];
-//DescriptorSet* pDescriptorSetTexture = { NULL };
-//DescriptorSet* pDescriptorSetUniforms = { NULL };
-//
-//Buffer* pProjViewUniformBuffer[gDataBufferCount] = { NULL };
-//Buffer* pSkyboxUniformBuffer[gDataBufferCount] = { NULL };
-//
-//uint32_t     gFrameIndex = 0;
-//ProfileToken gGpuProfileToken = PROFILE_INVALID_TOKEN;
-//
-//int              gNumberOfSpherePoints;
-//UniformBlock     gUniformData;
-//UniformBlockSky  gUniformDataSky;
-//PlanetInfoStruct gPlanetInfoData[gNumPlanets];
-//
-//ICameraController* pCameraController = NULL;
-//
-//UIComponent* pGuiWindow = NULL;
-//
-//uint32_t gFontID = 0;
-//
-//QueryPool* pPipelineStatsQueryPool[gDataBufferCount] = {};
-//
-//const char* pSkyBoxImageFileNames[] = { "Skybox_right1.tex",  "Skybox_left2.tex",  "Skybox_top3.tex",
-//                                        "Skybox_bottom4.tex", "Skybox_front5.tex", "Skybox_back6.tex" };
-//
-//FontDrawDesc gFrameTimeDraw;
+var pRenderer : ?*ZtfGfx.ztf_Renderer = null;
+
+var pGraphicsQueue : ?*ZtfGfx.ztf_Queue = null;
+var gGraphicsCmdRing = RingBuffer.GpuCmdRing{};
+
+var pSwapChain : ?*ZtfGfx.SwapChain = null;
+var pDepthBuffer : ?*ZtfGfx.RenderTarget = null;
+var pImageAcquiredSemaphore : ?*ZtfGfx.Semaphore = null;
+
+var pSphereShader : ?*ZtfGfx.Shader = null;
+var pSphereVertexBuffer : ?*ZtfGfx.Buffer = null;
+var pSphereIndexBuffer : ?*ZtfGfx.Buffer = null;
+var gSphereIndexCount : u32 = 0;
+var pSpherePipeline : ?*ZtfGfx.Pipeline = null;
+var gSphereVertexLayout : ?*ZtfGfx.VertexLayout = null;
+var gSphereLayoutType : u32 = 0;
+
+var pSkyBoxDrawShader : ?*ZtfGfx.Shader = null;
+var pSkyBoxVertexBuffer : ?*ZtfGfx.Buffer = null;
+var pSkyBoxDrawPipeline : ?*ZtfGfx.Pipeline = null;
+var pRootSignature : ?*ZtfGfx.RootSignature = null;
+var pSamplerSkyBox : ?*ZtfGfx.Sampler = null;
+var pSkyBoxTextures : [6]?*ZtfGfx.Texture = null ** 6;
+var pDescriptorSetTexture : ?*ZtfGfx.DescriptorSet = null;
+var pDescriptorSetUniforms : ?*ZtfGfx.DescriptorSet = null;
+
+var pProjViewUniformBuffer : [gDataBufferCount]?*ZtfGfx.Buffer = null ** gDataBufferCount;
+var pSkyboxUniformBuffer : [gDataBufferCount]?*ZtfGfx.Buffer = null ** gDataBufferCount;
+
+var gFrameIndex : u32 = 0;
+//var gGpuProfileToken : ProfileToken = PROFILE_INVALID_TOKEN;
+
+var gNumberOfSpherePoints : i32 = 0;
+var gUniformData = UniformBlock_C{};
+var gUniformDataSky = UniformBlockSky_C{};
+var gPlanetInfoData = [gNumPlanets]PlanetInfoStruct;
+
+var pCameraController : ?*ZtfCC.ztf_ICameraController = null;
+
+var pGuiWindow : ?*ZtfUI.ztf_UIComponent = null;
+
+var gFontID : u32 = 0;
+
+var pPipelineStatsQueryPool : [gDataBufferCount]?*ZtfGfx.ztf_QueryPool = null ** gDataBufferCount;
+
+var pSkyBoxImageFileNames : [][]const u8 = .{ "Skybox_right1.tex",  "Skybox_left2.tex",  "Skybox_top3.tex",
+                                        "Skybox_bottom4.tex", "Skybox_front5.tex", "Skybox_back6.tex" };
+
+var gFrameTimeDraw = ZtfFont.ztf_FontDrawDesc{};
+
+// Generate sky box vertex buffer
+const gSkyBoxPoints = []f32{
+    10.0,  -10.0, -10.0, 6.0, // -z
+    -10.0, -10.0, -10.0, 6.0,   -10.0, 10.0,  -10.0, 6.0,   -10.0, 10.0,
+    -10.0, 6.0,   10.0,  10.0,  -10.0, 6.0,   10.0,  -10.0, -10.0, 6.0,
+
+    -10.0, -10.0, 10.0,  2.0, //-x
+    -10.0, -10.0, -10.0, 2.0,   -10.0, 10.0,  -10.0, 2.0,   -10.0, 10.0,
+    -10.0, 2.0,   -10.0, 10.0,  10.0,  2.0,   -10.0, -10.0, 10.0,  2.0,
+
+    10.0,  -10.0, -10.0, 1.0, //+x
+    10.0,  -10.0, 10.0,  1.0,   10.0,  10.0,  10.0,  1.0,   10.0,  10.0,
+    10.0,  1.0,   10.0,  10.0,  -10.0, 1.0,   10.0,  -10.0, -10.0, 1.0,
+
+    -10.0, -10.0, 10.0,  5.0, // +z
+    -10.0, 10.0,  10.0,  5.0,   10.0,  10.0,  10.0,  5.0,   10.0,  10.0,
+    10.0,  5.0,   10.0,  -10.0, 10.0,  5.0,   -10.0, -10.0, 10.0,  5.0,
+
+    -10.0, 10.0,  -10.0, 3.0, //+y
+    10.0,  10.0,  -10.0, 3.0,   10.0,  10.0,  10.0,  3.0,   10.0,  10.0,
+    10.0,  3.0,   -10.0, 10.0,  10.0,  3.0,   -10.0, 10.0,  -10.0, 3.0,
+
+    10.0,  -10.0, 10.0,  4.0, //-y
+    10.0,  -10.0, -10.0, 4.0,   -10.0, -10.0, -10.0, 4.0,   -10.0, -10.0,
+    -10.0, 4.0,   -10.0, -10.0, 10.0,  4.0,   10.0,  -10.0, 10.0,  4.0,
+};
+
+var gPipelineStatsCharArray : [2048]u8 = 0;
+
 
 pub fn main() !void {
-	const mybuf = GPURingBuffer
+	const mybuf = RingBuffer.GPURingBuffer
 	{
 		.pRenderer = null,
     	.pBuffer = null,

@@ -220,3 +220,38 @@ pub fn removeGpuCmdRing(renderer : *GfxRenderer, ring : *GpuCmdRing ) !void
 
 	ring.* = std.mem.zeroInit(GpuCmdRing, .{});
 }
+
+pub const GetNextGpuCmdRingElementError = error { OutOfCommandBuffersForPool };
+
+pub fn getNextGpuCmdRingElement(ring : *GpuCmdRing, cycle_pool: bool, cmd_count: u32) GetNextGpuCmdRingElementError!GpuCmdRingElement
+{
+	if (cycle_pool)
+    {
+        ring.*.mPoolIndex = (ring.*.mPoolIndex + 1) % ring.*.mPoolCount;
+        ring.*.mCmdIndex = 0;
+        ring.*.mFenceIndex = 0;
+    }
+
+	if (ring.*.mCmdIndex + cmd_count > ring.*.mCmdPerPoolCount)
+    {
+		std.debug.panic("{s}: cmd_total_request{{u}}, cmd_per_pool_count{{u}}", 
+			.{
+				@errorName(GetNextGpuCmdRingElementError.OutOfCommandBuffersForPool),
+				ring.*.mCmdPerPoolCount,
+				ring.*.mCmdIndex + cmd_count,
+			}
+		);
+        return GetNextGpuCmdRingElementError.OutOfCommandBuffersForPool;
+    }
+
+	var ret = GpuCmdRingElement{};
+	ret.pCmdPool = ring.*.pCmdPools[ring.*.mPoolIndex];
+    ret.pCmds = &ring.*.pCmds[ring.*.mPoolIndex][ring.*.mCmdIndex];
+    ret.pFence = ring.*.pFences[ring.*.mPoolIndex][ring.*.mFenceIndex];
+    ret.pSemaphore = ring.*.pSemaphores[ring.*.mPoolIndex][ring.*.mFenceIndex];
+
+	ring.*.mCmdIndex += cmd_count;
+	ring.*.mFenceIndex += 1;
+
+	return ret;
+}

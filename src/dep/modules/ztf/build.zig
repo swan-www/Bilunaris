@@ -24,6 +24,7 @@ pub const ztf_headers = [_]HeaderInfo{
 	.{ .srcPath = "glue/IApp_c.cpp",					.headerName = "IApp_c.h",				.outputName = "ZtfApp", 				.outputFileName = "ZtfApp.zig", },
 	.{ .srcPath = "glue/IInput_c.cpp",					.headerName = "IInput_c.h",				.outputName = "ZtfInput", 				.outputFileName = "ZtfInput.zig", },
 	.{ .srcPath = "glue/IUI_c.cpp",						.headerName = "IUI_c.h",				.outputName = "ZtfUI", 					.outputFileName = "ZtfUI.zig", },
+	.{ .srcPath = "glue/bstring_c.cpp",					.headerName = "bstring_c.h",			.outputName = "ZtfBString", 			.outputFileName = "ZtfBString.zig", },
 };
 
 pub fn build(b: *std.Build) !void
@@ -51,7 +52,6 @@ pub fn build(b: *std.Build) !void
 
     ztf.linkLibC();
 	ztf.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces" });
-    ztf.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces" });
 
 	for (ztf_headers) |h| 
 	{
@@ -134,7 +134,7 @@ pub fn build(b: *std.Build) !void
 		//const update_protocol_step = b.step("update-protocol", "update src/protocol.zig to latest");
 		//update_protocol_step.dependOn(&wf.step);
 
-		//const installFile = b.addInstallFile(copied_translate, zig_file_output_path);
+		const installFile = b.addInstallFile(copied_translate, zig_file_output_path);
 		const translated_module = b.addModule(h.outputName, .{
 			.target = target,
 			.optimize = optimize,
@@ -144,8 +144,8 @@ pub fn build(b: *std.Build) !void
 		//translateCOfHeader.addModule(h.outputName);
 		ztf_module.addImport(h.outputName, translated_module);	
 
-		//installFile.step.dependOn(&translate_fixup_run.step);
-		//translate_ztf_step.dependOn(&installFile.step);
+		installFile.step.dependOn(&translate_fixup_run.step);
+		translate_ztf_step.dependOn(&installFile.step);
 		translate_ztf_step.dependOn(&translate_fixup_run.step);
 	}
 }

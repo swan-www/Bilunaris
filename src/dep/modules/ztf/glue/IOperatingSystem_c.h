@@ -20,7 +20,7 @@
 
 #if defined(FORGE_DEBUG) && (defined(_WINDOWS) || (defined(__linux__) && !defined(__ANDROID__)) || defined(__APPLE__))
 #define WINDOW_DETAILS 1
-#include "../../Utilities/ThirdParty/OpenSource/bstrlib/bstrlib.h"
+#include "bstring_c.h"
 #else
 #define WINDOW_DETAILS 0
 #endif

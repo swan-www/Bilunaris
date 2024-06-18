@@ -14,7 +14,7 @@ pub fn main() !void {
     const input_file_path = args[1];
 	const output_file_path = args[2];
 	
-	std.debug.print("FIXUP FILE: {s} -> {s}\n", .{input_file_path, output_file_path});
+	//std.debug.print("FIXUP FILE: {s} -> {s}\n", .{input_file_path, output_file_path});
 
     var input_file = std.fs.cwd().createFile(input_file_path, .{.read = true, .truncate = false}) catch |err| {
         fatal("unable to open '{s}': {s}", .{ input_file_path, @errorName(err) }, 6);
