@@ -9,6 +9,7 @@
 		.ztf = .{ .path = "../../../src/dep/modules/ztf"},
 		.zmath = .{ .path = "../../../src/dep/modules/zmath"},
 		.lun_render = .{ .path = "../../../src/modules/render"},
+		.ztf_extension = .{ .path = "../../../src/modules/ztf_extension"},
     },
     .paths = .{""},
 }

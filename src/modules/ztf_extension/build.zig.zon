@@ -1,0 +1,10 @@
+.{
+    .name = "ztf_extension",
+    .version = "1.0.0",
+    .minimum_zig_version = "0.12.0",
+    .dependencies =
+    .{
+		.ztf = .{ .path = "../../../src/dep/modules/ztf"},
+    },
+    .paths = .{""},
+}

@@ -6,16 +6,25 @@ const Vec4 = zmath.Vec;
 
 const Ztf = @import("ztf");
 
+const ZtfApp = Ztf.app;
+const ztf_App = ZtfApp.ztf_App;
+
+const ZtfOS = Ztf.os;
+const ztf_ReloadDesc = ZtfOS.ztf_ReloadDesc;
+
 const ZtfUI = Ztf.ui;
 const ZtfMath = Ztf.math;
 const ZtfCC = Ztf.camera_controller;
 const ZtfGfx = Ztf.gfx;
 const ZtfFont = Ztf.font;
 const ZtfBString = Ztf.BString;
+const BString = ZtfBString.bstring;
 
 const LunRender = @import("lun_render");
 
 const RingBuffer = LunRender.ringbuffer;
+
+const ZtfExt = @import("ztf_ext");
 
 const MAX_PLANETS = 20;
 const QUEST_VR : bool = false;
@@ -150,16 +159,54 @@ const gSkyBoxPoints = []f32{
 };
 
 var gPipelineStatsCharArray : [2048]u8 = 0;
+var gPipelineStats : BString = ZtfExt.bfromarr(gPipelineStatsCharArray);
 
+const gWindowTestScripts : [][]const u8 = .{ "TestFullScreen.lua", "TestCenteredWindow.lua", "TestNonCenteredWindow.lua", "TestBorderless.lua" };
 
-pub fn main() !void {
-	const mybuf = RingBuffer.GPURingBuffer
-	{
-		.pRenderer = null,
-    	.pBuffer = null,
-    	.mBufferAlignment = 0,
-    	.mMaxBufferSize = 0,
-    	.mCurrentBufferOffset = 0,
-	};
-	_ = &mybuf;
+export fn ztf_appInit(_: ?*ztf_App) bool
+{
+	std.debug.print("ztf_appInit\n", .{});
+	return true;
 }
+
+export fn ztf_appExit(_: ?*ztf_App) void
+{
+	std.debug.print("ztf_appExit\n", .{});
+}
+
+export fn ztf_appLoad(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) bool
+{
+	return true;
+}
+
+export fn ztf_appUnload(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) void
+{
+
+}
+
+export fn ztf_appUpdate(_: ?*ztf_App, _: f32) void
+{
+
+}
+
+export fn ztf_appDraw(_: ?*ztf_App) void
+{
+
+}
+
+export fn ztf_appGetName(_: ?*ztf_App) [*c]const u8
+{
+	return "01_TransformationsZig";
+}
+
+//pub fn main() !void {
+//	const mybuf = RingBuffer.GPURingBuffer
+//	{
+//		.pRenderer = null,
+//    	.pBuffer = null,
+//    	.mBufferAlignment = 0,
+//    	.mMaxBufferSize = 0,
+//    	.mCurrentBufferOffset = 0,
+//	};
+//	_ = &mybuf;
+//}

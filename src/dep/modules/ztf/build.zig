@@ -78,15 +78,13 @@ pub fn build(b: *std.Build) !void
         .optimize = optimize,
 		.root_source_file = .{ .path = "ztf.zig"},
 	});
-	_ = &ztf_module;
 
-	const ztf_zig = b.addStaticLibrary(.{
-        .name = "ztf_zig",
-        .target = target,
+	const ztf_cpp_include = b.addModule("ztf_cpp_include", .{
+		.target = target,
         .optimize = optimize,
-		.root_source_file = .{ .path = "ztf.zig"},
-    });
-	_ = &ztf_zig;
+		.root_source_file = .{ .path = b.pathFromRoot("include_cpp")},
+	});
+	_ = &ztf_cpp_include;
 
 	const translate_fixup_exe = b.addExecutable(.{
         .name = "translate_fixup_exe",

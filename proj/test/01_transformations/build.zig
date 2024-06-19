@@ -10,13 +10,29 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable(.{
-        .name = "main",
+	const bilunaris = b.addStaticLibrary(.{
+		.name = "bilunaris",
         .target = target,
         .optimize = optimize,
 		.root_source_file = .{ .path = "../../../src/test/01_transformations/main.zig" },
+	});
+	bilunaris.linkLibC();
+
+	//Need a cpp entry point for the IApp interface
+    const exe = b.addExecutable(.{
+        .name = "main",
+        .target = target,
+        .optimize = optimize
     });
+	exe.addCSourceFile(.{
+		.file = .{ .path = "../../../src/test/01_transformations/main.cpp" },
+		.flags = &.{
+			"-Wno-unused-command-line-argument",
+            "-fno-sanitize=undefined"
+		}
+	});
     exe.linkLibC();
+	exe.linkLibrary(bilunaris);
 	b.installArtifact(exe);
 
 	var tfalias_dir = try alias_build_util.getTFAliasDirectory(b.allocator);
@@ -29,18 +45,27 @@ pub fn build(b: *std.Build) !void {
 		.target = target,
 		.optimize = optimize
 	});
-	exe.root_module.addImport("lun_render", lun_render_pkg.module("lun_render"));
+	bilunaris.root_module.addImport("lun_render", lun_render_pkg.module("lun_render"));
+
+	const ztf_ext_pkg = b.dependency("ztf_extension", .{
+		.target = target,
+		.optimize = optimize
+	});
+	bilunaris.root_module.addImport("ztf_extension", ztf_ext_pkg.module("ztf_extension"));
 
 	const ztf_pkg = b.dependency("ztf", .{
 		.target = target,
 		.optimize = optimize
 	});
+
+	const ztf_cpp_include = ztf_pkg.module("ztf_cpp_include");
+	exe.addIncludePath(ztf_cpp_include.root_source_file.?);
 	
-	exe.step.dependOn(ztf_pkg.builder.getInstallStep());
-	exe.root_module.addImport("ztf", ztf_pkg.module("ztf"));
+	bilunaris.step.dependOn(ztf_pkg.builder.getInstallStep());
+	bilunaris.root_module.addImport("ztf", ztf_pkg.module("ztf"));
 	for (ztf.ztf_headers) |h| 
 	{
-		exe.root_module.addImport(h.outputName, ztf_pkg.module(h.outputName));
+		bilunaris.root_module.addImport(h.outputName, ztf_pkg.module(h.outputName));
 	}
 
 	exe.linkLibrary(ztf_pkg.artifact("tfalias_gainput"));
