@@ -10,19 +10,19 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-	const bilunaris = b.addStaticLibrary(.{
-		.name = "bilunaris",
-        .target = target,
+	_ = b.addObject(.{
+        .name = "bilunaris",
+		.target = target,
         .optimize = optimize,
-		.root_source_file = .{ .path = "../../../src/test/01_transformations/main.zig" },
+        .root_source_file = .{ .path = "../../../src/test/01_transformations/01_transformations.zig" },
 	});
-	bilunaris.linkLibC();
 
 	//Need a cpp entry point for the IApp interface
     const exe = b.addExecutable(.{
         .name = "main",
         .target = target,
-        .optimize = optimize
+        .optimize = optimize,
+		.root_source_file = .{ .path = "../../../src/test/01_transformations/01_transformations.zig" },
     });
 	exe.addCSourceFile(.{
 		.file = .{ .path = "../../../src/test/01_transformations/main.cpp" },
@@ -32,7 +32,6 @@ pub fn build(b: *std.Build) !void {
 		}
 	});
     exe.linkLibC();
-	exe.linkLibrary(bilunaris);
 	b.installArtifact(exe);
 
 	var tfalias_dir = try alias_build_util.getTFAliasDirectory(b.allocator);
@@ -45,13 +44,13 @@ pub fn build(b: *std.Build) !void {
 		.target = target,
 		.optimize = optimize
 	});
-	bilunaris.root_module.addImport("lun_render", lun_render_pkg.module("lun_render"));
+	exe.root_module.addImport("lun_render", lun_render_pkg.module("lun_render"));
 
 	const ztf_ext_pkg = b.dependency("ztf_extension", .{
 		.target = target,
 		.optimize = optimize
 	});
-	bilunaris.root_module.addImport("ztf_extension", ztf_ext_pkg.module("ztf_extension"));
+	exe.root_module.addImport("ztf_ext", ztf_ext_pkg.module("ztf_extension"));
 
 	const ztf_pkg = b.dependency("ztf", .{
 		.target = target,
@@ -61,11 +60,11 @@ pub fn build(b: *std.Build) !void {
 	const ztf_cpp_include = ztf_pkg.module("ztf_cpp_include");
 	exe.addIncludePath(ztf_cpp_include.root_source_file.?);
 	
-	bilunaris.step.dependOn(ztf_pkg.builder.getInstallStep());
-	bilunaris.root_module.addImport("ztf", ztf_pkg.module("ztf"));
+	exe.step.dependOn(ztf_pkg.builder.getInstallStep());
+	exe.root_module.addImport("ztf", ztf_pkg.module("ztf"));
 	for (ztf.ztf_headers) |h| 
 	{
-		bilunaris.root_module.addImport(h.outputName, ztf_pkg.module(h.outputName));
+		exe.root_module.addImport(h.outputName, ztf_pkg.module(h.outputName));
 	}
 
 	exe.linkLibrary(ztf_pkg.artifact("tfalias_gainput"));

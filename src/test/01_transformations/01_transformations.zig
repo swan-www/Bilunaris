@@ -13,6 +13,7 @@ const ZtfOS = Ztf.os;
 const ztf_ReloadDesc = ZtfOS.ztf_ReloadDesc;
 
 const ZtfUI = Ztf.ui;
+const ZtfLog = Ztf.log;
 const ZtfMath = Ztf.math;
 const ZtfCC = Ztf.camera_controller;
 const ZtfGfx = Ztf.gfx;
@@ -163,41 +164,64 @@ var gPipelineStats : BString = ZtfExt.bfromarr(gPipelineStatsCharArray);
 
 const gWindowTestScripts : [][]const u8 = .{ "TestFullScreen.lua", "TestCenteredWindow.lua", "TestNonCenteredWindow.lua", "TestBorderless.lua" };
 
-export fn ztf_appInit(_: ?*ztf_App) bool
+fn reloadRequest(_ : *anyopaque) void
 {
-	std.debug.print("ztf_appInit\n", .{});
+    const reload = ztf_ReloadDesc{ .mType = ZtfOS.ZTF_RELOAD_TYPE_SHADER };
+    ZtfOS.ztf_requestReload(&reload);
+}
+
+pub export fn ztf_appInit(_: ?*ztf_App) callconv(.C) bool
+{
+	ZtfExt.init(null);
+	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appInit", .{});
+
+
+
+	const mybuf = RingBuffer.GPURingBuffer
+	{
+		.pRenderer = null,
+		.pBuffer = null,
+		.mBufferAlignment = 0,
+		.mMaxBufferSize = 0,
+		.mCurrentBufferOffset = 0,
+	};
+	_ = &mybuf;
+
 	return true;
 }
 
-export fn ztf_appExit(_: ?*ztf_App) void
+pub export fn ztf_appExit(_: ?*ztf_App) callconv(.C) void
 {
-	std.debug.print("ztf_appExit\n", .{});
+	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appExit", .{});
+	ZtfExt.deinit();
 }
 
-export fn ztf_appLoad(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) bool
+pub export fn ztf_appLoad(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) callconv(.C) bool
 {
 	return true;
 }
 
-export fn ztf_appUnload(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) void
+pub export fn ztf_appUnload(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) callconv(.C) void
 {
 
 }
 
-export fn ztf_appUpdate(_: ?*ztf_App, _: f32) void
+pub export fn ztf_appUpdate(_: ?*ztf_App, _: f32) callconv(.C) void
 {
 
 }
 
-export fn ztf_appDraw(_: ?*ztf_App) void
+pub export fn ztf_appDraw(_: ?*ztf_App) callconv(.C) void
 {
 
 }
 
-export fn ztf_appGetName(_: ?*ztf_App) [*c]const u8
+pub export fn ztf_appGetName(_: ?*ztf_App) callconv(.C) [*c]const u8
 {
 	return "01_TransformationsZig";
 }
+
+pub extern fn main(argc: c_int, argv: **const c_char) c_int;
 
 //pub fn main() !void {
 //	const mybuf = RingBuffer.GPURingBuffer
