@@ -17,6 +17,7 @@ const ZtfLog = Ztf.log;
 const ZtfMath = Ztf.math;
 const ZtfCC = Ztf.camera_controller;
 const ZtfGfx = Ztf.gfx;
+const ZtfFS = Ztf.fs;
 const ZtfFont = Ztf.font;
 const ZtfBString = Ztf.BString;
 const BString = ZtfBString.bstring;
@@ -170,12 +171,30 @@ fn reloadRequest(_ : *anyopaque) void
     ZtfOS.ztf_requestReload(&reload);
 }
 
-pub export fn ztf_appInit(_: ?*ztf_App) callconv(.C) bool
+pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 {
 	ZtfExt.init(null);
 	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appInit", .{});
 
+	const pSystemFileIO = ZtfFS.ztf_getSystemFileIO();
+	ZtfFS.ztf_fsSetPathForResourceDir(pSystemFileIO, ZtfFS.ZTF_RM_CONTENT, ZtfFS.ZTF_RD_SHADER_BINARIES, "CompiledShaders");
+	ZtfFS.ztf_fsSetPathForResourceDir(pSystemFileIO, ZtfFS.ZTF_RM_CONTENT, ZtfFS.ZTF_RD_TEXTURES, "Textures");
+	ZtfFS.ztf_fsSetPathForResourceDir(pSystemFileIO, ZtfFS.ZTF_RM_CONTENT, ZtfFS.ZTF_RD_FONTS, "Fonts");
+	ZtfFS.ztf_fsSetPathForResourceDir(pSystemFileIO, ZtfFS.ZTF_RM_DEBUG, ZtfFS.ZTF_RD_SCREENSHOTS, "Screenshots");
+	ZtfFS.ztf_fsSetPathForResourceDir(pSystemFileIO, ZtfFS.ZTF_RM_CONTENT, ZtfFS.ZTF_RD_SCRIPTS, "Scripts");
+	ZtfFS.ztf_fsSetPathForResourceDir(pSystemFileIO, ZtfFS.ZTF_RM_DEBUG, ZtfFS.ZTF_RD_DEBUG, "Debug");
 
+	const settings = ZtfGfx.ztf_RendererDesc{
+		.mD3D11Supported = true,
+		.mGLESSupported = true,
+	};
+	ZtfGfx.ztf_initRenderer(ztf_appGetName(pApp), &settings, &pRenderer);
+
+	if(pRenderer == null)
+	{
+		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Renderer failed to initialise.", .{});
+		return false;
+	}
 
 	const mybuf = RingBuffer.GPURingBuffer
 	{
@@ -192,6 +211,9 @@ pub export fn ztf_appInit(_: ?*ztf_App) callconv(.C) bool
 
 pub export fn ztf_appExit(_: ?*ztf_App) callconv(.C) void
 {
+
+	ZtfGfx.ztf_exitRenderer(pRenderer);
+
 	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appExit", .{});
 	ZtfExt.deinit();
 }

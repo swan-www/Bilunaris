@@ -546,6 +546,156 @@ ZTF_C_RENDERER_API void ztf_setPipelineName(ztf_Renderer* pRenderer, ztf_Pipelin
 	setPipelineName((Renderer*) pRenderer, (Pipeline*) pPipeline, pName);
 }
 
+/************************************************************************/
+// BITFIELD DEFINES                                                                                                                                                  
+/************************************************************************/
+
+	ZTF_BITFIELD_SETGET_DEFINE(BufferBarrier, mBitfield, BeginOnly, uint8_t, 0, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(BufferBarrier, mBitfield, EndOnly, 	uint8_t, 1, 1);
+
+	ZTF_BITFIELD_SETGET_DEFINE(TextureBarrier, mBitfieldOne, BeginOnly, 			uint8_t, 0, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(TextureBarrier, mBitfieldOne, EndOnly, 				uint8_t, 1, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(TextureBarrier, mBitfieldOne, Acquire, 				uint8_t, 2, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(TextureBarrier, mBitfieldOne, Release, 				uint8_t, 3, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(TextureBarrier, mBitfieldTwo, QueueType, 			uint8_t, 0, 5);
+	ZTF_BITFIELD_SETGET_DEFINE(TextureBarrier, mBitfieldTwo, SubresourceBarrier, 	uint8_t, 5, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(TextureBarrier, mBitfieldThree, MipLevel, 			uint8_t, 0, 7);
+
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTargetBarrier, mBitfieldOne, BeginOnly, 			uint8_t, 0, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTargetBarrier, mBitfieldOne, EndOnly, 				uint8_t, 1, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTargetBarrier, mBitfieldOne, Acquire, 				uint8_t, 2, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTargetBarrier, mBitfieldOne, Release, 				uint8_t, 3, 1);
+
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTargetBarrier, mBitfieldTwo, QueueType, 			uint8_t, 0, 5);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTargetBarrier, mBitfieldTwo, SubresourceBarrier, 	uint8_t, 5, 1);
+
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTargetBarrier, mBitfieldThree, MipLevel, 			uint8_t, 0, 7);
+
+	ZTF_BITFIELD_SETGET_DEFINE(Buffer, mBitfield, mSize, 			uint64_t, 0, 32);
+	ZTF_BITFIELD_SETGET_DEFINE(Buffer, mBitfield, mDescriptors, 	uint64_t, 32, 20);
+	ZTF_BITFIELD_SETGET_DEFINE(Buffer, mBitfield, mMemoryUsage, 	uint64_t, 52, 3);
+	ZTF_BITFIELD_SETGET_DEFINE(Buffer, mBitfield, mNodeIndex, 		uint64_t, 55, 4);
+
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldOne, mWidth, 				uint32_t, 0, 16);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldOne, mHeight, 				uint32_t, 16, 16);
+
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldTwo, mDepth, 				uint32_t, 0, 16);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldTwo, mMipLevels, 			uint32_t, 16, 5);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldTwo, mArraySizeMinusOne, 	uint32_t, 21, 11);
+
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mFormat, 			uint32_t, 0, 8);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mAspectMask, 		uint32_t, 8, 4);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mNodeIndex, 		uint32_t, 12, 4);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mSampleCount, 		uint32_t, 16, 5);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mUav, 				uint32_t, 21, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mOwnsImage, 		uint32_t, 22, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mLazilyAllocated, 	uint32_t, 23, 1);
+
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mMultiDrawIndirect, 				uint32_t, 0, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mIndirectRootConstant, 			uint32_t, 1, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mBuiltinDrawID, 					uint32_t, 2, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mIndirectCommandBuffer, 			uint32_t, 3, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mROVsSupported, 					uint32_t, 4, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mTessellationSupported, 			uint32_t, 5, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mGeometryShaderSupported, 		uint32_t, 6, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mGpuMarkers, 					uint32_t, 7, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mTimestampQueries, 				uint32_t, 8, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mOcclusionQueries, 				uint32_t, 9, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mPipelineStatsQueries, 			uint32_t, 10, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mAllowBufferTextureInSameHeap, 	uint32_t, 11, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mRaytracingSupported, 			uint32_t, 12, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mRayPipelineSupported, 			uint32_t, 13, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mRayQuerySupported, 				uint32_t, 14, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mSoftwareVRSSupported, 			uint32_t, 15, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mPrimitiveIdSupported, 			uint32_t, 16, 1);
+
+#if defined(VULKAN)	
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldVk, mDynamicRenderingSupported, 		uint32_t, 0, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldVk, mXclipseTransferQueueWorkaround, 	uint32_t, 1, 1);
+#endif	
+
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldTwo, mSamplerAnisotropySupported, 	uint32_t, 0, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldTwo, mGraphicsQueueSupported, 		uint32_t, 1, 1);
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mYCbCrExtension, 										uint32_t, 0, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mFillModeNonSolid, 									uint32_t, 1, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mKHRRayQueryExtension, 								uint32_t, 2, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mAMDGCNShaderExtension, 								uint32_t, 3, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mAMDDrawIndirectCountExtension, 						uint32_t, 4, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mAMDShaderInfoExtension, 								uint32_t, 5, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDescriptorIndexingExtension, 						uint32_t, 6, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDynamicRenderingExtension, 							uint32_t, 7, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mShaderSampledImageArrayDynamicIndexingSupported, 	uint32_t, 8, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mBufferDeviceAddressSupported, 						uint32_t, 9, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDrawIndirectCountExtension, 							uint32_t, 10, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDedicatedAllocationExtension, 						uint32_t, 11, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDebugMarkerExtension, 								uint32_t, 12, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mMemoryReq2Extension, 								uint32_t, 13, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mFragmentShaderInterlockExtension, 					uint32_t, 14, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mBufferDeviceAddressExtension, 						uint32_t, 15, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mAccelerationStructureExtension, 						uint32_t, 16, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mRayTracingPipelineExtension, 						uint32_t, 17, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mRayQueryExtension, 									uint32_t, 18, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mBufferDeviceAddressFeature, 							uint32_t, 19, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mShaderFloatControlsExtension, 						uint32_t, 20, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mSpirv14Extension, 									uint32_t, 21, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDeferredHostOperationsExtension, 					uint32_t, 22, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDeviceFaultExtension, 								uint32_t, 23, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDeviceFaultSupported, 								uint32_t, 24, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mASTCDecodeModeExtension, 							uint32_t, 25, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mDeviceMemoryReportExtension, 						uint32_t, 26, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mAMDBufferMarkerExtension, 							uint32_t, 27, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mAMDDeviceCoherentMemoryExtension, 					uint32_t, 28, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mAMDDeviceCoherentMemorySupported, 					uint32_t, 29, 1);
+
+#define ZTF_BITFIELD_GpuInfo_Temp_Offset 30
+#define ZTF_BITFIELD_GpuInfo_Temp_Suffix One
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mExternalMemoryExtension, 								uint32_t, ZTF_BITFIELD_GpuInfo_Temp_Offset, 	1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mExternalMemoryWin32Extension, 						uint32_t, ZTF_BITFIELD_GpuInfo_Temp_Offset + 1, 1);
+	#define ZTF_BITFIELD_GpuInfo_VK_USE_PLATFORM_WIN32_KHR_Offset
+	#undef ZTF_BITFIELD_GpuInfo_Temp_Offset
+	#define ZTF_BITFIELD_GpuInfo_Temp_Offset (ZTF_BITFIELD_GpuInfo_VK_USE_PLATFORM_WIN32_KHR_Offset + 2)
+#endif
+#if defined(QUEST_VR)
+	#if ZTF_BITFIELD_GpuInfo_Temp_Offset > 31
+		#undef ZTF_BITFIELD_GpuInfo_Temp_Suffix
+		#define ZTF_BITFIELD_GpuInfo_Temp_Suffix Two
+		#define ZTF_BITFIELD_GpuInfo_QUEST_VR_Offset_Overflow ZTF_BITFIELD_GpuInfo_Temp_Offset
+		#undef ZTF_BITFIELD_GpuInfo_Temp_Offset
+		#define ZTF_BITFIELD_GpuInfo_Temp_Offset (ZTF_BITFIELD_GpuInfo_QUEST_VR_Offset_Overflow & 31)
+	#endif
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVk##ZTF_BITFIELD_GpuInfo_Temp_Suffix, mVk, mMultiviewExtension, uint32_t, ZTF_BITFIELD_GpuInfo_Temp_Offset, 1);
+	#define ZTF_BITFIELD_GpuInfo_QUEST_VR_Offset ZTF_BITFIELD_GpuInfo_Temp_Offset
+	#undef ZTF_BITFIELD_GpuInfo_Temp_Offset
+	#define ZTF_BITFIELD_GpuInfo_Temp_Offset (ZTF_BITFIELD_GpuInfo_QUEST_VR_Offset + 1)
+#endif
+#if defined(ENABLE_NSIGHT_AFTERMATH)
+	#if ZTF_BITFIELD_GpuInfo_Temp_Offset > 31
+		#undef ZTF_BITFIELD_GpuInfo_Temp_Suffix
+		#define ZTF_BITFIELD_GpuInfo_Temp_Suffix Two
+		#define ZTF_BITFIELD_GpuInfo_ENABLE_NSIGHT_AFTERMATH_Offset_Overflow ZTF_BITFIELD_GpuInfo_Temp_Offset
+		#undef ZTF_BITFIELD_GpuInfo_Temp_Offset
+		#define ZTF_BITFIELD_GpuInfo_Temp_Offset (ZTF_BITFIELD_GpuInfo_ENABLE_NSIGHT_AFTERMATH_Offset_Overflow & 31)
+	#endif
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVk##ZTF_BITFIELD_GpuInfo_Temp_Suffix, mVk, mNVDeviceDiagnosticsCheckpointExtension, uint32_t, 	ZTF_BITFIELD_GpuInfo_Temp_Offset, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVk##ZTF_BITFIELD_GpuInfo_Temp_Suffix, mVk, mNVDeviceDiagnosticsConfigExtension, uint32_t, 		ZTF_BITFIELD_GpuInfo_Temp_Offset + 1, 1);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVk##ZTF_BITFIELD_GpuInfo_Temp_Suffix, mVk, mAftermathSupport, uint32_t, 						ZTF_BITFIELD_GpuInfo_Temp_Offset + 2, 1);
+
+	#define ZTF_BITFIELD_GpuInfo_ENABLE_NSIGHT_AFTERMATH_Offset ZTF_BITFIELD_GpuInfo_Temp_Offset
+	#undef ZTF_BITFIELD_GpuInfo_Temp_Offset
+	#define ZTF_BITFIELD_GpuInfo_Temp_Offset (ZTF_BITFIELD_GpuInfo_ENABLE_NSIGHT_AFTERMATH_Offset + 3)
+#endif
+#if defined(DIRECT3D11)
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldDx11, mDx11, mPartialUpdateConstantBufferSupported, uint32_t, 0, 1);	
+#endif
+
+ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(RendererContext, mVkBitfield, mVk, mDebugUtilsExtension, uint32_t, 0, 1);
+ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(RendererContext, mVkBitfield, mVk, mDebugReportExtension, uint32_t, 1, 1);
+ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(RendererContext, mVkBitfield, mVk, mDeviceGroupCreationExtension, uint32_t, 2, 1);
+
 #ifdef __cplusplus
 }
 #endif

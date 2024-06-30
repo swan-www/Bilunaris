@@ -644,43 +644,54 @@ typedef struct PipelineReflection PipelineReflection;
         ztf_Buffer* pBuffer;
         ztf_ResourceState mCurrentState;
         ztf_ResourceState mNewState;
-        uint8_t       mBeginOnly : 1;
-        uint8_t       mEndOnly : 1;
+		uint8_t mBitfield;
     } ztf_BufferBarrier;
+
+	ZTF_BITFIELD_SETGET_DECLARE(BufferBarrier, BeginOnly, uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(BufferBarrier, EndOnly, uint8_t);
 
     typedef struct ztf_TextureBarrier
     {
         ztf_Texture* pTexture;
         ztf_ResourceState mCurrentState;
         ztf_ResourceState mNewState;
-        uint8_t       mBeginOnly : 1;
-        uint8_t       mEndOnly : 1;
-        uint8_t       mAcquire : 1;
-        uint8_t       mRelease : 1;
-        uint8_t       mQueueType : 5;
-        /// Specifiy whether following barrier targets particular subresource
-        uint8_t       mSubresourceBarrier : 1;
-        /// Following values are ignored if mSubresourceBarrier is false
-        uint8_t       mMipLevel : 7;
+        uint8_t       mBitfieldOne;
+		uint8_t       mBitfieldTwo;
+		uint8_t       mBitfieldThree;
+
         uint16_t      mArrayLayer;
     } ztf_TextureBarrier;
+
+	ZTF_BITFIELD_SETGET_DECLARE(TextureBarrier, BeginOnly, 			uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(TextureBarrier, EndOnly, 				uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(TextureBarrier, Acquire, 				uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(TextureBarrier, Release, 				uint8_t);
+
+	ZTF_BITFIELD_SETGET_DECLARE(TextureBarrier, QueueType, 			uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(TextureBarrier, SubresourceBarrier, 	uint8_t);
+
+	ZTF_BITFIELD_SETGET_DECLARE(TextureBarrier, MipLevel, 			uint8_t);
 
     typedef struct ztf_RenderTargetBarrier
     {
         ztf_RenderTarget* pRenderTarget;
         ztf_ResourceState mCurrentState;
         ztf_ResourceState mNewState;
-        uint8_t       mBeginOnly : 1;
-        uint8_t       mEndOnly : 1;
-        uint8_t       mAcquire : 1;
-        uint8_t       mRelease : 1;
-        uint8_t       mQueueType : 5;
-        /// Specifiy whether following barrier targets particular subresource
-        uint8_t       mSubresourceBarrier : 1;
-        /// Following values are ignored if mSubresourceBarrier is false
-        uint8_t       mMipLevel : 7;
+        uint8_t       mBitfieldOne;
+		uint8_t       mBitfieldTwo;
+		uint8_t       mBitfieldThree;
         uint16_t      mArrayLayer;
     } ztf_RenderTargetBarrier;
+
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTargetBarrier, BeginOnly, 			uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTargetBarrier, EndOnly, 				uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTargetBarrier, Acquire, 				uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTargetBarrier, Release, 				uint8_t);
+
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTargetBarrier, QueueType, 			uint8_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTargetBarrier, SubresourceBarrier, 	uint8_t);
+
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTargetBarrier, MipLevel, 			uint8_t);
 
     typedef struct ztf_ReadRange
     {
@@ -997,7 +1008,7 @@ typedef struct PipelineReflection PipelineReflection;
                 /// Offset from mDescriptors for uav descriptor handle
                 uint8_t                   mUavDescriptorOffset;
 #if !defined(XBOX)
-                uint8_t mMarkerBuffer : 1;
+                uint8_t mMarkerBuffer;
 #endif
                 /// Native handle of the underlying resource
                 ID3D12Resource* pResource;
@@ -1058,13 +1069,15 @@ typedef struct PipelineReflection PipelineReflection;
 #if defined(ZTF_USE_MULTIPLE_RENDER_APIS)
         };
 #endif
-        uint64_t mSize : 32;
-        uint64_t mDescriptors : 20;
-        uint64_t mMemoryUsage : 3;
-        uint64_t mNodeIndex : 4;
+		uint64_t mBitfield;
     } ztf_Buffer;
     // One cache line
     COMPILE_ASSERT(sizeof(ztf_Buffer) == 8 * sizeof(uint64_t));
+
+	ZTF_BITFIELD_SETGET_DECLARE(Buffer, mSize, 			uint64_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Buffer, mDescriptors, 	uint64_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Buffer, mMemoryUsage, 	uint64_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Buffer, mNodeIndex, 	uint64_t);
 
     /// Data structure holding necessary info to create a Texture
     typedef struct ztf_TextureDesc
@@ -1126,7 +1139,7 @@ typedef struct PipelineReflection PipelineReflection;
                 ID3D12Resource* pResource;
                 /// Contains resource allocation info such as parent heap, offset in heap
                 D3D12MAAllocation* pAllocation;
-                uint32_t           mHandleCount : 24;
+                uint32_t           mHandleCount;
                 uint32_t           mUavStartIndex;
             } mDx;
 #endif
@@ -1197,24 +1210,27 @@ typedef struct PipelineReflection PipelineReflection;
         };
 #endif
         /// Current state of the buffer
-        uint32_t mWidth : 16;
-        uint32_t mHeight : 16;
-        uint32_t mDepth : 16;
-        uint32_t mMipLevels : 5;
-        uint32_t mArraySizeMinusOne : 11;
-        uint32_t mFormat : 8;
-        /// Flags specifying which aspects (COLOR,DEPTH,STENCIL) are included in the pImageView
-        uint32_t mAspectMask : 4;
-        uint32_t mNodeIndex : 4;
-        uint32_t mSampleCount : 5;
-        uint32_t mUav : 1;
-        /// This value will be false if the underlying resource is not owned by the texture (swapchain textures,...)
-        uint32_t mOwnsImage : 1;
-        // Only applies to Vulkan but kept here as adding it inside mVk block increases the size of the struct and triggers assert below
-        uint32_t mLazilyAllocated : 1;
+		uint32_t mBitfieldOne;
+		uint32_t mBitfieldTwo;
+		uint32_t mBitfieldThree;
     } ztf_Texture;
     // One cache line
     COMPILE_ASSERT(sizeof(ztf_Texture) == 8 * sizeof(uint64_t));
+
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mWidth, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mHeight, 				uint32_t);
+
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mDepth, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mMipLevels, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mArraySizeMinusOne, 	uint32_t);
+
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mFormat, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mAspectMask, 		uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mNodeIndex, 		uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mSampleCount, 		uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mUav, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mOwnsImage, 		uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Texture, mLazilyAllocated, 	uint32_t);
 
     typedef struct ztf_RenderTargetDesc
     {
@@ -2895,34 +2911,16 @@ typedef struct PipelineReflection PipelineReflection;
 
         uint32_t mMaxTotalComputeThreads;
         uint32_t mMaxComputeThreads[3];
-        uint32_t mMultiDrawIndirect : 1;
-        uint32_t mIndirectRootConstant : 1;
-        uint32_t mBuiltinDrawID : 1;
-        uint32_t mIndirectCommandBuffer : 1;
-        uint32_t mROVsSupported : 1;
-        uint32_t mTessellationSupported : 1;
-        uint32_t mGeometryShaderSupported : 1;
-        uint32_t mGpuMarkers : 1;
-        uint32_t mHDRSupported : 1;
-        uint32_t mTimestampQueries : 1;
-        uint32_t mOcclusionQueries : 1;
-        uint32_t mPipelineStatsQueries : 1;
-        uint32_t mAllowBufferTextureInSameHeap : 1;
-        uint32_t mRaytracingSupported : 1;
-        uint32_t mRayPipelineSupported : 1;
-        uint32_t mRayQuerySupported : 1;
-        uint32_t mSoftwareVRSSupported : 1;
-        uint32_t mPrimitiveIdSupported : 1;
+
+		uint32_t mBitfieldOne;
 #if defined(DIRECT3D11) || defined(DIRECT3D12)
         D3D_FEATURE_LEVEL mFeatureLevel;
 #endif
 #if defined(VULKAN)
-        uint32_t mDynamicRenderingSupported : 1;
-        uint32_t mXclipseTransferQueueWorkaround : 1;
+		uint32_t mBitfieldVk;
 #endif
         uint32_t mMaxBoundTextures;
-        uint32_t mSamplerAnisotropySupported : 1;
-        uint32_t mGraphicsQueueSupported : 1;
+		uint32_t mBitfieldTwo;
 #if defined(METAL)
         uint32_t mHeaps : 1;
         uint32_t mPlacementHeaps : 1;
@@ -2935,6 +2933,32 @@ typedef struct PipelineReflection PipelineReflection;
 #endif
         uint32_t mAmdAsicFamily;
     } ztf_GPUSettings;
+
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mMultiDrawIndirect, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mIndirectRootConstant, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mBuiltinDrawID, 					uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mIndirectCommandBuffer, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mROVsSupported, 					uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mTessellationSupported, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mGeometryShaderSupported, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mGpuMarkers, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mTimestampQueries, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mOcclusionQueries, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mPipelineStatsQueries, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mAllowBufferTextureInSameHeap, 	uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mRaytracingSupported, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mRayPipelineSupported, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mRayQuerySupported, 				uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mSoftwareVRSSupported, 			uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mPrimitiveIdSupported, 			uint32_t);
+
+#if defined(VULKAN)	
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mDynamicRenderingSupported, 		uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mXclipseTransferQueueWorkaround, 	uint32_t);
+#endif	
+
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mSamplerAnisotropySupported, 	uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GPUSettings, mGraphicsQueueSupported, 		uint32_t);
 
     typedef struct DEFINE_ALIGNED(ztf_Renderer, 64)
     {
@@ -3109,55 +3133,15 @@ typedef struct PipelineReflection PipelineReflection;
             {
                 VkPhysicalDevice            pGpu;
                 VkPhysicalDeviceProperties2 mGpuProperties;
-                uint32_t                    mYCbCrExtension : 1;
-                uint32_t                    mFillModeNonSolid : 1;
-                uint32_t                    mKHRRayQueryExtension : 1;
-                uint32_t                    mAMDGCNShaderExtension : 1;
-                uint32_t                    mAMDDrawIndirectCountExtension : 1;
-                uint32_t                    mAMDShaderInfoExtension : 1;
-                uint32_t                    mDescriptorIndexingExtension : 1;
-                uint32_t                    mDynamicRenderingExtension : 1;
-                uint32_t                    mShaderSampledImageArrayDynamicIndexingSupported : 1;
-                uint32_t                    mBufferDeviceAddressSupported : 1;
-                uint32_t                    mDrawIndirectCountExtension : 1;
-                uint32_t                    mDedicatedAllocationExtension : 1;
-                uint32_t                    mDebugMarkerExtension : 1;
-                uint32_t                    mMemoryReq2Extension : 1;
-                uint32_t                    mFragmentShaderInterlockExtension : 1;
-                uint32_t                    mBufferDeviceAddressExtension : 1;
-                uint32_t                    mAccelerationStructureExtension : 1;
-                uint32_t                    mRayTracingPipelineExtension : 1;
-                uint32_t                    mRayQueryExtension : 1;
-                uint32_t                    mBufferDeviceAddressFeature : 1;
-                uint32_t                    mShaderFloatControlsExtension : 1;
-                uint32_t                    mSpirv14Extension : 1;
-                uint32_t                    mDeferredHostOperationsExtension : 1;
-                uint32_t                    mDeviceFaultExtension : 1;
-                uint32_t                    mDeviceFaultSupported : 1;
-                uint32_t                    mASTCDecodeModeExtension : 1;
-                uint32_t                    mDeviceMemoryReportExtension : 1;
-                uint32_t                    mAMDBufferMarkerExtension : 1;
-                uint32_t                    mAMDDeviceCoherentMemoryExtension : 1;
-                uint32_t                    mAMDDeviceCoherentMemorySupported : 1;
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-                uint32_t mExternalMemoryExtension : 1;
-                uint32_t mExternalMemoryWin32Extension : 1;
-#endif
-#if defined(QUEST_VR)
-                uint32_t mMultiviewExtension : 1;
-#endif
-#if defined(ENABLE_NSIGHT_AFTERMATH)
-                uint32_t mNVDeviceDiagnosticsCheckpointExtension : 1;
-                uint32_t mNVDeviceDiagnosticsConfigExtension : 1;
-                uint32_t mAftermathSupport : 1;
-#endif
+				uint32_t 					mBitfieldVkOne;
+				uint32_t 					mBitfieldVkTwo;
             } mVk;
 #endif
 #if defined(DIRECT3D11)
             struct
             {
                 IDXGIAdapter1* pGpu;
-                uint32_t       mPartialUpdateConstantBufferSupported : 1;
+                uint32_t       mBitfieldDx11;
             } mDx11;
 #endif
 #if defined(ZTF_USE_MULTIPLE_RENDER_APIS)
@@ -3171,6 +3155,53 @@ typedef struct PipelineReflection PipelineReflection;
         ztf_GPUSettings mSettings;
         ztf_GPUCapBits  mCapBits;
     } ztf_GpuInfo;
+
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mYCbCrExtension, 									uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mFillModeNonSolid, 									uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mKHRRayQueryExtension, 								uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAMDGCNShaderExtension, 							uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAMDDrawIndirectCountExtension, 					uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAMDShaderInfoExtension, 							uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDescriptorIndexingExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDynamicRenderingExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mShaderSampledImageArrayDynamicIndexingSupported, 	uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mBufferDeviceAddressSupported, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDrawIndirectCountExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDedicatedAllocationExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDebugMarkerExtension, 								uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mMemoryReq2Extension, 								uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mFragmentShaderInterlockExtension, 					uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mBufferDeviceAddressExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAccelerationStructureExtension, 					uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mRayTracingPipelineExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mRayQueryExtension, 								uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mBufferDeviceAddressFeature, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mShaderFloatControlsExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mSpirv14Extension, 									uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDeferredHostOperationsExtension, 					uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDeviceFaultExtension, 								uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDeviceFaultSupported, 								uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mASTCDecodeModeExtension, 							uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mDeviceMemoryReportExtension, 						uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAMDBufferMarkerExtension, 							uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAMDDeviceCoherentMemoryExtension, 					uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAMDDeviceCoherentMemorySupported, 					uint32_t);
+
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mExternalMemoryExtension, 								uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mExternalMemoryWin32Extension, 						uint32_t);
+	#endif
+#if defined(QUEST_VR)
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mMultiviewExtension, uint32_t);
+#endif
+#if defined(ENABLE_NSIGHT_AFTERMATH)
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mNVDeviceDiagnosticsCheckpointExtension, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mNVDeviceDiagnosticsConfigExtension, uint32_t );
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mAftermathSupport, uint32_t 					);
+#endif
+#if defined(DIRECT3D11)
+	ZTF_BITFIELD_SETGET_DECLARE(GpuInfo, mPartialUpdateConstantBufferSupported, uint32_t);	
+#endif
 
     typedef struct ztf_RendererContext
     {
@@ -3198,9 +3229,7 @@ typedef struct PipelineReflection PipelineReflection;
                 VkInstance               pInstance;
                 VkDebugUtilsMessengerEXT pDebugUtilsMessenger;
                 VkDebugReportCallbackEXT pDebugReport;
-                uint32_t                 mDebugUtilsExtension : 1;
-                uint32_t                 mDebugReportExtension : 1;
-                uint32_t                 mDeviceGroupCreationExtension : 1;
+				uint32_t 				 mVkBitfield;
             } mVk;
 #endif
 #if defined(DIRECT3D11)
@@ -3221,6 +3250,10 @@ typedef struct PipelineReflection PipelineReflection;
         ztf_GpuInfo  mGpus[ZTF_MAX_MULTIPLE_GPUS];
         uint32_t mGpuCount;
     } ztf_RendererContext;
+
+	ZTF_BITFIELD_SETGET_DECLARE(RendererContext, mDebugUtilsExtension, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RendererContext, mDebugReportExtension, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RendererContext, mDeviceGroupCreationExtension, uint32_t);
 
     // Indirect command structure define
     typedef struct ztf_IndirectArgument

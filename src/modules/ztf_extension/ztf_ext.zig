@@ -53,6 +53,11 @@ pub fn init(optional_allocator : ?*std.mem.Allocator) void
 	static.init(optional_allocator);
 }
 
+pub fn deinit() void
+{
+	static.deinit();
+}
+
 pub const SourceLocation = struct {
     file: [:0]const u8,
 	file_allocated : bool,
