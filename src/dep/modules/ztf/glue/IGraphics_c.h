@@ -1340,19 +1340,24 @@ typedef struct PipelineReflection PipelineReflection;
         RenderTarget* pResolveAttachment;
 #endif
         ztf_ClearValue      mClearValue;
-        uint32_t        mArraySize : 16;
-        uint32_t        mDepth : 16;
-        uint32_t        mWidth : 16;
-        uint32_t        mHeight : 16;
-        uint32_t        mDescriptors : 20;
-        uint32_t        mMipLevels : 10;
-        uint32_t        mSampleQuality : 5;
+		uint32_t 		mBitfieldOne;
+		uint32_t 		mBitfieldTwo;
+		uint32_t 		mBitfieldThree;
+		uint32_t 		mBitfieldFour;
         TinyImageFormat mFormat;
         ztf_SampleCount     mSampleCount;
         bool            mVRMultiview;
         bool            mVRFoveatedRendering;
     } ztf_RenderTarget;
     COMPILE_ASSERT(sizeof(ztf_RenderTarget) <= 32 * sizeof(uint64_t));
+
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTarget, mArraySize, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTarget, mDepth, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTarget, mWidth, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTarget, mHeight, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTarget, mDescriptors, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTarget, mMipLevels, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(RenderTarget, mSampleQuality, uint32_t);
 
     typedef struct ztf_SampleLocations
     {
@@ -1477,10 +1482,7 @@ typedef struct PipelineReflection PipelineReflection;
         ProsperoDescriptorInfo mStruct;
 #else
         uint32_t mType;
-        uint32_t mDim : 4;
-        uint32_t mRootDescriptor : 1;
-        uint32_t mStaticSampler : 1;
-        uint32_t mUpdateFrequency : 3;
+		uint32_t mBitfield;
         uint32_t mSize;
         uint32_t mHandleIndex;
 #if defined(ZTF_USE_MULTIPLE_RENDER_APIS)
@@ -1497,8 +1499,7 @@ typedef struct PipelineReflection PipelineReflection;
             struct
             {
                 uint32_t mType;
-                uint32_t mReg : 20;
-                uint32_t mStages : 8;
+				uint32_t mBitfieldVk;
             } mVk;
 #endif
 #if defined(METAL)
@@ -1515,8 +1516,7 @@ typedef struct PipelineReflection PipelineReflection;
 #if defined(DIRECT3D11)
             struct
             {
-                uint32_t mUsedStages : 6;
-                uint32_t mReg : 20;
+				uint32_t mBitfieldDx11;
                 uint32_t mPadA;
             } mDx11;
 #endif
@@ -1543,6 +1543,15 @@ typedef struct PipelineReflection PipelineReflection;
 #else
     COMPILE_ASSERT(sizeof(ztf_DescriptorInfo) == 4 * sizeof(uint64_t));
 #endif
+
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mVkReg, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mStages, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mUsedStages, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mDx11Reg, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mDim, 			 uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mRootDescriptor,  uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mStaticSampler,  uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorInfo, mUpdateFrequency, uint32_t);
 
     typedef enum ztf_RootSignatureFlags
     {
@@ -3050,17 +3059,20 @@ typedef struct PipelineReflection PipelineReflection;
 #endif
         struct NullDescriptors* pNullDescriptors;
         struct ztf_RendererContext* pContext;
-        const struct GpuInfo* pGpu;
+        const struct ztf_GpuInfo* pGpu;
         const char* pName;
         ztf_RendererApi         mRendererApi;
-        uint32_t                mLinkedNodeCount : 4;
-        uint32_t                mUnlinkedRendererIndex : 4;
-        uint32_t                mGpuMode : 3;
-        uint32_t                mShaderTarget : 4;
-        uint32_t                mOwnsContext : 1;
+		uint32_t				mBitfield;
     } ztf_Renderer;
     // 3 cache lines
     COMPILE_ASSERT(sizeof(ztf_Renderer) <= 24 * sizeof(uint64_t));
+
+	ZTF_BITFIELD_SETGET_DECLARE(Renderer, mLinkedNodeCount, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Renderer, mUnlinkedRendererIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Renderer, mGpuMode, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Renderer, mShaderTarget, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Renderer, mOwnsContext, uint32_t);
+
 
     typedef struct ztf_RendererContextDesc
     {
@@ -3325,11 +3337,13 @@ typedef struct PipelineReflection PipelineReflection;
         ztf_LoadActionType  mLoadActionStencil;
         ztf_StoreActionType mStoreActionStencil;
         uint32_t        mArraySlice;
-        uint32_t        mMipSlice : 10;
-        uint32_t        mOverrideClearValue : 1;
-        uint32_t        mUseArraySlice : 1;
-        uint32_t        mUseMipSlice : 1;
+		uint32_t        mBitfield;
     } ztf_BindRenderTargetDesc;
+
+	ZTF_BITFIELD_SETGET_DECLARE(BindRenderTargetDesc, mMipSlice, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(BindRenderTargetDesc, mOverrideClearValue, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(BindRenderTargetDesc, mUseArraySlice, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(BindRenderTargetDesc, mUseMipSlice, uint32_t);
 
     typedef struct ztf_BindDepthTargetDesc
     {
@@ -3340,11 +3354,13 @@ typedef struct PipelineReflection PipelineReflection;
         ztf_StoreActionType mStoreActionStencil;
         ztf_ClearValue      mClearValue;
         uint32_t        mArraySlice;
-        uint32_t        mMipSlice : 10;
-        uint32_t        mOverrideClearValue : 1;
-        uint32_t        mUseArraySlice : 1;
-        uint32_t        mUseMipSlice : 1;
+		uint32_t        mBitfield;
     } ztf_BindDepthTargetDesc;
+
+	ZTF_BITFIELD_SETGET_DECLARE(BindDepthTargetDesc, mMipSlice, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(BindDepthTargetDesc, mOverrideClearValue, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(BindDepthTargetDesc, mUseArraySlice, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(BindDepthTargetDesc, mUseMipSlice, uint32_t);
 
     typedef struct ztf_BindRenderTargetsDesc
     {

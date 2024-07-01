@@ -591,6 +591,27 @@ ZTF_C_RENDERER_API void ztf_setPipelineName(ztf_Renderer* pRenderer, ztf_Pipelin
 	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mOwnsImage, 		uint32_t, 22, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(Texture, mBitfieldThree, mLazilyAllocated, 	uint32_t, 23, 1);
 
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTarget, mBitfieldOne, mArraySize, 		uint32_t, 0, 16);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTarget, mBitfieldOne, mDepth, 			uint32_t, 16, 16);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTarget, mBitfieldTwo, mWidth, 			uint32_t, 0, 16);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTarget, mBitfieldTwo, mHeight, 		uint32_t, 16, 16);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTarget, mBitfieldThree, mDescriptors, 	uint32_t, 0, 20);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTarget, mBitfieldThree, mMipLevels, 	uint32_t, 20, 10);
+	ZTF_BITFIELD_SETGET_DEFINE(RenderTarget, mBitfieldFour, mSampleQuality, uint32_t, 0, 5);
+#if defined(VULKAN)
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorInfo, mBitfieldVk, mVk, mVkReg,	uint32_t, 0, 20);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorInfo, mBitfieldVk, mVk, mStages,	uint32_t, 20, 8);
+#endif
+#if defined(DIRECT3D11)
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorInfo, mBitfieldDx11, mDx11, mUsedStages, uint32_t, 0, 6);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorInfo, mBitfieldDx11, mDx11, mDx11Reg,	uint32_t, 6, 20);
+#endif
+
+	ZTF_BITFIELD_SETGET_DEFINE(DescriptorInfo, mBitfield, mDim, 				uint32_t, 0, 4);
+	ZTF_BITFIELD_SETGET_DEFINE(DescriptorInfo, mBitfield, mRootDescriptor, 		uint32_t, 4, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(DescriptorInfo, mBitfield, mStaticSampler, 		uint32_t, 5, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(DescriptorInfo, mBitfield, mUpdateFrequency, 	uint32_t, 6, 3);
+
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mMultiDrawIndirect, 				uint32_t, 0, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mIndirectRootConstant, 			uint32_t, 1, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mBuiltinDrawID, 					uint32_t, 2, 1);
@@ -598,7 +619,7 @@ ZTF_C_RENDERER_API void ztf_setPipelineName(ztf_Renderer* pRenderer, ztf_Pipelin
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mROVsSupported, 					uint32_t, 4, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mTessellationSupported, 			uint32_t, 5, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mGeometryShaderSupported, 		uint32_t, 6, 1);
-	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mGpuMarkers, 					uint32_t, 7, 1);
+	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mGpuMarkers, 						uint32_t, 7, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mTimestampQueries, 				uint32_t, 8, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mOcclusionQueries, 				uint32_t, 9, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mPipelineStatsQueries, 			uint32_t, 10, 1);
@@ -692,9 +713,28 @@ ZTF_C_RENDERER_API void ztf_setPipelineName(ztf_Renderer* pRenderer, ztf_Pipelin
 	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldDx11, mDx11, mPartialUpdateConstantBufferSupported, uint32_t, 0, 1);	
 #endif
 
+
+ZTF_BITFIELD_SETGET_DEFINE(Renderer, mBitfield, mLinkedNodeCount, 		uint32_t, 0, 4);
+ZTF_BITFIELD_SETGET_DEFINE(Renderer, mBitfield, mUnlinkedRendererIndex, 	uint32_t, 4, 4);
+ZTF_BITFIELD_SETGET_DEFINE(Renderer, mBitfield, mGpuMode, 				uint32_t, 8, 3);
+ZTF_BITFIELD_SETGET_DEFINE(Renderer, mBitfield, mShaderTarget, 			uint32_t, 11, 4);
+ZTF_BITFIELD_SETGET_DEFINE(Renderer, mBitfield, mOwnsContext, 			uint32_t, 15, 1);
+
 ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(RendererContext, mVkBitfield, mVk, mDebugUtilsExtension, uint32_t, 0, 1);
 ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(RendererContext, mVkBitfield, mVk, mDebugReportExtension, uint32_t, 1, 1);
 ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(RendererContext, mVkBitfield, mVk, mDeviceGroupCreationExtension, uint32_t, 2, 1);
+
+ZTF_BITFIELD_SETGET_DEFINE(BindRenderTargetDesc, mBitfield, mMipSlice, uint32_t, 0, 10);
+ZTF_BITFIELD_SETGET_DEFINE(BindRenderTargetDesc, mBitfield, mOverrideClearValue, uint32_t, 10, 1);
+ZTF_BITFIELD_SETGET_DEFINE(BindRenderTargetDesc, mBitfield, mUseArraySlice, uint32_t, 11, 1);
+ZTF_BITFIELD_SETGET_DEFINE(BindRenderTargetDesc, mBitfield, mUseMipSlice, uint32_t, 12, 1);
+
+ZTF_BITFIELD_SETGET_DEFINE(BindDepthTargetDesc, mBitfield, mMipSlice, uint32_t, 0, 10);
+ZTF_BITFIELD_SETGET_DEFINE(BindDepthTargetDesc, mBitfield, mOverrideClearValue, uint32_t, 10, 1);
+ZTF_BITFIELD_SETGET_DEFINE(BindDepthTargetDesc, mBitfield, mUseArraySlice, uint32_t, 11, 1);
+ZTF_BITFIELD_SETGET_DEFINE(BindDepthTargetDesc, mBitfield, mUseMipSlice, uint32_t, 12, 1);
+
+
 
 #ifdef __cplusplus
 }

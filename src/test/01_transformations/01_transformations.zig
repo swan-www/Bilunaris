@@ -22,6 +22,8 @@ const ZtfFont = Ztf.font;
 const ZtfBString = Ztf.BString;
 const BString = ZtfBString.bstring;
 
+usingnamespace ZtfGfx;
+
 const LunRender = @import("lun_render");
 
 const RingBuffer = LunRender.ringbuffer;
@@ -126,7 +128,7 @@ var pGuiWindow : ?*ZtfUI.ztf_UIComponent = null;
 
 var gFontID : u32 = 0;
 
-var pPipelineStatsQueryPool : [gDataBufferCount]?*ZtfGfx.ztf_QueryPool = null ** gDataBufferCount;
+var pPipelineStatsQueryPool : [gDataBufferCount]?*ZtfGfx.ztf_QueryPool = [_]?*ZtfGfx.ztf_QueryPool{null} ** gDataBufferCount;
 
 var pSkyBoxImageFileNames : [][]const u8 = .{ "Skybox_right1.tex",  "Skybox_left2.tex",  "Skybox_top3.tex",
                                         "Skybox_bottom4.tex", "Skybox_front5.tex", "Skybox_back6.tex" };
@@ -196,6 +198,17 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 		return false;
 	}
 
+	if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.?.pGpu.*.mSettings) != 0)
+	{
+		const poolDesc = ZtfGfx.ztf_QueryPoolDesc{
+			.mQueryCount = 3,
+			.mType = ZtfGfx.ZTF_QUERY_TYPE_PIPELINE_STATISTICS,
+		};
+		for (0..gDataBufferCount) |i| {
+			ZtfGfx.ztf_addQueryPool(pRenderer, &poolDesc, &pPipelineStatsQueryPool[i]);
+		}
+	}
+
 	const mybuf = RingBuffer.GPURingBuffer
 	{
 		.pRenderer = null,
@@ -211,6 +224,13 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 
 pub export fn ztf_appExit(_: ?*ztf_App) callconv(.C) void
 {
+	for (0..gDataBufferCount) |i| {
+
+		if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.?.pGpu.*.mSettings) != 0)
+		{
+			ZtfGfx.ztf_removeQueryPool(pRenderer, pPipelineStatsQueryPool[i]);
+		}
+	}
 
 	ZtfGfx.ztf_exitRenderer(pRenderer);
 

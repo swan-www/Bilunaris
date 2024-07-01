@@ -14,7 +14,7 @@ void ztf_set##ClassName##_##FlagName(ztf_##ClassName * pStruct, UnderlyingType p
 	const UnderlyingType ztf_##ClassName##_##FlagName##_Mask = ((((UnderlyingType)1 << (UnderlyingType)Width)-(UnderlyingType)1) << (UnderlyingType)Offset);\
 	UnderlyingType ztf_get##ClassName##_##FlagName(const ztf_##ClassName * pStruct)\
 	{\
-		return pStruct->BitfieldName & ztf_##ClassName##_##FlagName##_Mask;\
+		return (pStruct->BitfieldName & ztf_##ClassName##_##FlagName##_Mask) >> Offset;\
 	}\
 \
 	void ztf_set##ClassName##_##FlagName(ztf_##ClassName * pStruct, UnderlyingType pValue)\
