@@ -17,6 +17,12 @@ extern "C"
 #define NDEBUG
 #endif
 
+#ifndef FORGE_DEBUG
+#if defined(DEBUG) || defined(_DEBUG) || defined(AUTOMATED_TESTING)
+#define FORGE_DEBUG
+#endif
+#endif
+
 #define UNREF_PARAM(x) (x)
 #define ALIGNAS(x) __declspec( align( x ) ) 
 #define DEFINE_ALIGNED(def, a) __declspec(align(a)) def
@@ -100,6 +106,10 @@ typedef SSIZE_T ssize_t;
 
 #if !defined(NDEBUG)
 #define ZTF_ENABLE_MEMORY_TRACKING
+#endif
+
+#if defined(FORGE_DEBUG)
+#define ENABLE_GRAPHICS_DEBUG
 #endif
 
 //////////////////////////////////////////////

@@ -85,7 +85,8 @@ const gRotOrbitZScale : f32 = 0.00001;
 
 var GPURingBuffer = RingBuffer.GPURingBuffer{};
 
-var pRenderer : ?*ZtfGfx.ztf_Renderer = null;
+var pRenderer : *ZtfGfx.ztf_Renderer = undefined;
+var pRendererOpt : ?*ZtfGfx.ztf_Renderer = null;
 
 var pGraphicsQueue : ?*ZtfGfx.ztf_Queue = null;
 var gGraphicsCmdRing = RingBuffer.GpuCmdRing{};
@@ -190,15 +191,17 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 		.mD3D11Supported = true,
 		.mGLESSupported = true,
 	};
-	ZtfGfx.ztf_initRenderer(ztf_appGetName(pApp), &settings, &pRenderer);
 
-	if(pRenderer == null)
+	ZtfGfx.ztf_initRenderer(ztf_appGetName(pApp), &settings, &pRendererOpt);
+
+	if(pRendererOpt == null)
 	{
 		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Renderer failed to initialise.", .{});
 		return false;
 	}
+	pRenderer = pRendererOpt.?;
 
-	if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.?.pGpu.*.mSettings) != 0)
+	if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings) != 0)
 	{
 		const poolDesc = ZtfGfx.ztf_QueryPoolDesc{
 			.mQueryCount = 3,
@@ -209,30 +212,42 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 		}
 	}
 
-	const mybuf = RingBuffer.GPURingBuffer
-	{
-		.pRenderer = null,
-		.pBuffer = null,
-		.mBufferAlignment = 0,
-		.mMaxBufferSize = 0,
-		.mCurrentBufferOffset = 0,
+	var queue_desc = ZtfGfx.ztf_QueueDesc{
+		.mType = ZtfGfx.ZTF_QUEUE_TYPE_GRAPHICS,
+		.mFlag = ZtfGfx.ZTF_QUEUE_FLAG_INIT_MICROPROFILE,
 	};
-	_ = &mybuf;
+	ZtfGfx.ztf_addQueue(pRenderer,  &queue_desc, @ptrCast(&pGraphicsQueue));
+
+	const cmd_ring_desc = RingBuffer.GPUCmdRingDesc{
+		.pQueue = pGraphicsQueue,
+		.mPoolCount = gDataBufferCount,
+		.mCmdPerPoolCount = 1,
+		.mAddSyncPrimitives = true,
+	};
+	RingBuffer.addGpuCmdRing(pRenderer, &cmd_ring_desc, &gGraphicsCmdRing) catch |err| @panic(@errorName(err));
 
 	return true;
 }
 
 pub export fn ztf_appExit(_: ?*ztf_App) callconv(.C) void
 {
-	for (0..gDataBufferCount) |i| {
+	if(pRendererOpt != null)
+	{
+		RingBuffer.removeGpuCmdRing(pRenderer, &gGraphicsCmdRing) catch |err| @panic(@errorName(err));
 
-		if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.?.pGpu.*.mSettings) != 0)
-		{
-			ZtfGfx.ztf_removeQueryPool(pRenderer, pPipelineStatsQueryPool[i]);
+		ZtfGfx.ztf_removeQueue(pRenderer, pGraphicsQueue);
+
+		for (0..gDataBufferCount) |i| {
+
+			if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings) != 0)
+			{
+				ZtfGfx.ztf_removeQueryPool(pRenderer, pPipelineStatsQueryPool[i]);
+			}
 		}
-	}
 
-	ZtfGfx.ztf_exitRenderer(pRenderer);
+		ZtfGfx.ztf_exitRenderer(pRenderer);
+		pRenderer = undefined;
+	}
 
 	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appExit", .{});
 	ZtfExt.deinit();

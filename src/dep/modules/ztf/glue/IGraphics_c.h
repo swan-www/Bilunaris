@@ -1745,12 +1745,8 @@ typedef struct PipelineReflection PipelineReflection;
                 /// Stride of the sampler descriptor table (number of descriptors * descriptor size)
                 uint32_t             mSamplerStride;
                 const ztf_RootSignature* pRootSignature;
-                uint32_t             mMaxSets : 16;
-                uint32_t             mUpdateFrequency : 3;
-                uint32_t             mNodeIndex : 4;
-                uint32_t             mCbvSrvUavRootIndex : 4;
-                uint32_t             mSamplerRootIndex : 4;
-                uint32_t             mPipelineType : 3;
+				uint32_t 			 mBitfieldDxOne;
+				uint32_t 			 mBitfieldDxTwo;
             } mDx;
 #endif
 #if defined(VULKAN)
@@ -1793,7 +1789,7 @@ typedef struct PipelineReflection PipelineReflection;
                 struct ztf_DescriptorDataArray* pHandles;
                 const ztf_RootSignature* pRootSignature;
                 uint16_t                    mMaxSets;
-                uint32_t                    mUpdateFrequency : 3;
+				uint32_t					mBitfieldDx11;
             } mDx11;
 #endif
 #if defined(GLES)
@@ -1815,6 +1811,14 @@ typedef struct PipelineReflection PipelineReflection;
         };
 #endif
     } ztf_DescriptorSet;
+
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorSet, mMaxSets, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorSet, mUpdateFrequencyDx, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorSet, mNodeIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorSet, mCbvSrvUavRootIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorSet, mSamplerRootIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorSet, mPipelineType, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorSet, mUpdateFrequencyDx11, uint32_t);
 
     typedef struct ztf_CmdPoolDesc
     {
@@ -1901,8 +1905,7 @@ typedef struct PipelineReflection PipelineReflection;
                 const ztf_RootSignature* pBoundRootSignature;
                 ztf_DescriptorSet* pBoundDescriptorSets[ZTF_DESCRIPTOR_UPDATE_FREQ_COUNT];
                 uint16_t             mBoundDescriptorSetIndices[ZTF_DESCRIPTOR_UPDATE_FREQ_COUNT];
-                uint32_t             mNodeIndex : 4;
-                uint32_t             mType : 3;
+				uint32_t			 mBitfieldDx;
 #if defined(XBOX)
                 // Required for setting occlusion query control
                 uint32_t mSampleCount : 5;
@@ -1917,9 +1920,7 @@ typedef struct PipelineReflection PipelineReflection;
                 VkRenderPass     pActiveRenderPass;
                 VkPipelineLayout pBoundPipelineLayout;
                 ztf_CmdPool* pCmdPool;
-                uint32_t         mNodeIndex : 4;
-                uint32_t         mType : 3;
-                uint32_t         mIsRendering : 1;
+				uint32_t		 mBitfieldVk;
             } mVk;
 #endif
 #if defined(METAL)
@@ -1996,6 +1997,13 @@ typedef struct PipelineReflection PipelineReflection;
     } ztf_Cmd;
     COMPILE_ASSERT(sizeof(ztf_Cmd) <= 64 * sizeof(uint64_t));
 
+	ZTF_BITFIELD_SETGET_DECLARE(Cmd, mNodeIndexDx, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Cmd, mTypeDx, uint32_t);
+
+	ZTF_BITFIELD_SETGET_DECLARE(Cmd, mNodeIndexVk, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Cmd, mTypeVk, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Cmd, mIsRendering, uint32_t);
+
     typedef enum ztf_FenceStatus
     {
         ZTF_FENCE_STATUS_COMPLETE = 0,
@@ -2034,7 +2042,7 @@ typedef struct PipelineReflection PipelineReflection;
             struct
             {
                 ID3D11Query* pDX11Query;
-                uint32_t     mSubmitted : 1;
+				uint32_t 	mBitfieldDx11;
             } mDx11;
 #endif
 #if defined(GLES)
@@ -2053,6 +2061,8 @@ typedef struct PipelineReflection PipelineReflection;
         };
 #endif
     } ztf_Fence;
+
+	ZTF_BITFIELD_SETGET_DECLARE(Fence, mSubmittedDx11, uint32_t);
 
     typedef struct ztf_Semaphore
     {
@@ -2087,8 +2097,7 @@ typedef struct PipelineReflection PipelineReflection;
             struct
             {
                 VkSemaphore pSemaphore;
-                uint32_t    mCurrentNodeIndex : 5;
-                uint32_t    mSignaled : 1;
+				uint32_t 	mBitfieldVk;
             } mVk;
 #endif
 #if defined(METAL)
@@ -2115,6 +2124,9 @@ typedef struct PipelineReflection PipelineReflection;
         };
 #endif
     } ztf_Semaphore;
+
+	ZTF_BITFIELD_SETGET_DECLARE(Semaphore, mCurrentNodeIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Semaphore, mSignaledVk, uint32_t);
 
     typedef struct ztf_QueueDesc
     {
@@ -2149,9 +2161,7 @@ typedef struct PipelineReflection PipelineReflection;
                 ztf_Renderer* pRenderer;
                 Mutex* pSubmitMutex;
                 float     mTimestampPeriod;
-                uint32_t  mQueueFamilyIndex : 5;
-                uint32_t  mQueueIndex : 5;
-                uint32_t  mGpuMode : 3;
+				uint32_t  mBitfieldVk;
             } mVk;
 #endif
 #if defined(GLES)
@@ -2185,9 +2195,14 @@ typedef struct PipelineReflection PipelineReflection;
 #if defined(ZTF_USE_MULTIPLE_RENDER_APIS)
         };
 #endif
-        uint32_t mType : 3;
-        uint32_t mNodeIndex : 4;
+		uint32_t mBitfield;
     } ztf_Queue;
+
+	ZTF_BITFIELD_SETGET_DECLARE(Queue, mQueueFamilyIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Queue, mQueueIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Queue, mGpuMode, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Queue, mType, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(Queue, mNodeIndex, uint32_t);
 
     /// ShaderConstant only supported by Vulkan and Metal APIs
     typedef struct ztf_ShaderConstant

@@ -612,6 +612,18 @@ ZTF_C_RENDERER_API void ztf_setPipelineName(ztf_Renderer* pRenderer, ztf_Pipelin
 	ZTF_BITFIELD_SETGET_DEFINE(DescriptorInfo, mBitfield, mStaticSampler, 		uint32_t, 5, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(DescriptorInfo, mBitfield, mUpdateFrequency, 	uint32_t, 6, 3);
 
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Fence, mBitfieldDx11, mDx11, mSubmittedDx11, uint32_t, 0, 1);
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Semaphore, mBitfieldVk, mVk, mCurrentNodeIndex, uint32_t, 0, 5);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Semaphore, mBitfieldVk, mVk, mSignaledVk, uint32_t, 5, 1);
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Queue, mBitfieldVk, mVk, mQueueFamilyIndex, uint32_t, 0, 5);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Queue, mBitfieldVk, mVk, mQueueIndex, uint32_t, 5, 10);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Queue, mBitfieldVk, mVk, mGpuMode, uint32_t, 10, 3);
+
+	ZTF_BITFIELD_SETGET_DEFINE(Queue, mBitfield, mType, uint32_t, 0, 3);
+	ZTF_BITFIELD_SETGET_DEFINE(Queue, mBitfield, mNodeIndex, uint32_t, 3, 4);
+
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mMultiDrawIndirect, 				uint32_t, 0, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mIndirectRootConstant, 			uint32_t, 1, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldOne, mBuiltinDrawID, 					uint32_t, 2, 1);
@@ -637,6 +649,21 @@ ZTF_C_RENDERER_API void ztf_setPipelineName(ztf_Renderer* pRenderer, ztf_Pipelin
 
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldTwo, mSamplerAnisotropySupported, 	uint32_t, 0, 1);
 	ZTF_BITFIELD_SETGET_DEFINE(GPUSettings, mBitfieldTwo, mGraphicsQueueSupported, 		uint32_t, 1, 1);
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorSet, mBitfieldDxOne, mDx, mMaxSets, uint32_t, 0, 16);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorSet, mBitfieldDxOne, mDx, mUpdateFrequencyDx, uint32_t, 16, 3);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorSet, mBitfieldDxOne, mDx, mNodeIndex, uint32_t, 19, 4);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorSet, mBitfieldDxOne, mDx, mCbvSrvUavRootIndex, uint32_t, 23, 4);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorSet, mBitfieldDxOne, mDx, mSamplerRootIndex, uint32_t, 27, 4);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorSet, mBitfieldDxTwo, mDx, mPipelineType, uint32_t, 0, 3);
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(DescriptorSet, mBitfieldDx11, mDx11, mUpdateFrequencyDx11, uint32_t, 0, 3);
+
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Cmd, mBitfieldDx, mDx, mNodeIndexDx, uint32_t, 0, 4);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Cmd, mBitfieldDx, mDx, mTypeDx, uint32_t, 4, 3);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Cmd, mBitfieldVk, mVk, mNodeIndexVk, uint32_t, 0, 4);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Cmd, mBitfieldVk, mVk, mTypeVk, uint32_t, 4, 3);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(Cmd, mBitfieldVk, mVk, mIsRendering, uint32_t, 7, 1);
 
 	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mYCbCrExtension, 										uint32_t, 0, 1);
 	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(GpuInfo, mBitfieldVkOne, mVk, mFillModeNonSolid, 									uint32_t, 1, 1);

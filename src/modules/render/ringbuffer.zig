@@ -2,7 +2,7 @@ const std = @import("std");
 const fmt = std.fmt;
 const ztf = @import("ztf");
 const builtin = @import("builtin");
-const dbg = (builtin.mode == builtin.Mode.Debug);
+const dbg = (builtin.mode == std.builtin.OptimizeMode.Debug);
 
 const ZtfGfx = ztf.gfx;
 const ZtfResourceLoader = ztf.resource_loader;
@@ -62,15 +62,21 @@ pub const GpuCmdRingElement = extern struct
 // Lightweight wrapper that works as a ring for command pools, command buffers
 pub const GpuCmdRing = extern struct
 {
-    pCmdPools : [MAX_GPU_CMD_POOLS_PER_RING]?*GfxCmdPool,
-	pCmds : [MAX_GPU_CMD_POOLS_PER_RING][MAX_GPU_CMDS_PER_POOL]?*GfxCmd,
-    pFences : [MAX_GPU_CMD_POOLS_PER_RING][MAX_GPU_CMDS_PER_POOL]?*GfxFence,
-    pSemaphores : [MAX_GPU_CMD_POOLS_PER_RING][MAX_GPU_CMDS_PER_POOL]?*GfxSemaphore,
-    mPoolIndex : u32,
-    mCmdIndex : u32,
-    mFenceIndex : u32,
-    mPoolCount : u32,
-    mCmdPerPoolCount  : u32,
+    pCmdPools : [MAX_GPU_CMD_POOLS_PER_RING]?*GfxCmdPool = [_]?*GfxCmdPool{null} ** MAX_GPU_CMD_POOLS_PER_RING,
+	pCmds : [MAX_GPU_CMD_POOLS_PER_RING][MAX_GPU_CMDS_PER_POOL]?*GfxCmd = [_][MAX_GPU_CMDS_PER_POOL]?*GfxCmd{
+		[_]?*GfxCmd{null} ** MAX_GPU_CMDS_PER_POOL
+	} ** MAX_GPU_CMD_POOLS_PER_RING,
+    pFences : [MAX_GPU_CMD_POOLS_PER_RING][MAX_GPU_CMDS_PER_POOL]?*GfxFence = [_][MAX_GPU_CMDS_PER_POOL]?*GfxFence{
+		[_]?*GfxFence{null} ** MAX_GPU_CMDS_PER_POOL
+	} ** MAX_GPU_CMD_POOLS_PER_RING,
+    pSemaphores : [MAX_GPU_CMD_POOLS_PER_RING][MAX_GPU_CMDS_PER_POOL]?*GfxSemaphore = [_][MAX_GPU_CMDS_PER_POOL]?*GfxSemaphore{
+		[_]?*GfxSemaphore{null} ** MAX_GPU_CMDS_PER_POOL
+	} ** MAX_GPU_CMD_POOLS_PER_RING,
+    mPoolIndex : u32 = 0,
+    mCmdIndex : u32 = 0,
+    mFenceIndex : u32 = 0,
+    mPoolCount : u32 = 0,
+    mCmdPerPoolCount  : u32 = 0,
 };
 
 pub fn addGpuRingBuffer(renderer : *GfxRenderer, buffer_desc : *const GfxBufferDesc, ringbuffer : *GPURingBuffer) void
@@ -117,7 +123,7 @@ pub fn getGPURingBufferOffset(args : *GetGPURingBufferOffsetArgs) GetGPURingBuff
 
 	if (aligned_size > args.ringbuffer.*.mMaxBufferSize)
     {
-		std.debug.panic("{s}: aligned_request{{s}}, ringbuffer_max_size{{s}}", 
+		std.debug.panic("{s}: aligned_request{}, ringbuffer_max_size{}", 
 			.{
 				@errorName(GetGPURingBufferOffsetError.RingBufferTooSmallForMemRequirement),
 				aligned_size,
@@ -131,14 +137,14 @@ pub fn getGPURingBufferOffset(args : *GetGPURingBufferOffsetArgs) GetGPURingBuff
 pub const AddGpuCmdRingError = error{
 	PoolCountExceedsMaxPoolsPerRing,
 	CmdCountExceedsMaxCmdsPerPool,
-} | std.fmt.BufPrintError;
+} || std.fmt.BufPrintError;
 
 
 pub fn addGpuCmdRing(renderer : *GfxRenderer, desc : *const GPUCmdRingDesc, out : *GpuCmdRing ) AddGpuCmdRingError!void
 {
 	if(desc.*.mPoolCount > MAX_GPU_CMD_POOLS_PER_RING)
 	{
-		std.debug.panic("{s}: pool_count{{s}}, max_pools_per_ring{{s}}", 
+		std.debug.panic("{s}: pool_count{}, max_pools_per_ring{}", 
 			.{
 				@errorName(AddGpuCmdRingError.PoolCountExceedsMaxPoolsPerRing),
 				desc.*.mPoolCount,
@@ -150,7 +156,7 @@ pub fn addGpuCmdRing(renderer : *GfxRenderer, desc : *const GPUCmdRingDesc, out 
 
 	if(desc.*.mCmdPerPoolCount > MAX_GPU_CMDS_PER_POOL)
 	{
-		std.debug.panic("{s}: cmd_per_pool_count{{s}}, max_cmds_per_pool{{s}}", 
+		std.debug.panic("{s}: cmd_per_pool_count{}, max_cmds_per_pool{}", 
 			.{
 				@errorName(AddGpuCmdRingError.CmdCountExceedsMaxCmdsPerPool),
 				desc.*.mCmdPerPoolCount,
@@ -180,8 +186,8 @@ pub fn addGpuCmdRing(renderer : *GfxRenderer, desc : *const GPUCmdRingDesc, out 
 				const static_buffer = struct {
 					var data: [ZtfGfx.ZTF_MAX_DEBUG_NAME_LENGTH]u8 = std.mem.zeroes([ZtfGfx.ZTF_MAX_DEBUG_NAME_LENGTH]u8);
 				};
-				try fmt.bufPrint(static_buffer.data, "GpuCmdRing Pool {u} Cmd {u}", .{ pool_index, cmd_index});
-				desc.pName = static_buffer.data;
+				_ = try fmt.bufPrint(&static_buffer.data, "GpuCmdRing Pool {} Cmd {}", .{ pool_index, cmd_index});
+				cmd_desc.pName = &static_buffer.data;
 			}
 
 			ZtfGfx.ztf_addCmd(renderer, &cmd_desc, &out.*.pCmds[pool_index][cmd_index]);
@@ -206,11 +212,11 @@ pub fn removeGpuCmdRing(renderer : *GfxRenderer, ring : *GpuCmdRing ) !void
 		for(0..ring.*.mCmdPerPoolCount) |cmd_index|
 		{
 			ZtfGfx.ztf_removeCmd(renderer, ring.*.pCmds[pool_index][cmd_index]);
-			if (ring.*.pSemaphores[pool_index][cmd_index])
+			if (ring.*.pSemaphores[pool_index][cmd_index] != null)
             {
                 ZtfGfx.ztf_removeSemaphore(renderer, ring.*.pSemaphores[pool_index][cmd_index]);
             }
-            if (ring.*.pFences[pool_index][cmd_index])
+            if (ring.*.pFences[pool_index][cmd_index] != null)
             {
                 ZtfGfx.ztf_removeFence(renderer, ring.*.pFences[pool_index][cmd_index]);
             }
@@ -234,7 +240,7 @@ pub fn getNextGpuCmdRingElement(ring : *GpuCmdRing, cycle_pool: bool, cmd_count:
 
 	if (ring.*.mCmdIndex + cmd_count > ring.*.mCmdPerPoolCount)
     {
-		std.debug.panic("{s}: cmd_total_request{{u}}, cmd_per_pool_count{{u}}", 
+		std.debug.panic("{s}: cmd_total_request{}, cmd_per_pool_count{}", 
 			.{
 				@errorName(GetNextGpuCmdRingElementError.OutOfCommandBuffersForPool),
 				ring.*.mCmdPerPoolCount,
