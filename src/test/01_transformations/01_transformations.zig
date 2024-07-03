@@ -19,8 +19,10 @@ const ZtfCC = Ztf.camera_controller;
 const ZtfGfx = Ztf.gfx;
 const ZtfFS = Ztf.fs;
 const ZtfFont = Ztf.font;
+const ZtfInput = Ztf.input;
 const ZtfBString = Ztf.BString;
 const BString = ZtfBString.bstring;
+const ZtfRL = Ztf.resource_loader;
 
 usingnamespace ZtfGfx;
 
@@ -91,29 +93,29 @@ var pRendererOpt : ?*ZtfGfx.ztf_Renderer = null;
 var pGraphicsQueue : ?*ZtfGfx.ztf_Queue = null;
 var gGraphicsCmdRing = RingBuffer.GpuCmdRing{};
 
-var pSwapChain : ?*ZtfGfx.SwapChain = null;
-var pDepthBuffer : ?*ZtfGfx.RenderTarget = null;
-var pImageAcquiredSemaphore : ?*ZtfGfx.Semaphore = null;
+var pSwapChain : ?*ZtfGfx.ztf_SwapChain = null;
+var pDepthBuffer : ?*ZtfGfx.ztf_RenderTarget = null;
+var pImageAcquiredSemaphore : ?*ZtfGfx.ztf_Semaphore = null;
 
-var pSphereShader : ?*ZtfGfx.Shader = null;
-var pSphereVertexBuffer : ?*ZtfGfx.Buffer = null;
-var pSphereIndexBuffer : ?*ZtfGfx.Buffer = null;
+var pSphereShader : ?*ZtfGfx.ztf_Shader = null;
+var pSphereVertexBuffer : ?*ZtfGfx.ztf_Buffer = null;
+var pSphereIndexBuffer : ?*ZtfGfx.ztf_Buffer = null;
 var gSphereIndexCount : u32 = 0;
-var pSpherePipeline : ?*ZtfGfx.Pipeline = null;
-var gSphereVertexLayout : ?*ZtfGfx.VertexLayout = null;
+var pSpherePipeline : ?*ZtfGfx.ztf_Pipeline = null;
+var gSphereVertexLayout : ?*ZtfGfx.ztf_VertexLayout = null;
 var gSphereLayoutType : u32 = 0;
 
-var pSkyBoxDrawShader : ?*ZtfGfx.Shader = null;
-var pSkyBoxVertexBuffer : ?*ZtfGfx.Buffer = null;
-var pSkyBoxDrawPipeline : ?*ZtfGfx.Pipeline = null;
-var pRootSignature : ?*ZtfGfx.RootSignature = null;
-var pSamplerSkyBox : ?*ZtfGfx.Sampler = null;
-var pSkyBoxTextures : [6]?*ZtfGfx.Texture = null ** 6;
-var pDescriptorSetTexture : ?*ZtfGfx.DescriptorSet = null;
-var pDescriptorSetUniforms : ?*ZtfGfx.DescriptorSet = null;
+var pSkyBoxDrawShader : ?*ZtfGfx.ztf_Shader = null;
+var pSkyBoxVertexBuffer : ?*ZtfGfx.ztf_Buffer = null;
+var pSkyBoxDrawPipeline : ?*ZtfGfx.ztf_Pipeline = null;
+var pRootSignature : ?*ZtfGfx.ztf_RootSignature = null;
+var pSamplerSkyBox : ?*ZtfGfx.ztf_Sampler = null;
+var pSkyBoxTextures : [6]?*ZtfGfx.ztf_Texture = null ** 6;
+var pDescriptorSetTexture : ?*ZtfGfx.ztf_DescriptorSet = null;
+var pDescriptorSetUniforms : ?*ZtfGfx.ztf_DescriptorSet = null;
 
-var pProjViewUniformBuffer : [gDataBufferCount]?*ZtfGfx.Buffer = null ** gDataBufferCount;
-var pSkyboxUniformBuffer : [gDataBufferCount]?*ZtfGfx.Buffer = null ** gDataBufferCount;
+var pProjViewUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = null ** gDataBufferCount;
+var pSkyboxUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = null ** gDataBufferCount;
 
 var gFrameIndex : u32 = 0;
 //var gGpuProfileToken : ProfileToken = PROFILE_INVALID_TOKEN;
@@ -176,6 +178,7 @@ fn reloadRequest(_ : *anyopaque) void
 
 pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 {
+	const window_desc = ZtfApp.ztf_getWindowDesc(pApp);
 	ZtfExt.init(null);
 	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appInit", .{});
 
@@ -226,28 +229,53 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	};
 	RingBuffer.addGpuCmdRing(pRenderer, &cmd_ring_desc, &gGraphicsCmdRing) catch |err| @panic(@errorName(err));
 
+	ZtfGfx.ztf_addSemaphore(pRenderer, &pImageAcquiredSemaphore);
+	ZtfRL.ztf_initResourceLoaderInterface(@ptrCast(pRenderer), null);
+
+	//Input System
+	var input_desc = ZtfInput.ztf_InputSystemDesc{
+		.pRenderer = @ptrCast(pRenderer),
+		.pWindow =  @ptrCast(window_desc),
+		.pJoystickTexture = "circlepad.tex",
+	};
+	_ = &input_desc;
+	if (!ZtfInput.ztf_initInputSystem(&input_desc)) return false;
+
 	return true;
 }
 
-pub export fn ztf_appExit(_: ?*ztf_App) callconv(.C) void
+fn rendererExit(_: ?*ztf_App) void
 {
-	if(pRendererOpt != null)
+	if(pRendererOpt == null)
 	{
-		RingBuffer.removeGpuCmdRing(pRenderer, &gGraphicsCmdRing) catch |err| @panic(@errorName(err));
-
-		ZtfGfx.ztf_removeQueue(pRenderer, pGraphicsQueue);
-
-		for (0..gDataBufferCount) |i| {
-
-			if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings) != 0)
-			{
-				ZtfGfx.ztf_removeQueryPool(pRenderer, pPipelineStatsQueryPool[i]);
-			}
-		}
-
-		ZtfGfx.ztf_exitRenderer(pRenderer);
-		pRenderer = undefined;
+		return;
 	}
+
+	ZtfInput.ztf_exitInputSystem();
+
+	ZtfRL.ztf_exitResourceLoaderInterface(@ptrCast(pRenderer));
+
+	ZtfGfx.ztf_removeSemaphore(pRenderer, pImageAcquiredSemaphore);
+
+	RingBuffer.removeGpuCmdRing(pRenderer, &gGraphicsCmdRing) catch |err| @panic(@errorName(err));
+
+	ZtfGfx.ztf_removeQueue(pRenderer, pGraphicsQueue);
+
+	for (0..gDataBufferCount) |i| {
+
+		if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings) != 0)
+		{
+			ZtfGfx.ztf_removeQueryPool(pRenderer, pPipelineStatsQueryPool[i]);
+		}
+	}
+
+	ZtfGfx.ztf_exitRenderer(pRenderer);
+	pRenderer = undefined;
+}
+
+pub export fn ztf_appExit(ztf_app: ?*ztf_App) callconv(.C) void
+{
+	rendererExit(ztf_app);
 
 	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appExit", .{});
 	ZtfExt.deinit();
