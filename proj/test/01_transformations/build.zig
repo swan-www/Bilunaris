@@ -67,6 +67,12 @@ pub fn build(b: *std.Build) !void {
 		exe.root_module.addImport(h.outputName, ztf_pkg.module(h.outputName));
 	}
 
+	const zmath_pkg = b.dependency("zmath", .{
+		.target = target,
+		.optimize = optimize
+	});
+	exe.root_module.addImport("zmath", zmath_pkg.module("root"));
+
 	exe.linkLibrary(ztf_pkg.artifact("tfalias_gainput"));
 	exe.linkLibrary(ztf_pkg.artifact("tfalias_os"));
 	exe.linkLibrary(ztf_pkg.artifact("tfalias_renderer"));

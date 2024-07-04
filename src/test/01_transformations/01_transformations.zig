@@ -110,12 +110,12 @@ var pSkyBoxVertexBuffer : ?*ZtfGfx.ztf_Buffer = null;
 var pSkyBoxDrawPipeline : ?*ZtfGfx.ztf_Pipeline = null;
 var pRootSignature : ?*ZtfGfx.ztf_RootSignature = null;
 var pSamplerSkyBox : ?*ZtfGfx.ztf_Sampler = null;
-var pSkyBoxTextures : [6]?*ZtfGfx.ztf_Texture = null ** 6;
+var pSkyBoxTextures : [6]?*ZtfGfx.ztf_Texture = [_]?*ZtfGfx.ztf_Texture{null} ** 6;
 var pDescriptorSetTexture : ?*ZtfGfx.ztf_DescriptorSet = null;
 var pDescriptorSetUniforms : ?*ZtfGfx.ztf_DescriptorSet = null;
 
-var pProjViewUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = null ** gDataBufferCount;
-var pSkyboxUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = null ** gDataBufferCount;
+var pProjViewUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = [_]?*ZtfGfx.ztf_Buffer{null} ** gDataBufferCount;
+var pSkyboxUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = [_]?*ZtfGfx.ztf_Buffer{null} ** gDataBufferCount;
 
 var gFrameIndex : u32 = 0;
 //var gGpuProfileToken : ProfileToken = PROFILE_INVALID_TOKEN;
@@ -133,13 +133,13 @@ var gFontID : u32 = 0;
 
 var pPipelineStatsQueryPool : [gDataBufferCount]?*ZtfGfx.ztf_QueryPool = [_]?*ZtfGfx.ztf_QueryPool{null} ** gDataBufferCount;
 
-var pSkyBoxImageFileNames : [][]const u8 = .{ "Skybox_right1.tex",  "Skybox_left2.tex",  "Skybox_top3.tex",
+const pSkyBoxImageFileNames = [_][]const u8{ "Skybox_right1.tex",  "Skybox_left2.tex",  "Skybox_top3.tex",
                                         "Skybox_bottom4.tex", "Skybox_front5.tex", "Skybox_back6.tex" };
 
 var gFrameTimeDraw = ZtfFont.ztf_FontDrawDesc{};
 
 // Generate sky box vertex buffer
-const gSkyBoxPoints = []f32{
+const gSkyBoxPoints = [_]f32{
     10.0,  -10.0, -10.0, 6.0, // -z
     -10.0, -10.0, -10.0, 6.0,   -10.0, 10.0,  -10.0, 6.0,   -10.0, 10.0,
     -10.0, 6.0,   10.0,  10.0,  -10.0, 6.0,   10.0,  -10.0, -10.0, 6.0,
@@ -232,6 +232,64 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	ZtfGfx.ztf_addSemaphore(pRenderer, &pImageAcquiredSemaphore);
 	ZtfRL.ztf_initResourceLoaderInterface(@ptrCast(pRenderer), null);
 
+	//Skybox textures
+	for(0..6) |i|
+	{
+		var textureDesc = ZtfRL.ztf_TextureLoadDesc{
+			.pFileName = @ptrCast(pSkyBoxImageFileNames[i]),
+			.ppTexture = @ptrCast(&pSkyBoxTextures[i]),
+			// Textures representing color should be stored in SRGB or HDR format
+			.mCreationFlag = ZtfRL.ZTF_TEXTURE_CREATION_FLAG_SRGB,
+		};
+		_ = &textureDesc;
+		ZtfRL.ztf_addResource2(&textureDesc, null);
+	}
+
+	//Sampler
+	const samplerDesc = ZtfGfx.ztf_SamplerDesc{
+		.mMinFilter = ZtfGfx.ZTF_FILTER_LINEAR,
+		.mMagFilter = ZtfGfx.ZTF_FILTER_LINEAR,
+		.mMipMapMode = ZtfGfx.ZTF_MIPMAP_MODE_NEAREST,
+		.mAddressU = ZtfGfx.ZTF_ADDRESS_MODE_CLAMP_TO_EDGE,
+		.mAddressV = ZtfGfx.ZTF_ADDRESS_MODE_CLAMP_TO_EDGE,
+		.mAddressW = ZtfGfx.ZTF_ADDRESS_MODE_CLAMP_TO_EDGE,
+	};
+	ZtfGfx.ztf_addSampler(pRenderer, &samplerDesc, &pSamplerSkyBox);
+
+	//Skybox Vertex Buffer
+	const skyBoxDataSize : u64 = 4 * 6 * 6 * @sizeOf(f32);
+	var skyboxVbDesc = ZtfRL.ztf_BufferLoadDesc{
+		.mDesc = .{
+			.mDescriptors = ZtfGfx.ZTF_DESCRIPTOR_TYPE_VERTEX_BUFFER,
+			.mMemoryUsage = ZtfGfx.ZTF_RESOURCE_MEMORY_USAGE_GPU_ONLY,
+			.mSize = skyBoxDataSize,
+		},
+		.pData = &gSkyBoxPoints,
+		.ppBuffer = @ptrCast(&pSkyBoxVertexBuffer),
+	};
+	ZtfRL.ztf_addResource(@ptrCast(&skyboxVbDesc), null);
+
+	//Uniform Buffers
+	var ubDesc = ZtfRL.ztf_BufferLoadDesc{
+		.mDesc = .{
+			.mDescriptors = ZtfGfx.ZTF_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.mMemoryUsage = ZtfGfx.ZTF_RESOURCE_MEMORY_USAGE_CPU_TO_GPU,
+			.mFlags = ZtfGfx.ZTF_BUFFER_CREATION_FLAG_PERSISTENT_MAP_BIT,
+		},
+		.pData = null,
+	};
+	for (0..gDataBufferCount) |i|
+	{
+		ubDesc.mDesc.pName = "ProjViewUniformBuffer";
+		ubDesc.mDesc.mSize = @sizeOf(UniformBlock_C);
+		ubDesc.ppBuffer = @ptrCast(&pProjViewUniformBuffer[i]);
+		ZtfRL.ztf_addResource(&ubDesc, null);
+		ubDesc.mDesc.pName = "SkyboxUniformBuffer";
+		ubDesc.mDesc.mSize = @sizeOf(UniformBlockSky_C);
+		ubDesc.ppBuffer = @ptrCast(&pSkyboxUniformBuffer[i]);
+		ZtfRL.ztf_addResource(&ubDesc, null);
+	}
+
 	//Input System
 	var input_desc = ZtfInput.ztf_InputSystemDesc{
 		.pRenderer = @ptrCast(pRenderer),
@@ -252,6 +310,21 @@ fn rendererExit(_: ?*ztf_App) void
 	}
 
 	ZtfInput.ztf_exitInputSystem();
+
+	for (0..gDataBufferCount) |i|
+	{
+		ZtfRL.ztf_removeResource(@ptrCast(pProjViewUniformBuffer[i]));
+		ZtfRL.ztf_removeResource(@ptrCast(pSkyboxUniformBuffer[i]));
+	}
+
+	ZtfRL.ztf_removeResource(@ptrCast(pSkyBoxVertexBuffer));
+
+	ZtfGfx.ztf_removeSampler(pRenderer, pSamplerSkyBox);
+
+	for(0..6) |i|
+	{
+		ZtfRL.ztf_removeResource2(@ptrCast(pSkyBoxTextures[i]));
+	}
 
 	ZtfRL.ztf_exitResourceLoaderInterface(@ptrCast(pRenderer));
 
