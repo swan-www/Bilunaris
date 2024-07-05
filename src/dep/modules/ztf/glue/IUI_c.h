@@ -454,7 +454,7 @@ typedef struct ztf_UserInterfaceDesc
     bool     mEnableDocking;
     bool     mEnableRemoteUI;
 } ztf_UserInterfaceDesc;
-ZTF_C_API void ztf_defaultInitUserInterfaceDesc(ztf_UserInterfaceDesc* pWidget);
+ZTF_C_API ztf_UserInterfaceDesc ztf_defaultInitUserInterfaceDesc();
 
 typedef struct ztf_UserInterfaceLoadDesc
 {

@@ -87,13 +87,15 @@ extern "C"
         pWidget->mFontSize = 16.0f;
     }
 
-    ZTF_C_API void ztf_defaultInitUserInterfaceDesc(ztf_UserInterfaceDesc* pWidget)
+    ZTF_C_API ztf_UserInterfaceDesc ztf_defaultInitUserInterfaceDesc()
     {
-        memset(pWidget, 0, sizeof(ztf_UserInterfaceDesc));
-        pWidget->mMaxDynamicUIUpdatesPerBatch = 20u;
-        pWidget->mMaxUIFonts = 10u;
-        pWidget->mFrameCount = 2u;
-        pWidget->mEnableRemoteUI = true;
+		ztf_UserInterfaceDesc pWidget{};
+        memset(&pWidget, 0, sizeof(ztf_UserInterfaceDesc));
+        pWidget.mMaxDynamicUIUpdatesPerBatch = 20u;
+        pWidget.mMaxUIFonts = 10u;
+        pWidget.mFrameCount = 2u;
+        pWidget.mEnableRemoteUI = true;
+		return pWidget;
     }
 
     ZTF_C_API void ztf_loadUserInterface(const ztf_UserInterfaceLoadDesc* pDesc)

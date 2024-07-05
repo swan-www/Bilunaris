@@ -29,6 +29,8 @@ typedef struct ztf_FontSystemDesc
 	uint32_t    mFontstashRingSizeBytes /*= 1024 * 1024*/;
 } ztf_FontSystemDesc;
 
+ZTF_C_API ztf_FontSystemDesc ztf_getDefaultFontSystemDesc();
+
 typedef struct ztf_FontSystemLoadDesc
 {
 	PipelineCache*	pCache;
@@ -51,6 +53,8 @@ typedef struct ztf_FontDesc
 
 } ztf_FontDesc;
 
+ZTF_C_API ztf_FontDesc ztf_getDefaultFontDesc();
+
 /// Aggregation of information necessary for drawing text with The Forge
 typedef struct ztf_FontDrawDesc
 {
@@ -65,6 +69,8 @@ typedef struct ztf_FontDrawDesc
 	float         mFontBlur /*= 0.0f*/;
 
 } ztf_FontDrawDesc;
+
+ZTF_C_API ztf_FontDrawDesc ztf_getDefaultFontDrawDesc();
 
 /****************************************************************************/
 // MARK: - Application Life Cycle 

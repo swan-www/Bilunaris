@@ -13,7 +13,29 @@ extern "C"
 {
 #endif
 
-ZTF_C_API bool ztf_initFontSystem(ztf_FontSystemDesc* pDesc)
+ZTF_C_API ztf_FontSystemDesc ztf_getDefaultFontSystemDesc()
+{
+	ztf_FontSystemDesc default_desc{};
+	default_desc.mFontstashRingSizeBytes = 1024 * 1024;
+	return default_desc;
+}
+
+ZTF_C_API ztf_FontDesc ztf_getDefaultFontDesc()
+{
+	ztf_FontDesc default_font_desc{};
+	default_font_desc.pFontName = "default";
+	return default_font_desc;
+}
+
+ZTF_C_API ztf_FontDrawDesc ztf_getDefaultFontDrawDesc()
+{
+	ztf_FontDrawDesc default_font_draw_desc{};
+	default_font_draw_desc.mFontColor = 0xffffffff;
+	default_font_draw_desc.mFontSize = 16.0f;
+	return default_font_draw_desc;
+}
+
+ZTF_C_API bool ztf_initFontSystem(ztf_FontSystemDesc *pDesc)
 {
 	return initFontSystem((FontSystemDesc*)(pDesc));
 }

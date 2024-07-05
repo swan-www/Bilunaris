@@ -290,6 +290,25 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 		ZtfRL.ztf_addResource(&ubDesc, null);
 	}
 
+	// Load fonts
+	var font : ZtfFont.ztf_FontDesc = ZtfFont.ztf_getDefaultFontDesc();
+	font.pFontPath = "TitilliumText/TitilliumText-Bold.otf";
+	ZtfFont.ztf_fntDefineFonts(&font, 1, &gFontID);
+
+	//Font System
+	var fontSystemDesc : ZtfFont.ztf_FontSystemDesc = ZtfFont.ztf_getDefaultFontSystemDesc();
+	fontSystemDesc.pRenderer = @ptrCast(pRenderer);
+	if (!ZtfFont.ztf_initFontSystem(&fontSystemDesc))
+	{
+		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Font System failed to initialise.", .{});
+		return false;
+	}
+
+	// Initialize Forge User Interface Rendering
+	var uiRenderDesc = ZtfUI.ztf_defaultInitUserInterfaceDesc();
+	uiRenderDesc.pRenderer = @ptrCast(pRenderer);
+	ZtfUI.ztf_initUserInterface(&uiRenderDesc);
+
 	//Input System
 	var input_desc = ZtfInput.ztf_InputSystemDesc{
 		.pRenderer = @ptrCast(pRenderer),
@@ -297,7 +316,11 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 		.pJoystickTexture = "circlepad.tex",
 	};
 	_ = &input_desc;
-	if (!ZtfInput.ztf_initInputSystem(&input_desc)) return false;
+	if (!ZtfInput.ztf_initInputSystem(&input_desc))
+	{
+		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Input System failed to initialise.", .{});
+		return false;
+	}
 
 	return true;
 }
@@ -309,7 +332,11 @@ fn rendererExit(_: ?*ztf_App) void
 		return;
 	}
 
+	ZtfUI.ztf_exitUserInterface();
+
 	ZtfInput.ztf_exitInputSystem();
+
+	ZtfFont.ztf_exitFontSystem();
 
 	for (0..gDataBufferCount) |i|
 	{
