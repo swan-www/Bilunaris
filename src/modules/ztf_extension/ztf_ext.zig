@@ -213,8 +213,8 @@ pub noinline fn DLOG_IF(log_level : LogLevel, condition : bool, comptime fmt: []
 pub inline fn bfromarr(array: [*c]u8) BString
 {
 	return BString{
-		.mlen = std.mem.len(array),
-		.slen = c_builtin.__builtin_strlen(array),
+		.mlen = @intCast(std.mem.len(array)),
+		.slen = @intCast(c_builtin.__builtin_strlen(array)),
 		.data = array,
 	};
 }
@@ -225,8 +225,8 @@ pub inline fn bemptyfromarr(array: [*c]u8) BString
 	array[0] = 0;
 
 	return BString{
-		.mlen = original_len,
-		.slen = c_builtin.__builtin_strlen(array),
+		.mlen = @intCast(original_len),
+		.slen = @intCast(c_builtin.__builtin_strlen(array)),
 		.data = array,
 	};
 }

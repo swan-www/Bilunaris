@@ -3,6 +3,7 @@ const zmath = @import("zmath");
 
 const Mat4 = zmath.Mat;
 const Vec4 = zmath.Vec;
+const Vec3 = zmath.Vec;
 
 const Ztf = @import("ztf");
 
@@ -20,9 +21,10 @@ const ZtfGfx = Ztf.gfx;
 const ZtfFS = Ztf.fs;
 const ZtfFont = Ztf.font;
 const ZtfInput = Ztf.input;
-const ZtfBString = Ztf.BString;
+const ZtfBString = Ztf.bstring;
 const BString = ZtfBString.bstring;
 const ZtfRL = Ztf.resource_loader;
+const ZtfProfiler = Ztf.profiler;
 
 usingnamespace ZtfGfx;
 
@@ -49,15 +51,15 @@ switch(QUEST_VR){
 
 const PlanetInfoStruct = struct
 {
-	mTranslationMat : Mat4,
-    mScaleMat : Mat4,
-    mSharedMat : Mat4, // Matrix to pass down to children
-	mColor : Vec4,
-	mParentIndex : u32,
-    mYOrbitSpeed : f32, // Rotation speed around parent
-    mZOrbitSpeed : f32,
-    mRotationSpeed : f32, // Rotation speed around self
-    mMorphingSpeed : f32, // Speed of morphing betwee cube and sphere
+	mTranslationMat : Mat4 = zmath.identity(),
+    mScaleMat : Mat4 = zmath.identity(),
+    mSharedMat : Mat4 = zmath.identity(), // Matrix to pass down to children
+	mColor : Vec4 = zmath.f32x4s(0.0),
+	mParentIndex : u32 = 0,
+    mYOrbitSpeed : f32 = 0.0, // Rotation speed around parent
+    mZOrbitSpeed : f32 = 0.0,
+    mRotationSpeed : f32 = 0.0, // Rotation speed around self
+    mMorphingSpeed : f32 = 0.0, // Speed of morphing betwee cube and sphere
 };
 
 const UniformBlock_C = extern struct
@@ -118,14 +120,14 @@ var pProjViewUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = [_]?*ZtfGfx
 var pSkyboxUniformBuffer : [gDataBufferCount]?*ZtfGfx.ztf_Buffer = [_]?*ZtfGfx.ztf_Buffer{null} ** gDataBufferCount;
 
 var gFrameIndex : u32 = 0;
-//var gGpuProfileToken : ProfileToken = PROFILE_INVALID_TOKEN;
+var gGpuProfileToken : ZtfProfiler.ztf_ProfileToken = ZtfProfiler.ZTF_PROFILE_INVALID_TOKEN;
 
 var gNumberOfSpherePoints : i32 = 0;
 var gUniformData = UniformBlock_C{};
 var gUniformDataSky = UniformBlockSky_C{};
-var gPlanetInfoData = [gNumPlanets]PlanetInfoStruct;
+var gPlanetInfoData : [gNumPlanets]PlanetInfoStruct = .{PlanetInfoStruct{}} ** gNumPlanets;
 
-var pCameraController : ?*ZtfCC.ztf_ICameraController = null;
+var pCameraController : ?*ZtfCC.ICameraController = null;
 
 var pGuiWindow : ?*ZtfUI.ztf_UIComponent = null;
 
@@ -165,12 +167,13 @@ const gSkyBoxPoints = [_]f32{
     -10.0, 4.0,   -10.0, -10.0, 10.0,  4.0,   10.0,  -10.0, 10.0,  4.0,
 };
 
-var gPipelineStatsCharArray : [2048]u8 = 0;
-var gPipelineStats : BString = ZtfExt.bfromarr(gPipelineStatsCharArray);
+var gPipelineStatsCharArray : [2048]u8 = [_]u8{0} ** 2048;
+var gPipelineStatsCharArraySlice = gPipelineStatsCharArray[0..2047 :0];
+var gPipelineStats : BString = undefined;
 
 const gWindowTestScripts : [][]const u8 = .{ "TestFullScreen.lua", "TestCenteredWindow.lua", "TestNonCenteredWindow.lua", "TestBorderless.lua" };
 
-fn reloadRequest(_ : *anyopaque) void
+fn reloadRequest(_ : ?*anyopaque) callconv(.C) void
 {
     const reload = ztf_ReloadDesc{ .mType = ZtfOS.ZTF_RELOAD_TYPE_SHADER };
     ZtfOS.ztf_requestReload(&reload);
@@ -306,8 +309,54 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 
 	// Initialize Forge User Interface Rendering
 	var uiRenderDesc = ZtfUI.ztf_defaultInitUserInterfaceDesc();
+	//ZtfUI.ztf_defaultInitUserInterfaceDesc(&uiRenderDesc);
 	uiRenderDesc.pRenderer = @ptrCast(pRenderer);
 	ZtfUI.ztf_initUserInterface(&uiRenderDesc);
+
+ 	// Initialize micro profiler and its UI.
+	const app_settings = ZtfApp.ztf_getAppSettings(pApp);
+	var profiler = ZtfProfiler.ztf_ProfilerDesc{
+		.pRenderer = @ptrCast(pRenderer),
+		.mWidthUI = @intCast(app_settings.*.mWidth),
+		.mHeightUI = @intCast(app_settings.*.mHeight),
+	};
+	ZtfProfiler.ztf_initProfiler(&profiler);
+	gGpuProfileToken = ZtfProfiler.ztf_addGpuProfiler(@ptrCast(pRenderer), @ptrCast(pGraphicsQueue), "Graphics");
+
+	// GUI
+	var guiDesc = ZtfUI.ztf_UIComponentDesc{};
+	ZtfUI.ztf_defaultInitUIComponentDesc(&guiDesc);
+	guiDesc.mStartPosition = ZtfUI.ztf_Float2{.x = @as(f32, @floatFromInt(app_settings.*.mWidth)) * 0.01, .y = @as(f32, @floatFromInt(app_settings.*.mHeight)) * 0.2};
+	ZtfUI.ztf_uiCreateComponent(ztf_appGetName(pApp), &guiDesc, &pGuiWindow);
+
+	var vertexLayoutWidget = ZtfUI.ztf_SliderUintWidget{};
+	ZtfUI.ztf_defaultInitSliderUintWidget(&vertexLayoutWidget);
+	vertexLayoutWidget.mMin = 0;
+	vertexLayoutWidget.mMax = 1;
+	vertexLayoutWidget.mStep = 1;
+	vertexLayoutWidget.pData = &gSphereLayoutType;
+
+	const pVLw = ZtfUI.ztf_uiCreateComponentWidget(pGuiWindow, "Vertex Layout", &vertexLayoutWidget, ZtfUI.ZTF_WIDGET_TYPE_SLIDER_UINT, true);
+	ZtfUI.ztf_uiSetWidgetOnEditedCallback(pVLw, null, reloadRequest);
+
+	const staticLocal = struct
+	{
+		var color = ZtfMath.ztf_Float4{ .x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0 };
+	};
+
+	gPipelineStats = ZtfExt.bfromarr(gPipelineStatsCharArraySlice);
+
+	if (ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings) != 0)
+	{
+		const statsWidget = ZtfUI.ztf_DynamicTextWidget
+		{
+			.pText = @ptrCast(&gPipelineStats),
+			.pColor = @ptrCast(&staticLocal.color),
+		};
+		_ = ZtfUI.ztf_uiCreateComponentWidget(pGuiWindow, "Pipeline Stats", &statsWidget,  ZtfUI.ZTF_WIDGET_TYPE_DYNAMIC_TEXT, true);
+	}
+
+	ZtfRL.ztf_waitForAllResourceLoads();
 
 	//Input System
 	var input_desc = ZtfInput.ztf_InputSystemDesc{
@@ -322,6 +371,132 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 		return false;
 	}
 
+	// Setup planets (Rotation speeds are relative to Earth's, some values randomly given)
+	// Sun
+	gPlanetInfoData[0].mParentIndex = 0;
+	gPlanetInfoData[0].mYOrbitSpeed = 0.0; // Earth years for one orbit
+	gPlanetInfoData[0].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[0].mRotationSpeed = 24.0; // Earth days for one rotation
+	gPlanetInfoData[0].mTranslationMat = zmath.identity();
+	gPlanetInfoData[0].mScaleMat = zmath.scalingV(zmath.f32x4s(10.0));
+	gPlanetInfoData[0].mColor = Vec4{0.97, 0.38, 0.09, 0.0};
+	gPlanetInfoData[0].mMorphingSpeed = 0.2;
+
+	// Mercury
+	gPlanetInfoData[1].mParentIndex = 0;
+	gPlanetInfoData[1].mYOrbitSpeed = 0.5;
+	gPlanetInfoData[1].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[1].mRotationSpeed = 58.7;
+	gPlanetInfoData[1].mTranslationMat = zmath.translationV(Vec4{10.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[1].mScaleMat = zmath.scalingV(zmath.f32x4s(1.0));
+	gPlanetInfoData[1].mColor = Vec4{0.45, 0.07, 0.006, 1.0};
+	gPlanetInfoData[1].mMorphingSpeed = 5.0;
+
+	// Venus
+	gPlanetInfoData[2].mParentIndex = 0;
+	gPlanetInfoData[2].mYOrbitSpeed = 0.8;
+	gPlanetInfoData[2].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[2].mRotationSpeed = 243.0;
+	gPlanetInfoData[2].mTranslationMat = zmath.translationV(Vec4{20.0, 0.0, 5.0, 0.0});
+	gPlanetInfoData[2].mScaleMat = zmath.scalingV(zmath.f32x4s(2.0));
+	gPlanetInfoData[2].mColor = Vec4{0.6, 0.32, 0.006, 1.0};
+	gPlanetInfoData[2].mMorphingSpeed = 1.0;
+
+	// Earth
+	gPlanetInfoData[3].mParentIndex = 0;
+	gPlanetInfoData[3].mYOrbitSpeed = 1.0;
+	gPlanetInfoData[3].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[3].mRotationSpeed = 1.0;
+	gPlanetInfoData[3].mTranslationMat = zmath.translationV(Vec4{30.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[3].mScaleMat = zmath.scalingV(zmath.f32x4s(4.0));
+	gPlanetInfoData[3].mColor = Vec4{0.07, 0.028, 0.61, 1.0};
+	gPlanetInfoData[3].mMorphingSpeed = 1.0;
+
+	// Mars
+	gPlanetInfoData[4].mParentIndex = 0;
+	gPlanetInfoData[4].mYOrbitSpeed = 2.0;
+	gPlanetInfoData[4].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[4].mRotationSpeed = 1.1;
+	gPlanetInfoData[4].mTranslationMat = zmath.translationV(Vec4{40.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[4].mScaleMat = zmath.scalingV(zmath.f32x4s(3.0));
+	gPlanetInfoData[4].mColor = Vec4{0.79, 0.07, 0.006, 1.0};
+	gPlanetInfoData[4].mMorphingSpeed = 1.0;
+
+	// Jupiter
+	gPlanetInfoData[5].mParentIndex = 0;
+	gPlanetInfoData[5].mYOrbitSpeed = 11.0;
+	gPlanetInfoData[5].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[5].mRotationSpeed = 0.4;
+	gPlanetInfoData[5].mTranslationMat = zmath.translationV(Vec4{50.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[5].mScaleMat = zmath.scalingV(zmath.f32x4s(8.0));
+	gPlanetInfoData[5].mColor = Vec4{0.32, 0.13, 0.13, 1.0};
+	gPlanetInfoData[5].mMorphingSpeed = 6.0;
+
+	// Saturn
+	gPlanetInfoData[6].mParentIndex = 0;
+	gPlanetInfoData[6].mYOrbitSpeed = 29.4;
+	gPlanetInfoData[6].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[6].mRotationSpeed = 0.5;
+	gPlanetInfoData[6].mTranslationMat = zmath.translationV(Vec4{60.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[6].mScaleMat = zmath.scalingV(zmath.f32x4s(6.0));
+	gPlanetInfoData[6].mColor = Vec4{0.45, 0.45, 0.21, 1.0};
+	gPlanetInfoData[6].mMorphingSpeed = 1.0;
+
+	// Uranus
+	gPlanetInfoData[7].mParentIndex = 0;
+	gPlanetInfoData[7].mYOrbitSpeed = 84.07;
+	gPlanetInfoData[7].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[7].mRotationSpeed = 0.8;
+	gPlanetInfoData[7].mTranslationMat = zmath.translationV(Vec4{70.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[7].mScaleMat = zmath.scalingV(zmath.f32x4s(7.0));
+	gPlanetInfoData[7].mColor = Vec4{0.13, 0.13, 0.32, 1.0};
+	gPlanetInfoData[7].mMorphingSpeed = 1.0;
+
+	// Neptune
+	gPlanetInfoData[8].mParentIndex = 0;
+	gPlanetInfoData[8].mYOrbitSpeed = 164.81;
+	gPlanetInfoData[8].mZOrbitSpeed = 0.0;
+	gPlanetInfoData[8].mRotationSpeed = 0.9;
+	gPlanetInfoData[8].mTranslationMat = zmath.translationV(Vec4{80.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[8].mScaleMat = zmath.scalingV(zmath.f32x4s(8.0));
+	gPlanetInfoData[8].mColor = Vec4{0.21, 0.028, 0.79, 1.0};
+	gPlanetInfoData[8].mMorphingSpeed = 1.0;
+
+	// Pluto - Not a planet XDD
+	gPlanetInfoData[9].mParentIndex = 0;
+	gPlanetInfoData[9].mYOrbitSpeed = 247.7;
+	gPlanetInfoData[9].mZOrbitSpeed = 1.0;
+	gPlanetInfoData[9].mRotationSpeed = 7.0;
+	gPlanetInfoData[9].mTranslationMat = zmath.translationV(Vec4{90.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[9].mScaleMat = zmath.scalingV(zmath.f32x4s(1.0));
+	gPlanetInfoData[9].mColor = Vec4{0.45, 0.21, 0.21, 1.0};
+	gPlanetInfoData[9].mMorphingSpeed = 1.0;
+
+	// Moon
+	gPlanetInfoData[10].mParentIndex = 3;
+	gPlanetInfoData[10].mYOrbitSpeed = 1.0;
+	gPlanetInfoData[10].mZOrbitSpeed = 200.0;
+	gPlanetInfoData[10].mRotationSpeed = 27.0;
+	gPlanetInfoData[10].mTranslationMat = zmath.translationV(Vec4{5.0, 0.0, 0.0, 0.0});
+	gPlanetInfoData[10].mScaleMat = zmath.scalingV(zmath.f32x4s(1.0));
+	gPlanetInfoData[10].mColor = Vec4{0.07, 0.07, 0.13, 1.0};
+	gPlanetInfoData[10].mMorphingSpeed = 1.0;
+
+	var cmp = ZtfCC.ztf_cameraMotionParameters_default();
+	cmp.maxSpeed = 160.0;
+	cmp.acceleration = 600.0;
+	cmp.braking = 200.0;
+
+	const camPos = ZtfMath.ztf_Float3{ .x = 48.0, .y = 48.0, .z = 20.0 };
+	const lookAt = ZtfMath.ztf_Float3{ .x = 0.0, .y = 0.0, .z = 0.0 };
+
+	pCameraController = ZtfCC.ztf_initFpsCameraController(&camPos, &lookAt);
+	ZtfCC.ztf_setMotionParameters(pCameraController, &cmp);
+
+	//TODO input actions
+
+	gFrameIndex = 0;
+
 	return true;
 }
 
@@ -332,9 +507,13 @@ fn rendererExit(_: ?*ztf_App) void
 		return;
 	}
 
-	ZtfUI.ztf_exitUserInterface();
+	ZtfCC.ztf_exitCameraController(pCameraController);
 
 	ZtfInput.ztf_exitInputSystem();
+	
+	ZtfProfiler.ztf_exitProfiler();
+	
+	ZtfUI.ztf_exitUserInterface();
 
 	ZtfFont.ztf_exitFontSystem();
 
@@ -381,14 +560,164 @@ pub export fn ztf_appExit(ztf_app: ?*ztf_App) callconv(.C) void
 	ZtfExt.deinit();
 }
 
-pub export fn ztf_appLoad(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) callconv(.C) bool
+pub export fn ztf_appLoad(pApp: ?*ztf_App, pReloadDesc: [*c]ZtfRL.ztf_ReloadDesc) callconv(.C) bool
 {
+	const app_settings = ZtfApp.ztf_getAppSettings(pApp);
+	const window_desc = ZtfApp.ztf_getWindowDesc(pApp);
+
+	if (pReloadDesc.*.mType & ZtfRL.ZTF_RELOAD_TYPE_SHADER != 0)
+	{
+		//Add shaders
+		{
+			const skyShader = ZtfRL.ztf_ShaderLoadDesc{
+				.mStages = .{
+					ZtfRL.ztf_ShaderStageLoadDesc{
+						.pFileName = "skybox.vert",
+					},
+					ZtfRL.ztf_ShaderStageLoadDesc{
+						.pFileName ="skybox.frag",
+					},
+					.{},
+					.{},
+					.{},
+					.{},
+				},
+			};
+
+			const basicShader = ZtfRL.ztf_ShaderLoadDesc{
+				.mStages = .{
+					ZtfRL.ztf_ShaderStageLoadDesc{
+						.pFileName = "basic.vert",
+					},
+					ZtfRL.ztf_ShaderStageLoadDesc{
+						.pFileName ="basic.frag",
+					},
+					.{},
+					.{},
+					.{},
+					.{},
+				},
+			};
+
+			ZtfRL.ztf_addShader(@ptrCast(pRenderer), @ptrCast(&skyShader), @ptrCast(&pSkyBoxDrawShader));
+			ZtfRL.ztf_addShader(@ptrCast(pRenderer), @ptrCast(&basicShader), @ptrCast(&pSphereShader));
+		}
+
+		//add RootSignatures;
+		{
+			const shaders = [_]?*ZtfGfx.ztf_Shader{
+				pSphereShader,
+				pSkyBoxDrawShader,
+			};
+			const shadersCount = shaders.len;
+
+			const pStaticSamplers = [_][]const u8{"uSampler0"};
+			const rootDesc = ZtfGfx.ztf_RootSignatureDesc{
+				.mStaticSamplerCount = 1,
+				.ppStaticSamplerNames = @ptrCast(@constCast(&pStaticSamplers[0])),
+				.ppStaticSamplers = &pSamplerSkyBox,
+				.mShaderCount = shadersCount,
+				.ppShaders = @constCast(&shaders),
+			};
+			ZtfGfx.ztf_addRootSignature(pRenderer, &rootDesc, &pRootSignature);
+		}
+
+		//add DescriptorSets
+		{
+			const desc = ZtfGfx.ztf_DescriptorSetDesc{
+				.pRootSignature = pRootSignature,
+				.mUpdateFrequency = ZtfGfx.ZTF_DESCRIPTOR_UPDATE_FREQ_NONE,
+				.mMaxSets = 1
+			};
+			ZtfGfx.ztf_addDescriptorSet(pRenderer, &desc, &pDescriptorSetTexture);
+			const desc2 = ZtfGfx.ztf_DescriptorSetDesc{
+				.pRootSignature = pRootSignature,
+				.mUpdateFrequency = ZtfGfx.ZTF_DESCRIPTOR_UPDATE_FREQ_PER_FRAME,
+				.mMaxSets = gDataBufferCount * 2
+			};
+			ZtfGfx.ztf_addDescriptorSet(pRenderer, &desc2, &pDescriptorSetUniforms);
+		}
+	}
+
+	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_RESIZE | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
+	{
+		//add swapchain
+		{
+			var swapChainDesc = ZtfGfx.ztf_SwapChainDesc{
+				.mWindowHandle = @bitCast(window_desc.*.handle),
+				.mPresentQueueCount = 1,
+				.ppPresentQueues = &pGraphicsQueue,
+				.mWidth = @intCast(app_settings.*.mWidth),
+				.mHeight = @intCast(app_settings.*.mHeight),
+				.mImageCount = ZtfGfx.ztf_getRecommendedSwapchainImageCount(pRenderer, @ptrCast(&window_desc.*.handle)),
+				.mColorSpace = ZtfGfx.ZTF_COLOR_SPACE_SDR_SRGB,
+				.mEnableVsync = app_settings.*.mVSyncEnabled,
+				.mFlags = ZtfGfx.ZTF_SWAP_CHAIN_CREATION_FLAG_ENABLE_FOVEATED_RENDERING_VR,
+			};
+			
+			swapChainDesc.mColorFormat = ZtfGfx.ztf_getSupportedSwapchainFormat(pRenderer, &swapChainDesc, ZtfGfx.ZTF_COLOR_SPACE_SDR_SRGB);
+		
+			ZtfGfx.ztf_addSwapChain(pRenderer, &swapChainDesc, &pSwapChain);
+			if(pSwapChain == null)
+			{
+				ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Swapchain failed to initialise.", .{});
+				return false;
+			}
+		}
+
+		//add depth buffer
+		{
+			const depthRT = ZtfGfx.ztf_RenderTargetDesc{
+				.mArraySize = 1,
+				.mClearValue = .{ .unnamed_1 = .{.depth = 0.0, .stencil = 0,}, },
+				.mDepth = 1,
+				.mFormat = ZtfGfx.TinyImageFormat_D32_SFLOAT,
+				.mStartState = ZtfGfx.ZTF_RESOURCE_STATE_DEPTH_WRITE,
+				.mHeight = @intCast(app_settings.*.mHeight),
+				.mSampleCount = ZtfGfx.ZTF_SAMPLE_COUNT_1,
+				.mSampleQuality = 0,
+				.mWidth = @intCast(app_settings.*.mWidth),
+				.mFlags = ZtfGfx.ZTF_TEXTURE_CREATION_FLAG_ON_TILE | ZtfGfx.ZTF_TEXTURE_CREATION_FLAG_VR_MULTIVIEW,
+			};
+			ZtfGfx.ztf_addRenderTarget(pRenderer, &depthRT, &pDepthBuffer);
+			if(pDepthBuffer == null)
+			{
+				ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Depth Buffer failed to initialise.", .{});
+				return false;
+			}
+		}
+	}
+
 	return true;
 }
 
-pub export fn ztf_appUnload(_: ?*ztf_App, _: [*c]ztf_ReloadDesc) callconv(.C) void
+pub export fn ztf_appUnload(_: ?*ztf_App, pReloadDesc: [*c]ztf_ReloadDesc) callconv(.C) void
 {
+	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_RESIZE | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
+	{
+		ZtfGfx.ztf_removeSwapChain(pRenderer, pSwapChain);
+		ZtfGfx.ztf_removeRenderTarget(pRenderer, pDepthBuffer);
+	}
 
+	if (pReloadDesc.*.mType & ZtfRL.ZTF_RELOAD_TYPE_SHADER != 0)
+	{
+		//remove DescriptorSets
+		{
+			ZtfGfx.ztf_removeDescriptorSet(pRenderer, pDescriptorSetTexture);
+			ZtfGfx.ztf_removeDescriptorSet(pRenderer, pDescriptorSetUniforms);
+		}
+
+		//Remove RootSignatures;
+		{
+			ZtfGfx.ztf_removeRootSignature(@ptrCast(pRenderer), pRootSignature);
+		}
+
+		//Remove shaders
+		{
+			ZtfRL.ztf_removeShader(@ptrCast(pRenderer), @ptrCast(pSphereShader));
+			ZtfRL.ztf_removeShader(@ptrCast(pRenderer), @ptrCast(pSkyBoxDrawShader));
+		}
+	}
 }
 
 pub export fn ztf_appUpdate(_: ?*ztf_App, _: f32) callconv(.C) void
