@@ -25,6 +25,7 @@ pub const ztf_headers = [_]HeaderInfo{
 	.{ .srcPath = "glue/IInput_c.cpp",					.headerName = "IInput_c.h",				.outputName = "ZtfInput", 				.outputFileName = "ZtfInput.zig", },
 	.{ .srcPath = "glue/IUI_c.cpp",						.headerName = "IUI_c.h",				.outputName = "ZtfUI", 					.outputFileName = "ZtfUI.zig", },
 	.{ .srcPath = "glue/bstring_c.cpp",					.headerName = "bstring_c.h",			.outputName = "ZtfBString", 			.outputFileName = "ZtfBString.zig", },
+	.{ .srcPath = "glue/IProfiler_c.cpp",				.headerName = "IProfiler_c.h",			.outputName = "ZtfProfiler", 			.outputFileName = "ZtfProfiler.zig", },
 };
 
 pub fn build(b: *std.Build) !void

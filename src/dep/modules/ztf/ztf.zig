@@ -13,3 +13,4 @@ pub const ui = @import("ZtfUI");
 pub const gfx = @import("ZtfGraphics");
 pub const mem = @import("ZtfMemory");
 pub const bstring = @import("ZtfBString");
+pub const profiler = @import("ZtfProfiler");
