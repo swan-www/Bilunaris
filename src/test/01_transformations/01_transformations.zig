@@ -4,6 +4,7 @@ const zmath = @import("zmath");
 const Mat4 = zmath.Mat;
 const Vec4 = zmath.Vec;
 const Vec3 = zmath.Vec;
+const RndGen = std.rand.DefaultPrng;
 
 const Ztf = @import("ztf");
 
@@ -25,6 +26,7 @@ const ZtfBString = Ztf.bstring;
 const BString = ZtfBString.bstring;
 const ZtfRL = Ztf.resource_loader;
 const ZtfProfiler = Ztf.profiler;
+const ZtfMem = Ztf.memory;
 
 usingnamespace ZtfGfx;
 
@@ -48,6 +50,9 @@ switch(QUEST_VR){
 		mCamera : Mat4
 	},
 };
+
+var gpa : std.heap.GeneralPurposeAllocator(.{.safety = true, .thread_safe = true}) = undefined;
+var global_alloc : std.mem.Allocator = undefined;
 
 const PlanetInfoStruct = struct
 {
@@ -104,7 +109,7 @@ var pSphereVertexBuffer : ?*ZtfGfx.ztf_Buffer = null;
 var pSphereIndexBuffer : ?*ZtfGfx.ztf_Buffer = null;
 var gSphereIndexCount : u32 = 0;
 var pSpherePipeline : ?*ZtfGfx.ztf_Pipeline = null;
-var gSphereVertexLayout : ?*ZtfGfx.ztf_VertexLayout = null;
+var gSphereVertexLayout = ZtfGfx.ztf_VertexLayout{};
 var gSphereLayoutType : u32 = 0;
 
 var pSkyBoxDrawShader : ?*ZtfGfx.ztf_Shader = null;
@@ -181,6 +186,9 @@ fn reloadRequest(_ : ?*anyopaque) callconv(.C) void
 
 pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 {
+	gpa = .{};
+    global_alloc = gpa.allocator();
+
 	const window_desc = ZtfApp.ztf_getWindowDesc(pApp);
 	ZtfExt.init(null);
 	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appInit", .{});
@@ -558,6 +566,12 @@ pub export fn ztf_appExit(ztf_app: ?*ztf_App) callconv(.C) void
 
 	ZtfExt.LOGF(ZtfLog.ztf_eINFO, "ztf_appExit", .{});
 	ZtfExt.deinit();
+
+	const deinit_status = gpa.deinit();
+	if (deinit_status == .leak)
+	{
+		@panic("Memory leak on exit.");
+	}
 }
 
 pub export fn ztf_appLoad(pApp: ?*ztf_App, pReloadDesc: [*c]ZtfRL.ztf_ReloadDesc) callconv(.C) bool
@@ -688,11 +702,22 @@ pub export fn ztf_appLoad(pApp: ?*ztf_App, pReloadDesc: [*c]ZtfRL.ztf_ReloadDesc
 		}
 	}
 
+	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_SHADER | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
+	{
+		generate_complex_mesh();
+	}
+
 	return true;
 }
 
 pub export fn ztf_appUnload(_: ?*ztf_App, pReloadDesc: [*c]ztf_ReloadDesc) callconv(.C) void
 {
+	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_SHADER | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
+	{
+		ZtfRL.ztf_removeResource(@ptrCast(pSphereVertexBuffer));
+		ZtfRL.ztf_removeResource(@ptrCast(pSphereIndexBuffer));
+	}
+
 	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_RESIZE | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
 	{
 		ZtfGfx.ztf_removeSwapChain(pRenderer, pSwapChain);
@@ -736,6 +761,281 @@ pub export fn ztf_appGetName(_: ?*ztf_App) callconv(.C) [*c]const u8
 }
 
 pub extern fn main(argc: c_int, argv: **const c_char) c_int;
+
+pub fn compute_normal(src : [*c]f32, dst : [*c]f32) void
+{
+    const len = std.zig.c_builtins.__builtin_sqrtf(src[0] * src[0] + src[1] * src[1] + src[2] * src[2]);
+    if (len == 0)
+    {
+        dst[0] = 0;
+        dst[1] = 0;
+        dst[2] = 0;
+    }
+    else
+    {
+        dst[0] = src[0] / len;
+        dst[1] = src[1] / len;
+        dst[2] = src[2] / len;
+    }
+}
+
+pub fn generate_complex_mesh() void
+{
+	gSphereVertexLayout = .{};
+
+	// number of vertices on a quad side, must be >= 2
+	const DETAIL_LEVEL : comptime_int = 64;
+
+    // static here to prevent stack overflow
+	const static = struct {
+		const float_bufftype = [6][DETAIL_LEVEL][DETAIL_LEVEL][3]f32;
+		const color_bufftype = [6][DETAIL_LEVEL][DETAIL_LEVEL][3]u8;
+		const indices_bufftype = [6][DETAIL_LEVEL - 1][DETAIL_LEVEL - 1][6]u16;
+		var verts : float_bufftype = std.mem.zeroes(float_bufftype);
+		var sqNormals : float_bufftype = std.mem.zeroes(float_bufftype);
+		var sphNormals : float_bufftype = std.mem.zeroes(float_bufftype);	
+		var sqColors : color_bufftype = std.mem.zeroes(color_bufftype);
+		var spColors : color_bufftype = std.mem.zeroes(color_bufftype);
+		var indices : indices_bufftype = std.mem.zeroes(indices_bufftype);
+
+		pub fn vid(vx: usize, vy: usize, o: usize) usize
+		{
+			return (o + (vx)*DETAIL_LEVEL + (vy));
+		}
+	};
+
+    for (0..6) |i|
+    {
+        for (0..DETAIL_LEVEL) |x|
+        {
+            for (0..DETAIL_LEVEL) |y|
+            {
+                var vert = &static.verts[i][x][y];
+                var sqNorm = &static.sqNormals[i][x][y];
+
+                sqNorm[0] = 0;
+                sqNorm[1] = 0;
+                sqNorm[2] = 0;
+
+                const fx = 2 * (@as(f32, @floatFromInt(x)) / @as(f32, @floatFromInt(DETAIL_LEVEL - 1))) - 1;
+                const fy = 2 * (@as(f32, @floatFromInt(y)) / @as(f32,  @floatFromInt(DETAIL_LEVEL - 1))) - 1;
+
+                switch (i)
+                {
+                	0 => {
+						vert[0] = -1;
+						vert[1] = fx;
+						vert[2] = fy;
+						sqNorm[0] = -1;
+					},
+                	1 => {
+						vert[0] = 1;
+						vert[1] = -fx;
+						vert[2] = fy;
+						sqNorm[0] = 1;
+					},
+					2 => {
+						vert[0] = -fx;
+						vert[1] = fy;
+						vert[2] = 1;
+						sqNorm[0] = 1;
+					},
+					3 => {
+						vert[0] = fx;
+						vert[1] = fy;
+						vert[2] = -1;
+						sqNorm[0] = -1;
+					},
+					4 => {
+						vert[0] = fx;
+						vert[1] = 1;
+						vert[2] = fy;
+						sqNorm[0] = 1;
+					},
+					5 => {
+						vert[0] = -fx;
+						vert[1] = -1;
+						vert[2] = fy;
+						sqNorm[0] = -1;
+					},
+					else => unreachable,
+                }
+
+                compute_normal(&vert[0], &static.sphNormals[i][x][y][0]);
+            }
+        }
+    }
+
+	var rand_impl = std.Random.DefaultPrng.init(0);
+
+    for (0..6) |i|
+    {
+        for (0..DETAIL_LEVEL) |x|
+        {
+            const spColorTemplate = [3]u8{
+                rand_impl.random().int(u8),
+                rand_impl.random().int(u8),
+                rand_impl.random().int(u8),
+            };
+
+            const rx = 1 - zmath.abs((@as(f32, @floatFromInt(x)) / DETAIL_LEVEL) * 2 - 1);
+
+            for (0..DETAIL_LEVEL) |y|
+            {
+                const ry = 1 - zmath.abs((@as(f32, @floatFromInt(y)) / DETAIL_LEVEL) * 2 - 1);
+                const close_ratio : u32 = @intFromFloat(rx * ry * 255);
+
+                var sq_color : []u8 = &static.sqColors[i][x][y];
+                var sp_color : []u8 = &static.spColors[i][x][y];
+
+                sq_color[0] = @intCast((rand_impl.random().int(u8) * close_ratio) / 255);
+                sq_color[1] = @intCast((rand_impl.random().int(u8) * close_ratio) / 255);
+                sq_color[2] = @intCast((rand_impl.random().int(u8) * close_ratio) / 255);
+
+                sp_color[0] = @intCast((spColorTemplate[0] * close_ratio) / 255);
+                sp_color[1] = @intCast((spColorTemplate[1] * close_ratio) / 255);
+                sp_color[2] = @intCast((spColorTemplate[2] * close_ratio) / 255);
+            }
+        }
+    }
+
+    for (0..6) |i|
+    {
+        const o = DETAIL_LEVEL * DETAIL_LEVEL * i;
+        for (0..DETAIL_LEVEL-1) |x|
+        {
+            for (0..DETAIL_LEVEL-1) |y|
+            {
+                const quadIndices : []u16 = &static.indices[i][x][y];
+
+                quadIndices[0] = @truncate(static.vid(x, y, o));
+                quadIndices[1] = @truncate(static.vid(x, y + 1, o));
+                quadIndices[2] = @truncate(static.vid(x + 1, y + 1, o));
+                quadIndices[3] = @truncate(static.vid(x + 1, y + 1, o));
+                quadIndices[4] = @truncate(static.vid(x + 1, y, o));
+                quadIndices[5] = @truncate(static.vid(x, y, o));
+            }
+        }
+    }
+
+	var bufferData : []u8 = undefined;
+	const vertexCount : u32 = @sizeOf(@TypeOf(static.verts)) / 12;
+	var bufferSize : usize = undefined;
+
+	gSphereVertexLayout.mBindingCount = 1;
+
+	switch (gSphereLayoutType)
+	{
+		1 =>
+		{
+			//  0-12 sq positions,
+			// 16-28 sq normals
+			// 32-34 sq colors
+			// 36-40 sp colors
+			// 48-62 sp positions
+			// 64-76 sp normals
+
+			gSphereVertexLayout.mBindings[0].mStride = 80;
+			const vsize : usize = vertexCount * gSphereVertexLayout.mBindings[0].mStride;
+			bufferSize = vsize;
+			bufferData = global_alloc.alloc(u8, bufferSize) catch |err| @panic(@errorName(err));
+
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_POSITION, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 0);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_NORMAL, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 16);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD1, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 48);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD3, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 64);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD0, ZtfGfx.TinyImageFormat_R8G8B8A8_UNORM, 32);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD2, ZtfGfx.TinyImageFormat_R8G8B8A8_UNORM, 36);
+
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 0, 12, vertexCount, @ptrCast(&static.verts));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 16, 12, vertexCount, @ptrCast(&static.sqNormals));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 36, 3, vertexCount, @ptrCast(&static.spColors));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 32, 3, vertexCount, @ptrCast(&static.sqColors));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 48, 12, vertexCount, @ptrCast(&static.sphNormals));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 64, 12, vertexCount, @ptrCast(&static.sphNormals));
+		},
+		else =>
+		{
+			//  0-12 sq positions,
+			// 12-16 sq colors
+			// 16-28 sq normals
+			// 28-32 sp colors
+			// 32-44 sp positions + sp normals
+
+			gSphereVertexLayout.mBindings[0].mStride = 44;
+			const vsize : usize = vertexCount * gSphereVertexLayout.mBindings[0].mStride;
+			bufferSize = vsize;
+			bufferData =  global_alloc.alloc(u8, bufferSize) catch |err| @panic(@errorName(err));
+
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_POSITION, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 0);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_NORMAL, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 16);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD1, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 32);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD3, ZtfGfx.TinyImageFormat_R32G32B32_SFLOAT, 32);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD0, ZtfGfx.TinyImageFormat_R8G8B8A8_UNORM, 12);
+			add_attribute(&gSphereVertexLayout, ZtfGfx.ZTF_SEMANTIC_TEXCOORD2, ZtfGfx.TinyImageFormat_R8G8B8A8_UNORM, 28);
+
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 0, 12, vertexCount, @ptrCast(&static.verts));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 12, 3, vertexCount, @ptrCast(&static.sqColors));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 16, 12, vertexCount, @ptrCast(&static.sqNormals));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 28, 3, vertexCount, @ptrCast(&static.spColors));
+			copy_attribute(&gSphereVertexLayout, @ptrCast(bufferData.ptr), 32, 12, vertexCount, @ptrCast(&static.sphNormals));
+		},
+	}
+
+	gSphereIndexCount = @sizeOf(@TypeOf(static.indices)) / @sizeOf(u16);
+
+	const sphereVbDesc = ZtfRL.ztf_BufferLoadDesc{
+		.mDesc = .{
+			.mDescriptors = ZtfRL.ZTF_DESCRIPTOR_TYPE_VERTEX_BUFFER,
+			.mMemoryUsage = ZtfRL.ZTF_RESOURCE_MEMORY_USAGE_GPU_ONLY,
+			.mSize = bufferSize,
+		},
+		.pData = bufferData.ptr,
+		.ppBuffer = @ptrCast(&pSphereVertexBuffer),
+	};
+	ZtfRL.ztf_addResource(@constCast(&sphereVbDesc), null);
+
+	const sphereIbDesc = ZtfRL.ztf_BufferLoadDesc{
+		.mDesc = .{
+			.mDescriptors = ZtfRL.ZTF_DESCRIPTOR_TYPE_INDEX_BUFFER,
+			.mMemoryUsage = ZtfRL.ZTF_RESOURCE_MEMORY_USAGE_GPU_ONLY,
+			.mSize = @sizeOf(@TypeOf(static.indices)),
+		},
+		.pData = bufferData.ptr,
+		.ppBuffer = @ptrCast(&pSphereIndexBuffer),
+	};
+	ZtfRL.ztf_addResource(@constCast(&sphereIbDesc), null);
+
+	ZtfRL.ztf_waitForAllResourceLoads();
+
+	global_alloc.free(bufferData);
+}
+
+pub fn add_attribute(layout: *ZtfGfx.ztf_VertexLayout, semantic: ZtfGfx.ztf_ShaderSemantic, format: ZtfGfx.TinyImageFormat, offset: u32) void
+{
+    const n_attr = layout.*.mAttribCount;
+	layout.*.mAttribCount += 1;
+
+    const attr : *ZtfGfx.ztf_VertexAttrib = &(layout.*.mAttribs[n_attr]);
+
+    attr.*.mSemantic = semantic;
+    attr.*.mFormat = format;
+    attr.*.mBinding = 0;
+    attr.*.mLocation = n_attr;
+    attr.*.mOffset = offset;
+}
+
+pub fn copy_attribute(layout: *ZtfGfx.ztf_VertexLayout, buffer_data: *void, offset: u32, size: u32, vcount: u32, data: *void) void
+{
+    var dst_data : [*c]u8 = @ptrCast(buffer_data);
+    var src_data : [*c]u8 = @ptrCast(data);
+    for (0..vcount) |_|
+    {
+        _ = std.zig.c_builtins.__builtin_memcpy(dst_data + offset, src_data, size);
+        dst_data += layout.*.mBindings[0].mStride;
+        src_data += size;
+    }
+}
 
 //pub fn main() !void {
 //	const mybuf = RingBuffer.GPURingBuffer
