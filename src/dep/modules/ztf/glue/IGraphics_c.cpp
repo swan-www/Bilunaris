@@ -761,6 +761,23 @@ ZTF_BITFIELD_SETGET_DEFINE(BindDepthTargetDesc, mBitfield, mOverrideClearValue, 
 ZTF_BITFIELD_SETGET_DEFINE(BindDepthTargetDesc, mBitfield, mUseArraySlice, uint32_t, 11, 1);
 ZTF_BITFIELD_SETGET_DEFINE(BindDepthTargetDesc, mBitfield, mUseMipSlice, uint32_t, 12, 1);
 
+#if defined(DIRECT3D12)
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(SwapChain, mBitfieldDx12, mDx, mSyncIntervalDx12, uint32_t, 0, 3);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(SwapChain, mBitfieldDx12, mDx, mFlagsDx12, uint32_t, 3, 10);
+#endif
+#if defined(VULKAN)
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(SwapChain, mBitfieldVk, mVk, mPresentQueueFamilyIndex, uint32_t, 0, 5);
+#endif
+#if defined(DIRECT3D11)
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(SwapChain, mBitfieldDx11, mDx11, mSyncIntervalDx11, 	uint32_t, 0, 3);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(SwapChain, mBitfieldDx11, mDx11, mFlagsDx11, 		uint32_t, 3, 10);
+	ZTF_BITFIELD_SETGET_WITH_PREFIX_DEFINE(SwapChain, mBitfieldDx11, mDx11, mImageIndex, 	uint32_t, 13, 3);
+#endif
+ZTF_BITFIELD_SETGET_DEFINE(SwapChain, mBitfield, mImageCount, uint32_t, 0, 8);
+ZTF_BITFIELD_SETGET_DEFINE(SwapChain, mBitfield, mEnableVsync, uint32_t, 8, 1);
+ZTF_BITFIELD_SETGET_DEFINE(SwapChain, mBitfield, mColorSpace, uint32_t, 9, 4);
+ZTF_BITFIELD_SETGET_DEFINE(SwapChain, mBitfield, mFormat, uint32_t, 15, 8);
+
 
 
 #ifdef __cplusplus

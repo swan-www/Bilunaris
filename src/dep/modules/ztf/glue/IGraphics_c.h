@@ -2689,8 +2689,7 @@ typedef struct PipelineReflection PipelineReflection;
 #if defined(XBOX)
                 uint64_t mFramePipelineToken;
                 /// Sync interval to specify how interval for vsync
-                uint32_t mSyncInterval : 3;
-                uint32_t mFlags : 10;
+				uint32_t mBitfieldDx12;
                 uint32_t mIndex;
                 void* pWindow;
                 ztf_Queue* pPresentQueue;
@@ -2699,8 +2698,7 @@ typedef struct PipelineReflection PipelineReflection;
                 /// isn't supported by older devices.
                 IDXGISwapChain3* pSwapChain;
                 /// Sync interval to specify how interval for vsync
-                uint32_t                                 mSyncInterval : 3;
-                uint32_t                                 mFlags : 10;
+				uint32_t mBitfieldDx12;
 #endif
             } mDx;
 #endif
@@ -2712,7 +2710,7 @@ typedef struct PipelineReflection PipelineReflection;
                 VkSwapchainKHR pSwapChain;
                 VkSurfaceKHR   pSurface;
                 ztf_SwapChainDesc* pDesc;
-                uint32_t       mPresentQueueFamilyIndex : 5;
+				uint32_t mBitfieldVk;
             } mVk;
 #endif
 #if defined(METAL)
@@ -2735,9 +2733,7 @@ typedef struct PipelineReflection PipelineReflection;
                 /// isn't supported by older devices.
                 IDXGISwapChain* pSwapChain;
                 /// Sync interval to specify how interval for vsync
-                uint32_t         mSyncInterval : 3;
-                uint32_t         mFlags : 10;
-                uint32_t         mImageIndex : 3;
+                uint32_t mBitfieldDx11;
                 DXGI_SWAP_EFFECT mSwapEffect;
             } mDx11;
 #endif
@@ -2764,11 +2760,25 @@ typedef struct PipelineReflection PipelineReflection;
 #if defined(ZTF_USE_MULTIPLE_RENDER_APIS)
         };
 #endif
-        uint32_t        mImageCount : 8;
-        uint32_t        mEnableVsync : 1;
-        ztf_ColorSpace      mColorSpace : 4;
-        TinyImageFormat mFormat : 8;
+		uint32_t        mBitfield;
     } ztf_SwapChain;
+
+#if defined(DIRECT3D12)
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mSyncIntervalDx12, uint32_t);
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mFlagsDx12, uint32_t);
+#endif
+#if defined(VULKAN)
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mPresentQueueFamilyIndex, uint32_t);
+#endif
+#if defined(DIRECT3D11)
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mSyncIntervalDx11, uint32_t);
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mFlagsDx11, uint32_t);
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mImageIndex, uint32_t);
+#endif
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mImageCount, uint32_t);
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mEnableVsync, uint32_t);
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mColorSpace, uint32_t);
+ZTF_BITFIELD_SETGET_DECLARE(SwapChain, mFormat, uint32_t);
 
     typedef enum ztf_ShaderTarget
     {

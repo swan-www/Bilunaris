@@ -42,12 +42,12 @@ const CameraMatrix_C =
 switch(QUEST_VR){
 	true => extern struct
 	{
-		mLeftEye : Mat4,
-		mRightEye : Mat4,
+		mLeftEye : Mat4 = std.mem.zeroes(Mat4),
+		mRightEye : Mat4 = std.mem.zeroes(Mat4),
 	},
 	false => extern struct
 	{
-		mCamera : Mat4
+		mCamera : Mat4 = std.mem.zeroes(Mat4),
 	},
 };
 
@@ -69,14 +69,14 @@ const PlanetInfoStruct = struct
 
 const UniformBlock_C = extern struct
 {
-    mProjectView : CameraMatrix_C,
-    mToWorldMat : [MAX_PLANETS]Mat4,
-    mColor : [MAX_PLANETS]Vec4,
-    mGeometryWeight : [MAX_PLANETS]ZtfMath.ztf_Float4,
+    mProjectView : CameraMatrix_C = std.mem.zeroes(CameraMatrix_C),
+    mToWorldMat : [MAX_PLANETS]Mat4 = std.mem.zeroes([MAX_PLANETS]Mat4),
+    mColor : [MAX_PLANETS]Vec4 = std.mem.zeroes([MAX_PLANETS]Vec4),
+    mGeometryWeight : [MAX_PLANETS]ZtfMath.ztf_Float4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Float4),
 
     // Point Light Information
-    mLightPosition : @Vector(3, f32),
-    mLightColor : @Vector(3, f32),
+    mLightPosition : @Vector(3, f32) = [_]f32{0,0,0},
+    mLightColor : @Vector(3, f32) = [_]f32{0,0,0},
 };
 
 const UniformBlockSky_C = extern struct
@@ -712,6 +712,8 @@ pub export fn ztf_appLoad(pApp: ?*ztf_App, pReloadDesc: [*c]ZtfRL.ztf_ReloadDesc
 
 pub export fn ztf_appUnload(_: ?*ztf_App, pReloadDesc: [*c]ztf_ReloadDesc) callconv(.C) void
 {
+	ZtfGfx.ztf_waitQueueIdle(pGraphicsQueue);
+
 	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_SHADER | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
 	{
 		ZtfRL.ztf_removeResource(@ptrCast(pSphereVertexBuffer));
@@ -745,14 +747,56 @@ pub export fn ztf_appUnload(_: ?*ztf_App, pReloadDesc: [*c]ztf_ReloadDesc) callc
 	}
 }
 
-pub export fn ztf_appUpdate(_: ?*ztf_App, _: f32) callconv(.C) void
+pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 {
+	const app_settings = ZtfApp.ztf_getAppSettings(pApp);
 
+	ZtfCC.ztf_update(pCameraController, deltaTime);
+
+	const static = struct {
+		var currentTime : f32 = 0.0;
+	};
+
+	// Scene Update
+	static.currentTime += deltaTime * 1000.0;
+
+	// update camera with time
+	const viewMat : ?*ZtfMath.ztf_Matrix4 = ZtfCC.ztf_getViewMatrix(pCameraController);
+	if(viewMat == null)
+	{
+		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Failed to get ztf_getViewMatrix from Camera Controller.", .{});
+		return;
+	}
+
+	const aspectInverse = @as(f32, @floatFromInt(app_settings.*.mHeight)) / @as(f32, @floatFromInt(app_settings.*.mWidth));
+	const horizontal_fov = std.math.pi / 2.0;
+	const projMat : ?*ZtfCC.CameraMatrix = ZtfCC.ztf_perspectiveReverseZ(horizontal_fov, aspectInverse, 0.1, 1000.0);
+	if(projMat == null)
+	{
+		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Failed to get perspectiveReverseZ from Camera Controller.", .{});
+		return;
+	}
+
+	gUniformData.mProjectView =@as(*CameraMatrix_C,  @alignCast(@ptrCast(ZtfCC.ztf_camera_matrix_mul_mat(projMat, viewMat)))).*;
+
+	// point light parameters
+	gUniformData.mLightPosition = [_]f32{0, 0, 0};
+	gUniformData.mLightColor = [_]f32{0.9, 0.9, 0.7}; // Pale Yellow
 }
 
-pub export fn ztf_appDraw(_: ?*ztf_App) callconv(.C) void
+pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 {
-
+	const app_settings = ZtfApp.ztf_getAppSettings(pApp);
+	const settings_vsync_enabled = app_settings.*.mVSyncEnabled;
+	const swapchain_vsync_enabled = ZtfGfx.ztf_getSwapChain_mEnableVsync(pSwapChain) != 0;
+	if(swapchain_vsync_enabled != settings_vsync_enabled)
+	{
+		ZtfGfx.ztf_waitQueueIdle(pGraphicsQueue);
+		ZtfGfx.ztf_toggleVSync(pRenderer, &pSwapChain);
+	}
+	//var swapchainImageIndex : u32 = 0;
+	//ZtfGfx.ztf_acquireNextImage(pRenderer, pSwapChain, pImageAcquiredSemaphore, null, &swapchainImageIndex);
+	
 }
 
 pub export fn ztf_appGetName(_: ?*ztf_App) callconv(.C) [*c]const u8
