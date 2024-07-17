@@ -53,10 +53,10 @@ pub const GPUCmdRingDesc = extern struct
 
 pub const GpuCmdRingElement = extern struct
 {
-	pCmdPool : ?*GfxCmdPool,
-	pCmds : ?*GfxCmd,
-	pFence : ?*GfxFence,
-	pSemaphore : ?*GfxSemaphore,
+	pCmdPool : ?*GfxCmdPool = null,
+	pCmds : ?*GfxCmd = null,
+	pFence : ?*GfxFence = null,
+	pSemaphore : ?*GfxSemaphore = null,
 };
 
 // Lightweight wrapper that works as a ring for command pools, command buffers
@@ -252,7 +252,7 @@ pub fn getNextGpuCmdRingElement(ring : *GpuCmdRing, cycle_pool: bool, cmd_count:
 
 	var ret = GpuCmdRingElement{};
 	ret.pCmdPool = ring.*.pCmdPools[ring.*.mPoolIndex];
-    ret.pCmds = &ring.*.pCmds[ring.*.mPoolIndex][ring.*.mCmdIndex];
+    ret.pCmds = ring.*.pCmds[ring.*.mPoolIndex][ring.*.mCmdIndex];
     ret.pFence = ring.*.pFences[ring.*.mPoolIndex][ring.*.mFenceIndex];
     ret.pSemaphore = ring.*.pSemaphores[ring.*.mPoolIndex][ring.*.mFenceIndex];
 

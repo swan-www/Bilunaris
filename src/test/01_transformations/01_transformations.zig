@@ -81,7 +81,7 @@ const UniformBlock_C = extern struct
 
 const UniformBlockSky_C = extern struct
 {
-	mProjectView : CameraMatrix_C,
+	mProjectView : CameraMatrix_C = std.mem.zeroes(CameraMatrix_C),
 };
 
 // But we only need Two sets of resources (one in flight and one being used on CPU)
@@ -794,9 +794,68 @@ pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 		ZtfGfx.ztf_waitQueueIdle(pGraphicsQueue);
 		ZtfGfx.ztf_toggleVSync(pRenderer, &pSwapChain);
 	}
-	//var swapchainImageIndex : u32 = 0;
-	//ZtfGfx.ztf_acquireNextImage(pRenderer, pSwapChain, pImageAcquiredSemaphore, null, &swapchainImageIndex);
+
+	var swapchainImageIndex : u32 = 0;
+	ZtfGfx.ztf_acquireNextImage(pRenderer, pSwapChain, pImageAcquiredSemaphore, null, &swapchainImageIndex);
 	
+	//const pRenderTarget 
+	_ = pSwapChain.?.ppRenderTargets[swapchainImageIndex];
+	var elem = RingBuffer.getNextGpuCmdRingElement(&gGraphicsCmdRing, true, 1) catch |err| @panic(@errorName(err));
+
+	// Stall if CPU is running "gDataBufferCount" frames ahead of GPU
+	var fenceStatus : ZtfGfx.ztf_FenceStatus = 0;
+	ZtfGfx.ztf_getFenceStatus(pRenderer, elem.pFence, &fenceStatus);
+	if (fenceStatus == ZtfGfx.ZTF_FENCE_STATUS_INCOMPLETE)
+	{
+		ZtfGfx.ztf_waitForFences(pRenderer, 1, &elem.pFence);
+	}
+
+	// Update uniform buffers
+	var viewProjCbv = ZtfRL.ztf_BufferUpdateDesc{ .pBuffer = @ptrCast(pProjViewUniformBuffer[gFrameIndex]), };
+	ZtfRL.ztf_beginUpdateResource(&viewProjCbv);
+	_ = std.zig.c_builtins.__builtin_memcpy(viewProjCbv.pMappedData, &gUniformData, @sizeOf(@TypeOf(gUniformData)));
+	ZtfRL.ztf_endUpdateResource(&viewProjCbv);
+
+	var skyboxViewProjCbv = ZtfRL.ztf_BufferUpdateDesc{ .pBuffer = @ptrCast(pSkyboxUniformBuffer[gFrameIndex]), };
+	ZtfRL.ztf_beginUpdateResource(&skyboxViewProjCbv);
+	_ = std.zig.c_builtins.__builtin_memcpy(skyboxViewProjCbv.pMappedData, &gUniformDataSky, @sizeOf(@TypeOf(gUniformDataSky)));
+	ZtfRL.ztf_endUpdateResource(&skyboxViewProjCbv);
+
+	// Reset cmd pool for this frame
+	ZtfGfx.ztf_resetCmdPool(pRenderer, elem.pCmdPool);
+	const pipelineStatsQueries = ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings);
+	if (pipelineStatsQueries != 0)
+	{
+		var data3D = ZtfGfx.ztf_QueryData{};
+		var data2D = ZtfGfx.ztf_QueryData{};
+		ZtfGfx.ztf_getQueryData(pRenderer, pPipelineStatsQueryPool[gFrameIndex], 0, &data3D);
+		ZtfGfx.ztf_getQueryData(pRenderer, pPipelineStatsQueryPool[gFrameIndex], 1, &data2D);
+		const fmt_msg = \\\n
+			\\Pipeline Stats 3D:\n
+			\\    VS invocations:      %u\n
+			\\    PS invocations:      %u\n
+			\\    Clipper invocations: %u\n
+			\\    IA primitives:       %u\n
+			\\    Clipper primitives:  %u\n
+			\\\n
+			\\Pipeline Stats 2D UI:\n
+			\\    VS invocations:      %u\n
+			\\    PS invocations:      %u\n
+			\\    Clipper invocations: %u\n
+			\\    IA primitives:       %u\n
+			\\    Clipper primitives:  %u\n
+		;
+
+		const data3DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
+		const data2DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
+
+		_ = ZtfExt.bformat(&gPipelineStats,
+				fmt_msg,
+				.{data3DPipeStats.*.mVSInvocations, data3DPipeStats.*.mPSInvocations, data3DPipeStats.*.mCInvocations,
+				data3DPipeStats.*.mIAPrimitives, data3DPipeStats.*.mCPrimitives, data2DPipeStats.*.mVSInvocations,
+				data2DPipeStats.*.mPSInvocations, data2DPipeStats.*.mCInvocations, data2DPipeStats.*.mIAPrimitives,
+				data2DPipeStats.*.mCPrimitives});
+	}
 }
 
 pub export fn ztf_appGetName(_: ?*ztf_App) callconv(.C) [*c]const u8

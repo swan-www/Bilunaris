@@ -239,3 +239,12 @@ pub inline fn bempty() BString
 		.data = ZtfBString.gEmptyStringBuffer,
 	};
 }
+
+pub noinline fn bformat(b: *ZtfBString.bstring, fmt: [*:0]const u8, args: anytype) callconv(.Unspecified) c_int
+{
+	const return_address = @returnAddress();
+	const source_loc = debugAddressInfo(return_address) catch fallbackSourceLocation;
+	defer source_loc.free();
+
+	return @call(std.builtin.CallModifier.auto, ZtfBString.bformatImpl, .{source_loc.file, @as(c_int, @intCast(source_loc.line)), @src().fn_name, source_loc.fn_name, b, fmt} ++ args);
+}
