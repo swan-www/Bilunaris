@@ -98,7 +98,7 @@ ZTF_C_API void ztf_cmdDrawTextWithFont(Cmd* pCmd, ztf_Float2 screenCoordsInPx, c
 
 /// Renders text as an object in the world using a loaded font w/ The Forge
 /// This function will assert if Font Rendering has not been initialized
-ZTF_C_API void ztf_cmdDrawWorldSpaceTextWithFont(Cmd* pCmd, const ztf_Matrix4* pMatWorld, const CameraMatrix* pMatProjView, const ztf_FontDrawDesc* pDrawDesc);
+ZTF_C_API void ztf_cmdDrawWorldSpaceTextWithFont(Cmd* pCmd, const ztf_Matrix4* pMatWorld, const ZTF_CameraMatrix* pMatProjView, const ztf_FontDrawDesc* pDrawDesc);
 
 /// Debugging feature - draws the contents of the internal font atlas
 ZTF_C_API void ztf_cmdDrawDebugFontAtlas(Cmd* pCmd, ztf_Float2 screenCoordsInPx);
@@ -111,7 +111,7 @@ ZTF_C_API void ztf_cmdDrawDebugFontAtlas(Cmd* pCmd, ztf_Float2 screenCoordsInPx)
 ZTF_C_API void ztf_fntDefineFonts(const ztf_FontDesc* pDescs, uint32_t count, uint32_t* pOutIDs);
 
 /// Get current font atlas size
-ZTF_C_API ztf_Int2* ztf_fntGetFontAtlasSize();
+ZTF_C_API ztf_Int2 ztf_fntGetFontAtlasSize();
 
 /// Clear all data from the font atlas and resize it to provide size. Pass zero to keep the current size.
 ZTF_C_API void ztf_fntResetFontAtlas(ztf_Int2 const* newAtlasSize);

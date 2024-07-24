@@ -54,7 +54,7 @@ pub const GPUCmdRingDesc = extern struct
 pub const GpuCmdRingElement = extern struct
 {
 	pCmdPool : ?*GfxCmdPool = null,
-	pCmds : ?*GfxCmd = null,
+	pCmds : [*c][*c]GfxCmd = null,
 	pFence : ?*GfxFence = null,
 	pSemaphore : ?*GfxSemaphore = null,
 };
@@ -233,7 +233,7 @@ pub fn getNextGpuCmdRingElement(ring : *GpuCmdRing, cycle_pool: bool, cmd_count:
 {
 	if (cycle_pool)
     {
-        ring.*.mPoolIndex = (ring.*.mPoolIndex + 1) % ring.*.mPoolCount;
+        ring.*.mPoolIndex = @addWithOverflow(ring.*.mPoolIndex, 1)[0] % ring.*.mPoolCount;
         ring.*.mCmdIndex = 0;
         ring.*.mFenceIndex = 0;
     }
@@ -252,7 +252,7 @@ pub fn getNextGpuCmdRingElement(ring : *GpuCmdRing, cycle_pool: bool, cmd_count:
 
 	var ret = GpuCmdRingElement{};
 	ret.pCmdPool = ring.*.pCmdPools[ring.*.mPoolIndex];
-    ret.pCmds = ring.*.pCmds[ring.*.mPoolIndex][ring.*.mCmdIndex];
+    ret.pCmds = &ring.*.pCmds[ring.*.mPoolIndex][ring.*.mCmdIndex];
     ret.pFence = ring.*.pFences[ring.*.mPoolIndex][ring.*.mFenceIndex];
     ret.pSemaphore = ring.*.pSemaphores[ring.*.mPoolIndex][ring.*.mFenceIndex];
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stdalign.h>
 
 #include "ztf_bind_common.h"
 
@@ -8,60 +9,116 @@ extern "C"
 {
 #endif
 
+#if defined(_MSC_VER)
+    // Visual Studio (MS compiler)
+    #define ZTF_VECTORMATH_ALIGNED(type)      __declspec(align(16)) type
+    #define ZTF_VECTORMATH_ALIGNED_TYPE_PRE   __declspec(align(16))
+    #define ZTF_VECTORMATH_ALIGNED_TYPE_POST  /* nothing */
+#elif defined(__GNUC__)
+    // GCC or Clang
+    #define ZTF_VECTORMATH_ALIGNED(type)      type __attribute__((aligned(16)))
+    #define ZTF_VECTORMATH_ALIGNED_TYPE_PRE   /* nothing */
+    #define ZTF_VECTORMATH_ALIGNED_TYPE_POST  __attribute__((aligned(16)))
+#else
+    // Unknown compiler
+    #error "Define ZTF_VECTORMATH_ALIGNED for your compiler or platform!"
+#endif
+
+#if defined(XBOX)
+#elif defined(_WINDOWS)
+#include <xmmintrin.h>
+#include <emmintrin.h>
+typedef __m64 ztf_vec_f64;
+typedef __m128 ztf_vec_f128;
+typedef __m128i ztf_vec_i128;
+typedef __m128d ztf_vec_d128;
+#elif defined(TARGET_IOS)
+#elif defined(__APPLE__)
+#elif defined(__ANDROID__)
+#elif defined(__linux__)
+#elif defined(NX64)
+#elif defined(ORBIS)
+#elif defined(PROSPERO)
+#endif
+
 typedef unsigned int uint;
 
-typedef struct ztf_Float2 { float x, y; } ztf_Float2;
-typedef struct ztf_Float3 { float x, y, z; } ztf_Float3;
-typedef struct ztf_Float4 { float x, y, z, w; } ztf_Float4;
+struct ztf_Float2 { float x, y; };
+typedef struct ztf_Float2 ztf_Float2;
+struct ztf_Float3 { float x, y, z; };
+typedef struct ztf_Float3 ztf_Float3;
+struct ztf_Float4 { float x, y, z, w; };
+typedef struct ztf_Float4 ztf_Float4;
 
-typedef void ztf_Int2;
+typedef ztf_Float2 ztf_Vector2;
 
-typedef void ztf_Vector2;
-typedef void ztf_Vector3;
-typedef void ztf_Vector4;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Vector3 { alignas(16) ztf_vec_f128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Vector3 ztf_Vector3;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Vector4 { alignas(16) ztf_vec_f128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Vector4 ztf_Vector4;
 
-typedef void ztf_IVector2;
-typedef void ztf_IVector3;
-typedef void ztf_IVector4;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Vector3d { alignas(16) ztf_vec_d128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Vector3d ztf_Vector3d;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Vector4d { alignas(16) ztf_vec_d128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Vector4d ztf_Vector4d;
 
-typedef void ztf_UVector2;
-typedef void ztf_UVector3;
-typedef void ztf_UVector4;
+typedef struct ztf_IVector2{ int x, y; } ztf_IVector2;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_IVector3 { alignas(16) ztf_vec_i128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_IVector3 ztf_IVector3;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_IVector4 { alignas(16) ztf_vec_i128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_IVector4 ztf_IVector4;
 
-typedef void ztf_Matrix2;
-typedef void ztf_Matrix3;
-typedef void ztf_Matrix4;
+typedef struct ztf_UVector2{ unsigned int x, y; } ztf_UVector2;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_UVector3 { alignas(16) ztf_vec_f128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_UVector3 ztf_UVector3;
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_UVector4 { alignas(16) ztf_vec_f128 mVec128; } ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_UVector4 ztf_UVector4;
 
-ZTF_C_API ztf_Int2* ztf_int2_new(int const* in_int_array);
-ZTF_C_API void 		ztf_int2_delete(ztf_Int2* in_float2);
+typedef ztf_IVector2 ztf_Int2;
 
-ZTF_C_API ztf_Vector2* 	ztf_vec2_new(float const * in_float_array);
-ZTF_C_API void 		ztf_vec2_delete(ztf_Vector2* in_vec2);
-ZTF_C_API ztf_Vector3* 	ztf_vec3_new(float const * in_float_array);
-ZTF_C_API void 		ztf_vec3_delete(ztf_Vector3* in_vec3);
-ZTF_C_API ztf_Vector4* 	ztf_vec4_new(float const * in_float_array);
-ZTF_C_API void 		ztf_vec4_delete(ztf_Vector4* in_vec4);
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Matrix3 {
+	ztf_Vector3 mCol0;
+    ztf_Vector3 mCol1;
+    ztf_Vector3 mCol2;
+} ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Matrix3 ztf_Matrix3;
 
-ZTF_C_API ztf_IVector2* ztf_ivec2_new(int32_t const* in_int_array);
-ZTF_C_API void 		ztf_ivec2_delete(ztf_IVector2* in_ivec2);
-ZTF_C_API ztf_IVector3* ztf_ivec3_new(int32_t const* in_int_array);
-ZTF_C_API void 		ztf_ivec3_delete(ztf_IVector3* in_ivec3);
-ZTF_C_API ztf_IVector4* ztf_ivec4_new(int32_t const* in_int_array);
-ZTF_C_API void 		ztf_ivec4_delete(ztf_IVector4* in_ivec4);
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Matrix4 {
+	ztf_Vector4 mCol0;
+    ztf_Vector4 mCol1;
+    ztf_Vector4 mCol2;
+    ztf_Vector4 mCol3;
+} ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Matrix4 ztf_Matrix4;
 
-ZTF_C_API ztf_UVector2* ztf_uvec2_new(uint32_t const* in_uint_array);
-ZTF_C_API void 		ztf_uvec2_delete(ztf_UVector2* in_uvec2);
-ZTF_C_API ztf_UVector3* ztf_uvec3_new(uint32_t const* in_uint_array);
-ZTF_C_API void 		ztf_uvec3_delete(ztf_UVector3* in_uvec3);
-ZTF_C_API ztf_UVector4* ztf_uvec4_new(uint32_t const* in_uint_array);
-ZTF_C_API void 		ztf_uvec4_delete(ztf_UVector4* in_uvec4);
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Matrix3d {
+	ztf_Vector3d mCol0;
+    ztf_Vector3d mCol1;
+    ztf_Vector3d mCol2;
+} ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Matrix3d ztf_Matrix3d;
 
-ZTF_C_API ztf_Matrix2* 	ztf_mat2_new(float const* in_float_array);
-ZTF_C_API void 		ztf_mat2_delete(ztf_Matrix2* in_mat2);
-ZTF_C_API ztf_Matrix3* 	ztf_mat3_new(float const* in_float_array);
-ZTF_C_API void 		ztf_mat3_delete(ztf_Matrix3* in_mat3);
-ZTF_C_API ztf_Matrix4* 	ztf_mat4_new(float const* in_float_array);
-ZTF_C_API void 		ztf_mat4_delete(ztf_Matrix4* in_mat4);
+ZTF_VECTORMATH_ALIGNED_TYPE_PRE struct ztf_Matrix4d {
+	ztf_Vector4d mCol0;
+    ztf_Vector4d mCol1;
+    ztf_Vector4d mCol2;
+    ztf_Vector4d mCol3;
+} ZTF_VECTORMATH_ALIGNED_TYPE_POST;
+typedef struct ztf_Matrix4d ztf_Matrix4d;
+
+ztf_Vector3 make_vec3(float x, float y, float z);
+ztf_Vector4 make_vec4(float x, float y, float z, float w);
+ztf_Vector3d make_vec3d(double x, double y, double z);
+ztf_Vector4d make_vec4d(double x, double y, double z, double w);
+ztf_IVector3 make_ivec3(int32_t x, int32_t y, int32_t z);
+ztf_IVector4 make_ivec4(int32_t x, int32_t y, int32_t z, int32_t w);
+ztf_UVector3 make_uvec3(uint32_t x, uint32_t y, uint32_t z);
+ztf_UVector4 make_uvec4(uint32_t x, uint32_t y, uint32_t z, uint32_t w);
+
+ztf_Matrix3 mat3_identity();
+ztf_Matrix4 mat4_identity();
+ztf_Matrix3d mat3d_identity();
+ztf_Matrix4d mat4d_identity();
 
 #ifdef __cplusplus
 }

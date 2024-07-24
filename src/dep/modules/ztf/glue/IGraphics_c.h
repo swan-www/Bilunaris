@@ -1675,25 +1675,20 @@ typedef struct PipelineReflection PipelineReflection;
         uint32_t mStructStride;
     } ztf_DescriptorDataRange;
 
-    typedef struct ztf_DescriptorData
+        typedef struct ztf_DescriptorData
     {
         /// User can either set name of descriptor or index (index in pRootSignature->pDescriptors array)
         /// Name of descriptor
         const char* pName;
         /// Number of array entries to update (array size of ppTextures/ppBuffers/...)
-        uint32_t    mCount : 31;
-        /// Dst offset into the array descriptor (useful for updating few entries in a large array)
-        // Example: to update 6th entry in a bindless texture descriptor, mArrayOffset will be 6 and mCount will be 1)
-        uint32_t    mArrayOffset : 20;
-        // Index in pRootSignature->pDescriptors array - Cache index using getDescriptorIndexFromName to avoid using string checks at runtime
-        uint32_t    mIndex : 10;
-        uint32_t    mBindByIndex : 1;
-
+		uint32_t	mBitfieldOne;
+		uint32_t	mBitfieldTwo;
+		
         // Range to bind (buffer offset, size)
         ztf_DescriptorDataRange* pRanges;
 
         // Binds stencil only descriptor instead of color/depth
-        bool mBindStencilResource : 1;
+        bool mBindStencilResource;
 
         union
         {
@@ -1726,6 +1721,11 @@ typedef struct PipelineReflection PipelineReflection;
             ztf_AccelerationStructure** ppAccelerationStructures;
         };
     } ztf_DescriptorData;
+
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorData, mCount, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorData, mArrayOffset, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorData, mIndex, uint32_t);
+	ZTF_BITFIELD_SETGET_DECLARE(DescriptorData, mBindByIndex, uint32_t);
 
     typedef struct DEFINE_ALIGNED(ztf_DescriptorSet, 64)
     {

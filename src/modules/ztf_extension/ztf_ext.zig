@@ -3,7 +3,7 @@ const c_builtin = std.zig.c_builtins;
 const ztf = @import("ztf");
 const ZtfBString = ztf.bstring;
 const BString = ZtfBString.bstring;
-
+const ZtfMath = ztf.math;
 const ZtfLog= ztf.log;
 const LogLevel = ZtfLog.ztf_LogLevel;
 const LogFileMode = ZtfLog.ztf_LogFileMode;
@@ -248,3 +248,6 @@ pub noinline fn bformat(b: *ZtfBString.bstring, fmt: [*:0]const u8, args: anytyp
 
 	return @call(std.builtin.CallModifier.auto, ZtfBString.bformatImpl, .{source_loc.file, @as(c_int, @intCast(source_loc.line)), @src().fn_name, source_loc.fn_name, b, fmt} ++ args);
 }
+
+pub const mat3_identity = ZtfMath.mat3_identity();
+pub const mat4_identity = ZtfMath.mat4_identity();

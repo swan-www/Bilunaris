@@ -37,19 +37,6 @@ const RingBuffer = LunRender.ringbuffer;
 const ZtfExt = @import("ztf_ext");
 
 const MAX_PLANETS = 20;
-const QUEST_VR : bool = false;
-const CameraMatrix_C =
-switch(QUEST_VR){
-	true => extern struct
-	{
-		mLeftEye : Mat4 = std.mem.zeroes(Mat4),
-		mRightEye : Mat4 = std.mem.zeroes(Mat4),
-	},
-	false => extern struct
-	{
-		mCamera : Mat4 = std.mem.zeroes(Mat4),
-	},
-};
 
 var gpa : std.heap.GeneralPurposeAllocator(.{.safety = true, .thread_safe = true}) = undefined;
 var global_alloc : std.mem.Allocator = undefined;
@@ -69,7 +56,7 @@ const PlanetInfoStruct = struct
 
 const UniformBlock_C = extern struct
 {
-    mProjectView : CameraMatrix_C = std.mem.zeroes(CameraMatrix_C),
+    mProjectView : ZtfCC.ZTF_CameraMatrix = std.mem.zeroes(ZtfCC.ZTF_CameraMatrix),
     mToWorldMat : [MAX_PLANETS]Mat4 = std.mem.zeroes([MAX_PLANETS]Mat4),
     mColor : [MAX_PLANETS]Vec4 = std.mem.zeroes([MAX_PLANETS]Vec4),
     mGeometryWeight : [MAX_PLANETS]ZtfMath.ztf_Float4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Float4),
@@ -81,7 +68,7 @@ const UniformBlock_C = extern struct
 
 const UniformBlockSky_C = extern struct
 {
-	mProjectView : CameraMatrix_C = std.mem.zeroes(CameraMatrix_C),
+	mProjectView : ZtfCC.ZTF_CameraMatrix = std.mem.zeroes(ZtfCC.ZTF_CameraMatrix),
 };
 
 // But we only need Two sets of resources (one in flight and one being used on CPU)
@@ -495,10 +482,10 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	cmp.acceleration = 600.0;
 	cmp.braking = 200.0;
 
-	const camPos = ZtfMath.ztf_Float3{ .x = 48.0, .y = 48.0, .z = 20.0 };
-	const lookAt = ZtfMath.ztf_Float3{ .x = 0.0, .y = 0.0, .z = 0.0 };
+	const camPos = ZtfMath.make_vec3( 48.0, 48.0, 20.0);
+	const lookAt = ZtfMath.make_vec3( 0.0, 0.0, 0.0 );
 
-	pCameraController = ZtfCC.ztf_initFpsCameraController(&camPos, &lookAt);
+	pCameraController = ZtfCC.ztf_initFpsCameraController(@ptrCast(&camPos), @ptrCast(&lookAt));
 	ZtfCC.ztf_setMotionParameters(pCameraController, &cmp);
 
 	//TODO input actions
@@ -705,6 +692,93 @@ pub export fn ztf_appLoad(pApp: ?*ztf_App, pReloadDesc: [*c]ZtfRL.ztf_ReloadDesc
 	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_SHADER | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
 	{
 		generate_complex_mesh();
+		
+		var rasterizerStateDesc = ZtfGfx.ztf_RasterizerStateDesc{
+			.mCullMode = ZtfGfx.ZTF_CULL_MODE_NONE,
+		};
+
+        var sphereRasterizerStateDesc = ZtfGfx.ztf_RasterizerStateDesc{
+			.mCullMode = ZtfGfx.ZTF_CULL_MODE_FRONT,
+		};
+
+        var depthStateDesc = ZtfGfx.ztf_DepthStateDesc{
+			.mDepthTest = true,
+			.mDepthWrite = true,
+			.mDepthFunc = ZtfGfx.ZTF_CMP_GEQUAL,
+		};
+
+        var desc = ZtfGfx.ztf_PipelineDesc{
+			.mType = ZtfGfx.ZTF_PIPELINE_TYPE_GRAPHICS,
+			.unnamed_0 = .{ .mGraphicsDesc = .{
+				.mPrimitiveTopo = ZtfGfx.ZTF_PRIMITIVE_TOPO_TRI_LIST,
+				.mRenderTargetCount = 1,
+				.pDepthState = &depthStateDesc,
+				.pColorFormats = &(pSwapChain.?.ppRenderTargets[0].*.mFormat),
+				.mSampleCount = pSwapChain.?.ppRenderTargets[0].*.mSampleCount,
+				.mDepthStencilFormat = pDepthBuffer.?.mFormat,
+				.pRootSignature = pRootSignature,
+				.pShaderProgram = pSphereShader,
+				.pVertexLayout = &gSphereVertexLayout,
+				.pRasterizerState = &sphereRasterizerStateDesc,
+				.mVRFoveatedRendering = true,
+			},},
+		};
+		desc.unnamed_0.mGraphicsDesc.mSampleQuality = ZtfGfx.ztf_getRenderTarget_mSampleQuality(pSwapChain.?.ppRenderTargets[0]);
+        ZtfGfx.ztf_addPipeline(pRenderer, &desc, &pSpherePipeline);
+
+        // layout and pipeline for skybox draw
+        var vertexLayout = ZtfGfx.ztf_VertexLayout{
+			.mBindingCount = 1,
+			.mAttribCount = 1,
+		};
+		vertexLayout.mBindings[0].mStride = @sizeOf(ZtfMath.ztf_Float4);
+        vertexLayout.mAttribs[0].mSemantic = ZtfGfx.ZTF_SEMANTIC_POSITION;
+        vertexLayout.mAttribs[0].mFormat = ZtfGfx.TinyImageFormat_R32G32B32A32_SFLOAT;
+        vertexLayout.mAttribs[0].mBinding = 0;
+        vertexLayout.mAttribs[0].mLocation = 0;
+        vertexLayout.mAttribs[0].mOffset = 0;
+        desc.unnamed_0.mGraphicsDesc.pVertexLayout = &vertexLayout;
+
+        desc.unnamed_0.mGraphicsDesc.pDepthState = null;
+        desc.unnamed_0.mGraphicsDesc.pRasterizerState = &rasterizerStateDesc;
+        desc.unnamed_0.mGraphicsDesc.pShaderProgram = pSkyBoxDrawShader; //-V519
+        ZtfGfx.ztf_addPipeline(pRenderer, &desc, &pSkyBoxDrawPipeline);
+	}
+
+	//prepareDescriptorSets();
+	{
+		{
+			// Prepare descriptor sets
+			var params : [6]ZtfGfx.ztf_DescriptorData = [_]ZtfGfx.ztf_DescriptorData{ ZtfGfx.ztf_DescriptorData{} } ** 6;
+			params[0].pName = "RightText";
+			params[0].unnamed_1.ppTextures = &pSkyBoxTextures[0];
+			params[1].pName = "LeftText";
+			params[1].unnamed_1.ppTextures = &pSkyBoxTextures[1];
+			params[2].pName = "TopText";
+			params[2].unnamed_1.ppTextures = &pSkyBoxTextures[2];
+			params[3].pName = "BotText";
+			params[3].unnamed_1.ppTextures = &pSkyBoxTextures[3];
+			params[4].pName = "FrontText";
+			params[4].unnamed_1.ppTextures = &pSkyBoxTextures[4];
+			params[5].pName = "BackText";
+			params[5].unnamed_1.ppTextures = &pSkyBoxTextures[5];
+			ZtfGfx.ztf_updateDescriptorSet(pRenderer, 0, pDescriptorSetTexture, 6, &params);
+		}
+
+        for (0..gDataBufferCount) |i|
+        {
+            var params : [1]ZtfGfx.ztf_DescriptorData = .{
+				.{
+					.pName = "uniformBlock",
+					.unnamed_1 = .{.ppBuffers = &pSkyboxUniformBuffer[i],},
+				}, 
+			};
+            ZtfGfx.ztf_updateDescriptorSet(pRenderer, @as(u32, @intCast(i * 2 + 0)), pDescriptorSetUniforms, 1, &params);
+
+            params[0].pName = "uniformBlock";
+            params[0].unnamed_1.ppBuffers = &pProjViewUniformBuffer[i];
+            ZtfGfx.ztf_updateDescriptorSet(pRenderer, @as(u32, @intCast(i * 2 + 1)), pDescriptorSetUniforms, 1, &params);
+        }
 	}
 
 	return true;
@@ -716,6 +790,8 @@ pub export fn ztf_appUnload(_: ?*ztf_App, pReloadDesc: [*c]ztf_ReloadDesc) callc
 
 	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_SHADER | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
 	{
+		ZtfGfx.ztf_removePipeline(pRenderer, pSkyBoxDrawPipeline);
+        ZtfGfx.ztf_removePipeline(pRenderer, pSpherePipeline);
 		ZtfRL.ztf_removeResource(@ptrCast(pSphereVertexBuffer));
 		ZtfRL.ztf_removeResource(@ptrCast(pSphereIndexBuffer));
 	}
@@ -761,23 +837,13 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 	static.currentTime += deltaTime * 1000.0;
 
 	// update camera with time
-	const viewMat : ?*ZtfMath.ztf_Matrix4 = ZtfCC.ztf_getViewMatrix(pCameraController);
-	if(viewMat == null)
-	{
-		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Failed to get ztf_getViewMatrix from Camera Controller.", .{});
-		return;
-	}
+	const viewMat = ZtfCC.ztf_getViewMatrix(pCameraController);
 
 	const aspectInverse = @as(f32, @floatFromInt(app_settings.*.mHeight)) / @as(f32, @floatFromInt(app_settings.*.mWidth));
 	const horizontal_fov = std.math.pi / 2.0;
-	const projMat : ?*ZtfCC.CameraMatrix = ZtfCC.ztf_perspectiveReverseZ(horizontal_fov, aspectInverse, 0.1, 1000.0);
-	if(projMat == null)
-	{
-		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Failed to get perspectiveReverseZ from Camera Controller.", .{});
-		return;
-	}
+	const projMat : ZtfCC.ZTF_CameraMatrix = ZtfCC.ztf_perspectiveReverseZ(horizontal_fov, aspectInverse, 0.1, 1000.0);
 
-	gUniformData.mProjectView =@as(*CameraMatrix_C,  @alignCast(@ptrCast(ZtfCC.ztf_camera_matrix_mul_mat(projMat, viewMat)))).*;
+	gUniformData.mProjectView = ZtfCC.ztf_camera_matrix_mul_mat(&projMat, &viewMat);
 
 	// point light parameters
 	gUniformData.mLightPosition = [_]f32{0, 0, 0};
@@ -799,7 +865,7 @@ pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 	ZtfGfx.ztf_acquireNextImage(pRenderer, pSwapChain, pImageAcquiredSemaphore, null, &swapchainImageIndex);
 	
 	//const pRenderTarget 
-	_ = pSwapChain.?.ppRenderTargets[swapchainImageIndex];
+	const pRenderTarget = pSwapChain.?.ppRenderTargets[swapchainImageIndex];
 	var elem = RingBuffer.getNextGpuCmdRingElement(&gGraphicsCmdRing, true, 1) catch |err| @panic(@errorName(err));
 
 	// Stall if CPU is running "gDataBufferCount" frames ahead of GPU
@@ -823,39 +889,155 @@ pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 
 	// Reset cmd pool for this frame
 	ZtfGfx.ztf_resetCmdPool(pRenderer, elem.pCmdPool);
-	const pipelineStatsQueries = ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings);
+	var pipelineStatsQueries = ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings);
 	if (pipelineStatsQueries != 0)
 	{
 		var data3D = ZtfGfx.ztf_QueryData{};
 		var data2D = ZtfGfx.ztf_QueryData{};
 		ZtfGfx.ztf_getQueryData(pRenderer, pPipelineStatsQueryPool[gFrameIndex], 0, &data3D);
 		ZtfGfx.ztf_getQueryData(pRenderer, pPipelineStatsQueryPool[gFrameIndex], 1, &data2D);
-		const fmt_msg = \\\n
-			\\Pipeline Stats 3D:\n
-			\\    VS invocations:      %u\n
-			\\    PS invocations:      %u\n
-			\\    Clipper invocations: %u\n
-			\\    IA primitives:       %u\n
-			\\    Clipper primitives:  %u\n
-			\\\n
-			\\Pipeline Stats 2D UI:\n
-			\\    VS invocations:      %u\n
-			\\    PS invocations:      %u\n
-			\\    Clipper invocations: %u\n
-			\\    IA primitives:       %u\n
-			\\    Clipper primitives:  %u\n
-		;
+		//const fmt_msg = \\\n
+		//	\\Pipeline Stats 3D:\n
+		//	\\    VS invocations:      %u\n
+		//	\\    PS invocations:      %u\n
+		//	\\    Clipper invocations: %u\n
+		//	\\    IA primitives:       %u\n
+		//	\\    Clipper primitives:  %u\n
+		//	\\\n
+		//	\\Pipeline Stats 2D UI:\n
+		//	\\    VS invocations:      %u\n
+		//	\\    PS invocations:      %u\n
+		//	\\    Clipper invocations: %u\n
+		//	\\    IA primitives:       %u\n
+		//	\\    Clipper primitives:  %u\n
+		//;
+//
+		//const data3DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
+		//const data2DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
 
-		const data3DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
-		const data2DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
-
-		_ = ZtfExt.bformat(&gPipelineStats,
-				fmt_msg,
-				.{data3DPipeStats.*.mVSInvocations, data3DPipeStats.*.mPSInvocations, data3DPipeStats.*.mCInvocations,
-				data3DPipeStats.*.mIAPrimitives, data3DPipeStats.*.mCPrimitives, data2DPipeStats.*.mVSInvocations,
-				data2DPipeStats.*.mPSInvocations, data2DPipeStats.*.mCInvocations, data2DPipeStats.*.mIAPrimitives,
-				data2DPipeStats.*.mCPrimitives});
+		//const formatted_msg = std.fmt.printf()
+		//_ = ZtfExt.bformat(&gPipelineStats,
+		//		fmt_msg,
+		//		.{data3DPipeStats.*.mVSInvocations, data3DPipeStats.*.mPSInvocations, data3DPipeStats.*.mCInvocations,
+		//		data3DPipeStats.*.mIAPrimitives, data3DPipeStats.*.mCPrimitives, data2DPipeStats.*.mVSInvocations,
+		//		data2DPipeStats.*.mPSInvocations, data2DPipeStats.*.mCInvocations, data2DPipeStats.*.mIAPrimitives,
+		//		data2DPipeStats.*.mCPrimitives});
 	}
+
+	const cmd = elem.pCmds[0];
+	ZtfGfx.ztf_beginCmd(cmd);
+
+	ZtfProfiler.ztf_cmdBeginGpuFrameProfile(@ptrCast(cmd), gGpuProfileToken, true);
+	pipelineStatsQueries = ZtfGfx.ztf_getGPUSettings_mPipelineStatsQueries(&pRenderer.*.pGpu.*.mSettings);
+	if (pipelineStatsQueries != 0)
+	{
+		ZtfGfx.ztf_cmdResetQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], 0, 2);
+		var queryDesc = ZtfGfx.ztf_QueryDesc{ .mIndex = 0, };
+		ZtfGfx.ztf_cmdBeginQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], &queryDesc);
+	}
+
+	var barriers = [_]ZtfGfx.ztf_RenderTargetBarrier{
+		ZtfGfx.ztf_RenderTargetBarrier{
+			.pRenderTarget = pRenderTarget,
+			.mCurrentState = ZtfGfx.ZTF_RESOURCE_STATE_PRESENT,
+			.mNewState = ZtfGfx.ZTF_RESOURCE_STATE_RENDER_TARGET,
+		},
+	};
+	ZtfGfx.ztf_cmdResourceBarrier(cmd, 0, null, 0, null, 1, &barriers);
+
+	_ = ZtfProfiler.ztf_cmdBeginGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken, "Draw Skybox/Planets", true);
+
+	// simply record the screen cleaning command
+	var bindRenderTargets = ZtfGfx.ztf_BindRenderTargetsDesc{
+		.mRenderTargetCount = 1,
+		.mDepthStencil = ZtfGfx.ztf_BindDepthTargetDesc{
+			.pDepthStencil = pDepthBuffer,
+			.mLoadAction = ZtfGfx.ZTF_LOAD_ACTION_CLEAR
+		},
+	};
+	bindRenderTargets.mRenderTargets[0] = ZtfGfx.ztf_BindRenderTargetDesc{
+		.pRenderTarget = pRenderTarget,
+		.mLoadAction = ZtfGfx.ZTF_LOAD_ACTION_CLEAR
+	};
+
+	const rtarget_width = ZtfGfx.ztf_getRenderTarget_mWidth(pRenderTarget);
+	const rtarget_height = ZtfGfx.ztf_getRenderTarget_mHeight(pRenderTarget);
+	ZtfGfx.ztf_cmdBindRenderTargets(cmd, &bindRenderTargets);
+	ZtfGfx.ztf_cmdSetViewport(cmd, 0.0, 0.0, @floatFromInt(rtarget_width), @floatFromInt(rtarget_height), 0.0, 1.0);
+	ZtfGfx.ztf_cmdSetScissor(cmd, 0, 0, rtarget_width, rtarget_height);
+
+	const skyboxVbStride : u32 = @as(u32, @sizeOf(f32) * 4);
+
+	_ = ZtfProfiler.ztf_cmdBeginGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken, "Draw Skybox", true);
+	ZtfGfx.ztf_cmdSetViewport(cmd, 0.0, 0.0, @floatFromInt(rtarget_width), @floatFromInt(rtarget_height), 1.0, 1.0);
+	ZtfGfx.ztf_cmdBindPipeline(cmd, pSkyBoxDrawPipeline);
+	ZtfGfx.ztf_cmdBindDescriptorSet(cmd, 0, pDescriptorSetTexture);
+	ZtfGfx.ztf_cmdBindDescriptorSet(cmd, gFrameIndex * 2 + 0, pDescriptorSetUniforms);
+	ZtfGfx.ztf_cmdBindVertexBuffer(cmd, 1, &pSkyBoxVertexBuffer, &skyboxVbStride, null);
+	ZtfGfx.ztf_cmdDraw(cmd, 36, 0);
+	ZtfGfx.ztf_cmdSetViewport(cmd, 0.0, 0.0, @floatFromInt(rtarget_width), @floatFromInt(rtarget_height), 0.0, 1.0);
+	ZtfProfiler.ztf_cmdEndGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken);
+
+	_ = ZtfProfiler.ztf_cmdBeginGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken, "Draw Planets", true);
+
+	ZtfGfx.ztf_cmdBindPipeline(cmd, pSpherePipeline);
+	ZtfGfx.ztf_cmdBindDescriptorSet(cmd, gFrameIndex * 2 + 1, pDescriptorSetUniforms);
+	ZtfGfx.ztf_cmdBindVertexBuffer(cmd, 1, &pSphereVertexBuffer, &gSphereVertexLayout.mBindings[0].mStride, null);
+	ZtfGfx.ztf_cmdBindIndexBuffer(cmd, pSphereIndexBuffer, ZtfGfx.ZTF_INDEX_TYPE_UINT16, 0);
+
+	ZtfGfx.ztf_cmdDrawIndexedInstanced(cmd, gSphereIndexCount, 0, gNumPlanets, 0, 0);
+	ZtfProfiler.ztf_cmdEndGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken);
+	ZtfProfiler.ztf_cmdEndGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken); // Draw Skybox/Planets
+	ZtfGfx.ztf_cmdBindRenderTargets(cmd, null);
+
+	if (pipelineStatsQueries != 0)
+	{
+		var queryDesc = ZtfGfx.ztf_QueryDesc{ .mIndex = 0 };
+		ZtfGfx.ztf_cmdEndQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], &queryDesc);
+		//queryDesc.mIndex = 1;
+		//ZtfGfx.ztf_cmdBeginQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], &queryDesc);
+	}
+
+	ZtfGfx.ztf_cmdBindRenderTargets(cmd, null);
+
+	barriers[0] = ZtfGfx.ztf_RenderTargetBarrier{
+			.pRenderTarget = pRenderTarget,
+			.mCurrentState = ZtfGfx.ZTF_RESOURCE_STATE_RENDER_TARGET,
+			.mNewState = ZtfGfx.ZTF_RESOURCE_STATE_PRESENT,
+	};
+	ZtfGfx.ztf_cmdResourceBarrier(cmd, 0, null, 0, null, 1, &barriers);
+
+	ZtfProfiler.ztf_cmdEndGpuFrameProfile(@ptrCast(cmd), gGpuProfileToken);
+
+	ZtfGfx.ztf_endCmd(cmd);
+
+	var flushUpdateDesc = ZtfRL.ztf_FlushResourceUpdateDesc{};
+	flushUpdateDesc.mNodeIndex = 0;
+	ZtfRL.ztf_flushResourceUpdates(&flushUpdateDesc);
+	var waitSemaphores = [2][*c]ZtfGfx.ztf_Semaphore{ @ptrCast(flushUpdateDesc.pOutSubmittedSemaphore), pImageAcquiredSemaphore };
+	_ = &waitSemaphores;
+
+	var submitDesc = ZtfGfx.ztf_QueueSubmitDesc{};
+	submitDesc.mCmdCount = 1;
+	submitDesc.mSignalSemaphoreCount = 1;
+	submitDesc.mWaitSemaphoreCount = waitSemaphores.len;
+	submitDesc.ppCmds = @constCast(&cmd);
+	submitDesc.ppSignalSemaphores = @constCast(&elem.pSemaphore);
+	submitDesc.ppWaitSemaphores =  @constCast(&waitSemaphores);
+	submitDesc.pSignalFence = elem.pFence;
+	ZtfGfx.ztf_queueSubmit(pGraphicsQueue, &submitDesc);
+
+	var presentDesc = ZtfGfx.ztf_QueuePresentDesc{};
+	presentDesc.mIndex = @intCast(swapchainImageIndex);
+	presentDesc.mWaitSemaphoreCount = 1;
+	presentDesc.pSwapChain = pSwapChain;
+	presentDesc.ppWaitSemaphores = @constCast(&elem.pSemaphore);
+	presentDesc.mSubmitDone = true;
+
+	ZtfGfx.ztf_queuePresent(pGraphicsQueue, &presentDesc);
+	ZtfProfiler.ztf_flipProfiler();
+
+	gFrameIndex = (gFrameIndex + 1) % gDataBufferCount;
 }
 
 pub export fn ztf_appGetName(_: ?*ztf_App) callconv(.C) [*c]const u8

@@ -778,7 +778,10 @@ ZTF_BITFIELD_SETGET_DEFINE(SwapChain, mBitfield, mEnableVsync, uint32_t, 8, 1);
 ZTF_BITFIELD_SETGET_DEFINE(SwapChain, mBitfield, mColorSpace, uint32_t, 9, 4);
 ZTF_BITFIELD_SETGET_DEFINE(SwapChain, mBitfield, mFormat, uint32_t, 15, 8);
 
-
+ZTF_BITFIELD_SETGET_DEFINE(DescriptorData, mBitfieldOne, mCount, uint32_t, 0, 31);
+ZTF_BITFIELD_SETGET_DEFINE(DescriptorData, mBitfieldTwo, mArrayOffset, uint32_t, 0, 20);
+ZTF_BITFIELD_SETGET_DEFINE(DescriptorData, mBitfieldTwo, mIndex, uint32_t, 20, 10);
+ZTF_BITFIELD_SETGET_DEFINE(DescriptorData, mBitfieldTwo, mBindByIndex, uint32_t, 30, 1);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,9 @@
 //Has to go first so it can override some windows defines
 #include "../../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Config.h"
 
+#define ZTF_BLOCK_CONFIG_INCLUDE
 #include "IFont_c.h"
+#undef ZTF_BLOCK_CONFIG_INCLUDE
 
 #include <assert.h>
 
@@ -62,9 +64,9 @@ ZTF_C_API void ztf_cmdDrawTextWithFont(Cmd* pCmd, ztf_Float2 screenCoordsInPx, c
 	cmdDrawTextWithFont(pCmd, float2{screenCoordsInPx.x, screenCoordsInPx.y}, (const FontDrawDesc*)(pDrawDesc));
 }
 
-ZTF_C_API void ztf_cmdDrawWorldSpaceTextWithFont(Cmd* pCmd, const ztf_Matrix4* pMatWorld, const CameraMatrix* pMatProjView, const ztf_FontDrawDesc* pDrawDesc)
+ZTF_C_API void ztf_cmdDrawWorldSpaceTextWithFont(Cmd* pCmd, const ztf_Matrix4* pMatWorld, const ZTF_CameraMatrix* pMatProjView, const ztf_FontDrawDesc* pDrawDesc)
 {
-	cmdDrawWorldSpaceTextWithFont(pCmd, static_cast<const Matrix4*>(pMatWorld), pMatProjView, (const FontDrawDesc*)(pDrawDesc));
+	cmdDrawWorldSpaceTextWithFont(pCmd, (const Matrix4*)(pMatWorld), (const CameraMatrix*)pMatProjView, (const FontDrawDesc*)(pDrawDesc));
 }
 ZTF_C_API void ztf_cmdDrawDebugFontAtlas(Cmd* pCmd, ztf_Float2 screenCoordsInPx)
 {
@@ -76,20 +78,23 @@ ZTF_C_API void ztf_fntDefineFonts(const ztf_FontDesc* pDescs, uint32_t count, ui
 	fntDefineFonts((const FontDesc*)pDescs, count, pOutIDs);
 }
 
-ZTF_C_API ztf_Int2* ztf_fntGetFontAtlasSize()
+ZTF_C_API ztf_Int2 ztf_fntGetFontAtlasSize()
 {
-	int2 atlasSize = fntGetFontAtlasSize();
-	return new int2(atlasSize);
+	ztf_Int2 dst{};
+	int2 src = fntGetFontAtlasSize();
+	static_assert(sizeof(dst) == sizeof(src));
+	memcpy(&dst, &src, sizeof(dst));
+	return dst;
 }
 
 ZTF_C_API void ztf_fntResetFontAtlas(ztf_Int2 const* newAtlasSize)
 {
-	fntResetFontAtlas(*static_cast<int2 const*>(newAtlasSize));
+	fntResetFontAtlas(*(int2 const*)(newAtlasSize));
 }
 
 ZTF_C_API void ztf_fntExpandAtlas(ztf_Int2 const* additionalSize)
 {
-	fntExpandAtlas(*static_cast<int2 const*>(additionalSize));
+	fntExpandAtlas(*(int2 const*)(additionalSize));
 }
 
 ZTF_C_API ztf_Float2 ztf_fntMeasureFontText(const char* pText, const ztf_FontDrawDesc* pDrawDesc)
