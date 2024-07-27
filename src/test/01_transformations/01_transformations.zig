@@ -837,7 +837,7 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 	static.currentTime += deltaTime * 1000.0;
 
 	// update camera with time
-	const viewMat = ZtfCC.ztf_getViewMatrix(pCameraController);
+	var viewMat = ZtfCC.ztf_getViewMatrix(pCameraController);
 
 	const aspectInverse = @as(f32, @floatFromInt(app_settings.*.mHeight)) / @as(f32, @floatFromInt(app_settings.*.mWidth));
 	const horizontal_fov = std.math.pi / 2.0;
@@ -848,6 +848,11 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 	// point light parameters
 	gUniformData.mLightPosition = [_]f32{0, 0, 0};
 	gUniformData.mLightColor = [_]f32{0.9, 0.9, 0.7}; // Pale Yellow
+
+	const translation = ZtfMath.make_vec3(0.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation( @ptrCast(&viewMat), @ptrCast(&translation));
+	gUniformDataSky = UniformBlockSky_C{};
+	gUniformDataSky.mProjectView = ZtfCC.ztf_camera_matrix_mul_mat(&projMat, &viewMat);
 }
 
 pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
@@ -879,12 +884,14 @@ pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 	// Update uniform buffers
 	var viewProjCbv = ZtfRL.ztf_BufferUpdateDesc{ .pBuffer = @ptrCast(pProjViewUniformBuffer[gFrameIndex]), };
 	ZtfRL.ztf_beginUpdateResource(&viewProjCbv);
-	_ = std.zig.c_builtins.__builtin_memcpy(viewProjCbv.pMappedData, &gUniformData, @sizeOf(@TypeOf(gUniformData)));
+	const uniformDataView : *UniformBlock_C = @alignCast(@ptrCast(viewProjCbv.pMappedData));
+	uniformDataView.* = gUniformData;
 	ZtfRL.ztf_endUpdateResource(&viewProjCbv);
 
-	var skyboxViewProjCbv = ZtfRL.ztf_BufferUpdateDesc{ .pBuffer = @ptrCast(pSkyboxUniformBuffer[gFrameIndex]), };
+	var skyboxViewProjCbv = ZtfRL.ztf_BufferUpdateDesc{ .pBuffer =  @alignCast(@ptrCast(pSkyboxUniformBuffer[gFrameIndex])), };
 	ZtfRL.ztf_beginUpdateResource(&skyboxViewProjCbv);
-	_ = std.zig.c_builtins.__builtin_memcpy(skyboxViewProjCbv.pMappedData, &gUniformDataSky, @sizeOf(@TypeOf(gUniformDataSky)));
+	const uniformDataSkyView : *UniformBlockSky_C = @alignCast(@ptrCast(skyboxViewProjCbv.pMappedData));
+	uniformDataSkyView.* = gUniformDataSky;
 	ZtfRL.ztf_endUpdateResource(&skyboxViewProjCbv);
 
 	// Reset cmd pool for this frame

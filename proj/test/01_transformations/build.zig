@@ -116,6 +116,7 @@ pub fn build(b: *std.Build) !void {
 			.step = compile_shaders_step,
 			.shader_files = shader_comp_entry,
 			.gfx_sdk_langs = &.{"VULKAN", "DIRECT3D11", "DIRECT3D12"},
+			.optimize = optimize,
 			.output_intermediate_dir = intermediate_directory,
 			.output_raw_sub_dir = "Shaders",
 			.output_bin_sub_dir = "CompiledShaders",

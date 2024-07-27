@@ -92,3 +92,16 @@ ztf_Matrix4d mat4d_identity()
 	);
 	return *(ztf_Matrix4d*)&temp;
 }
+
+void mat4_set_translation(ztf_Matrix4* mat, const ztf_Vector3* translation)
+{
+	mat4* matCast = (mat4*)mat;
+	matCast->setTranslation(*(vec3*)translation);
+}
+
+ztf_Vector3 mat4_get_translation(const ztf_Matrix4* mat)
+{
+	mat4* matCast = (mat4*)mat;
+	vec3 result = matCast->getTranslation();
+	return *(const ztf_Vector3*)&result;
+}
