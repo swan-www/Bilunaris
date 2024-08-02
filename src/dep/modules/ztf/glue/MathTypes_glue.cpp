@@ -93,6 +93,32 @@ ztf_Matrix4d mat4d_identity()
 	return *(ztf_Matrix4d*)&temp;
 }
 
+ztf_Matrix4 mat4_from_translation(const ztf_Vector3* translation)
+{
+	mat4 temp = mat4::translation(*(const vec3*)translation);
+	return *(ztf_Matrix4*)&temp;
+}
+
+ztf_Matrix4 mat4_from_scale(const ztf_Vector3* scale)
+{
+	mat4 temp = mat4::scale(*(const vec3*)scale);
+	return *(ztf_Matrix4*)&temp;
+}
+
+ztf_Matrix4 mat4_from_rotationXYZ(const ztf_Vector3* radiansXYZ)
+{
+	mat4 temp = mat4::rotationZYX(*(const vec3*)radiansXYZ);
+	return *(ztf_Matrix4*)&temp;
+}
+
+void mat4_mul(const ztf_Matrix4* lhs, const ztf_Matrix4* rhs, ztf_Matrix4* out_mat)
+{
+	const mat4* lhsCast = (mat4*)lhs;
+	const mat4* rhsCast = (mat4*)rhs;
+	mat4* outMatCast = (mat4*)out_mat;
+	*outMatCast = (*lhsCast) * (*rhsCast);
+}
+
 void mat4_set_translation(ztf_Matrix4* mat, const ztf_Vector3* translation)
 {
 	mat4* matCast = (mat4*)mat;

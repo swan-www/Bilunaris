@@ -120,6 +120,12 @@ ztf_Matrix4 mat4_identity();
 ztf_Matrix3d mat3d_identity();
 ztf_Matrix4d mat4d_identity();
 
+ztf_Matrix4 mat4_from_translation(const ztf_Vector3* translation);
+ztf_Matrix4 mat4_from_scale(const ztf_Vector3* scale);
+ztf_Matrix4 mat4_from_rotationXYZ(const ztf_Vector3* radiansXYZ);
+
+void mat4_mul(const ztf_Matrix4* lhs, const ztf_Matrix4* rhs, ztf_Matrix4* out_mat);
+
 void mat4_set_translation(ztf_Matrix4* mat, const ztf_Vector3* translation);
 ztf_Vector3 mat4_get_translation(const ztf_Matrix4* mat);
 

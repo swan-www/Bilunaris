@@ -43,10 +43,10 @@ var global_alloc : std.mem.Allocator = undefined;
 
 const PlanetInfoStruct = struct
 {
-	mTranslationMat : Mat4 = zmath.identity(),
-    mScaleMat : Mat4 = zmath.identity(),
-    mSharedMat : Mat4 = zmath.identity(), // Matrix to pass down to children
-	mColor : Vec4 = zmath.f32x4s(0.0),
+	mTranslationMat : ZtfMath.ztf_Matrix4 = std.mem.zeroes(ZtfMath.ztf_Matrix4),
+    mScaleMat : ZtfMath.ztf_Matrix4 = std.mem.zeroes(ZtfMath.ztf_Matrix4),
+    mSharedMat : ZtfMath.ztf_Matrix4 = std.mem.zeroes(ZtfMath.ztf_Matrix4), // Matrix to pass down to children
+	mColor : ZtfMath.ztf_Vector4 = std.mem.zeroes(ZtfMath.ztf_Vector4),
 	mParentIndex : u32 = 0,
     mYOrbitSpeed : f32 = 0.0, // Rotation speed around parent
     mZOrbitSpeed : f32 = 0.0,
@@ -57,13 +57,13 @@ const PlanetInfoStruct = struct
 const UniformBlock_C = extern struct
 {
     mProjectView : ZtfCC.ZTF_CameraMatrix = std.mem.zeroes(ZtfCC.ZTF_CameraMatrix),
-    mToWorldMat : [MAX_PLANETS]Mat4 = std.mem.zeroes([MAX_PLANETS]Mat4),
-    mColor : [MAX_PLANETS]Vec4 = std.mem.zeroes([MAX_PLANETS]Vec4),
+    mToWorldMat : [MAX_PLANETS]ZtfMath.ztf_Matrix4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Matrix4),
+    mColor : [MAX_PLANETS]ZtfMath.ztf_Vector4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Vector4),
     mGeometryWeight : [MAX_PLANETS]ZtfMath.ztf_Float4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Float4),
 
     // Point Light Information
-    mLightPosition : @Vector(3, f32) = [_]f32{0,0,0},
-    mLightColor : @Vector(3, f32) = [_]f32{0,0,0},
+    mLightPosition : ZtfMath.ztf_Vector3 = std.mem.zeroes(ZtfMath.ztf_Vector3),
+    mLightColor :ZtfMath.ztf_Vector3 = std.mem.zeroes(ZtfMath.ztf_Vector3),
 };
 
 const UniformBlockSky_C = extern struct
@@ -372,9 +372,10 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[0].mYOrbitSpeed = 0.0; // Earth years for one orbit
 	gPlanetInfoData[0].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[0].mRotationSpeed = 24.0; // Earth days for one rotation
-	gPlanetInfoData[0].mTranslationMat = zmath.identity();
-	gPlanetInfoData[0].mScaleMat = zmath.scalingV(zmath.f32x4s(10.0));
-	gPlanetInfoData[0].mColor = Vec4{0.97, 0.38, 0.09, 0.0};
+	gPlanetInfoData[0].mTranslationMat = ZtfMath.mat4_identity();
+	var scale = ZtfMath.make_vec3(10.0, 10.0, 10.0);
+	gPlanetInfoData[0].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[0].mColor = ZtfMath.make_vec4(0.97, 0.38, 0.09, 0.0);
 	gPlanetInfoData[0].mMorphingSpeed = 0.2;
 
 	// Mercury
@@ -382,9 +383,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[1].mYOrbitSpeed = 0.5;
 	gPlanetInfoData[1].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[1].mRotationSpeed = 58.7;
-	gPlanetInfoData[1].mTranslationMat = zmath.translationV(Vec4{10.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[1].mScaleMat = zmath.scalingV(zmath.f32x4s(1.0));
-	gPlanetInfoData[1].mColor = Vec4{0.45, 0.07, 0.006, 1.0};
+	gPlanetInfoData[1].mTranslationMat = ZtfMath.mat4_identity();
+	var translation = ZtfMath.make_vec3(10.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[1].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(1.0, 1.0, 1.0);
+	gPlanetInfoData[1].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[1].mColor =ZtfMath.make_vec4(0.45, 0.07, 0.006, 1.0);
 	gPlanetInfoData[1].mMorphingSpeed = 5.0;
 
 	// Venus
@@ -392,9 +396,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[2].mYOrbitSpeed = 0.8;
 	gPlanetInfoData[2].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[2].mRotationSpeed = 243.0;
-	gPlanetInfoData[2].mTranslationMat = zmath.translationV(Vec4{20.0, 0.0, 5.0, 0.0});
-	gPlanetInfoData[2].mScaleMat = zmath.scalingV(zmath.f32x4s(2.0));
-	gPlanetInfoData[2].mColor = Vec4{0.6, 0.32, 0.006, 1.0};
+	gPlanetInfoData[2].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(20.0, 0.0, 5.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[2].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(2.0, 2.0, 2.0);
+	gPlanetInfoData[2].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[2].mColor = ZtfMath.make_vec4(0.6, 0.32, 0.006, 1.0);
 	gPlanetInfoData[2].mMorphingSpeed = 1.0;
 
 	// Earth
@@ -402,9 +409,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[3].mYOrbitSpeed = 1.0;
 	gPlanetInfoData[3].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[3].mRotationSpeed = 1.0;
-	gPlanetInfoData[3].mTranslationMat = zmath.translationV(Vec4{30.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[3].mScaleMat = zmath.scalingV(zmath.f32x4s(4.0));
-	gPlanetInfoData[3].mColor = Vec4{0.07, 0.028, 0.61, 1.0};
+	gPlanetInfoData[3].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(30.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[3].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(4.0, 4.0, 4.0);
+	gPlanetInfoData[3].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[3].mColor = ZtfMath.make_vec4(0.07, 0.028, 0.61, 1.0);
 	gPlanetInfoData[3].mMorphingSpeed = 1.0;
 
 	// Mars
@@ -412,9 +422,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[4].mYOrbitSpeed = 2.0;
 	gPlanetInfoData[4].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[4].mRotationSpeed = 1.1;
-	gPlanetInfoData[4].mTranslationMat = zmath.translationV(Vec4{40.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[4].mScaleMat = zmath.scalingV(zmath.f32x4s(3.0));
-	gPlanetInfoData[4].mColor = Vec4{0.79, 0.07, 0.006, 1.0};
+	gPlanetInfoData[4].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(40.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[4].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(3.0, 3.0, 3.0);
+	gPlanetInfoData[4].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[4].mColor = ZtfMath.make_vec4(0.79, 0.07, 0.006, 1.0);
 	gPlanetInfoData[4].mMorphingSpeed = 1.0;
 
 	// Jupiter
@@ -422,9 +435,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[5].mYOrbitSpeed = 11.0;
 	gPlanetInfoData[5].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[5].mRotationSpeed = 0.4;
-	gPlanetInfoData[5].mTranslationMat = zmath.translationV(Vec4{50.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[5].mScaleMat = zmath.scalingV(zmath.f32x4s(8.0));
-	gPlanetInfoData[5].mColor = Vec4{0.32, 0.13, 0.13, 1.0};
+	gPlanetInfoData[5].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(50.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[5].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(8.0, 8.0, 8.0);
+	gPlanetInfoData[5].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[5].mColor = ZtfMath.make_vec4(0.32, 0.13, 0.13, 1.0);
 	gPlanetInfoData[5].mMorphingSpeed = 6.0;
 
 	// Saturn
@@ -432,9 +448,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[6].mYOrbitSpeed = 29.4;
 	gPlanetInfoData[6].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[6].mRotationSpeed = 0.5;
-	gPlanetInfoData[6].mTranslationMat = zmath.translationV(Vec4{60.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[6].mScaleMat = zmath.scalingV(zmath.f32x4s(6.0));
-	gPlanetInfoData[6].mColor = Vec4{0.45, 0.45, 0.21, 1.0};
+	gPlanetInfoData[6].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(60.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[6].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(6.0, 6.0, 6.0);
+	gPlanetInfoData[6].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[6].mColor = ZtfMath.make_vec4(0.45, 0.45, 0.21, 1.0);
 	gPlanetInfoData[6].mMorphingSpeed = 1.0;
 
 	// Uranus
@@ -442,9 +461,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[7].mYOrbitSpeed = 84.07;
 	gPlanetInfoData[7].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[7].mRotationSpeed = 0.8;
-	gPlanetInfoData[7].mTranslationMat = zmath.translationV(Vec4{70.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[7].mScaleMat = zmath.scalingV(zmath.f32x4s(7.0));
-	gPlanetInfoData[7].mColor = Vec4{0.13, 0.13, 0.32, 1.0};
+	gPlanetInfoData[7].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(70.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[7].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(7.0, 7.0, 7.0);
+	gPlanetInfoData[7].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[7].mColor = ZtfMath.make_vec4(0.13, 0.13, 0.32, 1.0);
 	gPlanetInfoData[7].mMorphingSpeed = 1.0;
 
 	// Neptune
@@ -452,9 +474,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[8].mYOrbitSpeed = 164.81;
 	gPlanetInfoData[8].mZOrbitSpeed = 0.0;
 	gPlanetInfoData[8].mRotationSpeed = 0.9;
-	gPlanetInfoData[8].mTranslationMat = zmath.translationV(Vec4{80.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[8].mScaleMat = zmath.scalingV(zmath.f32x4s(8.0));
-	gPlanetInfoData[8].mColor = Vec4{0.21, 0.028, 0.79, 1.0};
+	gPlanetInfoData[8].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(80.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[8].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(8.0, 8.0, 8.0);
+	gPlanetInfoData[8].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[8].mColor = ZtfMath.make_vec4(0.21, 0.028, 0.79, 1.0);
 	gPlanetInfoData[8].mMorphingSpeed = 1.0;
 
 	// Pluto - Not a planet XDD
@@ -462,9 +487,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[9].mYOrbitSpeed = 247.7;
 	gPlanetInfoData[9].mZOrbitSpeed = 1.0;
 	gPlanetInfoData[9].mRotationSpeed = 7.0;
-	gPlanetInfoData[9].mTranslationMat = zmath.translationV(Vec4{90.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[9].mScaleMat = zmath.scalingV(zmath.f32x4s(1.0));
-	gPlanetInfoData[9].mColor = Vec4{0.45, 0.21, 0.21, 1.0};
+	gPlanetInfoData[9].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(90.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[9].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(1.0, 1.0, 1.0);
+	gPlanetInfoData[9].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[9].mColor = ZtfMath.make_vec4(0.45, 0.21, 0.21, 1.0);
 	gPlanetInfoData[9].mMorphingSpeed = 1.0;
 
 	// Moon
@@ -472,9 +500,12 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	gPlanetInfoData[10].mYOrbitSpeed = 1.0;
 	gPlanetInfoData[10].mZOrbitSpeed = 200.0;
 	gPlanetInfoData[10].mRotationSpeed = 27.0;
-	gPlanetInfoData[10].mTranslationMat = zmath.translationV(Vec4{5.0, 0.0, 0.0, 0.0});
-	gPlanetInfoData[10].mScaleMat = zmath.scalingV(zmath.f32x4s(1.0));
-	gPlanetInfoData[10].mColor = Vec4{0.07, 0.07, 0.13, 1.0};
+	gPlanetInfoData[10].mTranslationMat = ZtfMath.mat4_identity();
+	translation = ZtfMath.make_vec3(5.0, 0.0, 0.0);
+	ZtfMath.mat4_set_translation(&gPlanetInfoData[10].mTranslationMat, &translation);
+	scale = ZtfMath.make_vec3(1.0, 1.0, 1.0);
+	gPlanetInfoData[10].mScaleMat = ZtfMath.mat4_from_scale(&scale);
+	gPlanetInfoData[10].mColor =ZtfMath.make_vec4(0.07, 0.07, 0.13, 1.0);
 	gPlanetInfoData[10].mMorphingSpeed = 1.0;
 
 	var cmp = ZtfCC.ztf_cameraMotionParameters_default();
@@ -846,13 +877,66 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 	gUniformData.mProjectView = ZtfCC.ztf_camera_matrix_mul_mat(&projMat, &viewMat);
 
 	// point light parameters
-	gUniformData.mLightPosition = [_]f32{0, 0, 0};
-	gUniformData.mLightColor = [_]f32{0.9, 0.9, 0.7}; // Pale Yellow
+	gUniformData.mLightPosition = ZtfMath.make_vec3(0.0, 0.0, 0.0);
+	gUniformData.mLightColor = ZtfMath.make_vec3(0.9, 0.9, 0.7); // Pale Yellow
+
+	for(0..gNumPlanets) |i|
+	{
+		var rotSelf = ZtfMath.mat4_identity();
+		var rotOrbitY = ZtfMath.mat4_identity();
+		var rotOrbitZ = ZtfMath.mat4_identity();
+		var trans = ZtfMath.mat4_identity();
+		var scale = ZtfMath.mat4_identity();
+		var parentMat = ZtfMath.mat4_identity();
+
+		if (gPlanetInfoData[i].mRotationSpeed > 0.0)
+			rotSelf = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, gRotSelfScale * (static.currentTime + gTimeOffset / gPlanetInfoData[i].mRotationSpeed), 0.0));
+		if (gPlanetInfoData[i].mYOrbitSpeed > 0.0)
+			rotOrbitY = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, gRotOrbitYScale * (static.currentTime + gTimeOffset / gPlanetInfoData[i].mYOrbitSpeed), 0.0));
+		if (gPlanetInfoData[i].mZOrbitSpeed > 0.0)
+			rotOrbitZ = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, 0.0, gRotOrbitZScale * (static.currentTime + gTimeOffset / gPlanetInfoData[i].mZOrbitSpeed)));
+		if (gPlanetInfoData[i].mParentIndex > 0)
+			parentMat = gPlanetInfoData[gPlanetInfoData[i].mParentIndex].mSharedMat;
+
+		trans = gPlanetInfoData[i].mTranslationMat;
+		scale = gPlanetInfoData[i].mScaleMat;
+
+		scale.mCol0.mVec128[0] /= 2;
+		scale.mCol1.mVec128[1] /= 2;
+		scale.mCol2.mVec128[2] /= 2;
+
+		ZtfMath.mat4_mul(&parentMat, &rotOrbitY, &gPlanetInfoData[i].mSharedMat);
+		ZtfMath.mat4_mul(&gPlanetInfoData[i].mSharedMat, &trans, &gPlanetInfoData[i].mSharedMat);
+
+		ZtfMath.mat4_mul(&parentMat, &rotOrbitY, &gUniformData.mToWorldMat[i]);
+		ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &rotOrbitZ, &gUniformData.mToWorldMat[i]);
+		ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &trans, &gUniformData.mToWorldMat[i]);
+		ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &rotSelf, &gUniformData.mToWorldMat[i]);
+		//ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &scale, &gUniformData.mToWorldMat[i]);
+		
+		gUniformData.mColor[i] = gPlanetInfoData[i].mColor;
+
+		var phase : f32 = 0.0;
+		const step = std.math.modf(static.currentTime * gPlanetInfoData[i].mMorphingSpeed / 2000.0);
+		if (step.ipart > 0.5)
+		{
+			phase = 2.0 - step.ipart * 2.0;
+		}
+		else
+		{
+			phase = step.ipart * 2.0;
+		}
+
+		//gUniformData.mGeometryWeight[i].x = phase;
+	}
 
 	const translation = ZtfMath.make_vec3(0.0, 0.0, 0.0);
 	ZtfMath.mat4_set_translation( @ptrCast(&viewMat), @ptrCast(&translation));
 	gUniformDataSky = UniformBlockSky_C{};
 	gUniformDataSky.mProjectView = ZtfCC.ztf_camera_matrix_mul_mat(&projMat, &viewMat);
+
+	//const phase = (currentTime * gPlanetInfoData[i].mMorphingSpeed / 2000.f) % &step;
+	//gUniformData.mGeometryWeight[i][0] = phase;
 }
 
 pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
@@ -1293,7 +1377,7 @@ pub fn generate_complex_mesh() void
 			.mMemoryUsage = ZtfRL.ZTF_RESOURCE_MEMORY_USAGE_GPU_ONLY,
 			.mSize = @sizeOf(@TypeOf(static.indices)),
 		},
-		.pData = bufferData.ptr,
+		.pData = &static.indices,
 		.ppBuffer = @ptrCast(&pSphereIndexBuffer),
 	};
 	ZtfRL.ztf_addResource(@constCast(&sphereIbDesc), null);
