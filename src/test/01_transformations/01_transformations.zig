@@ -865,7 +865,7 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 	};
 
 	// Scene Update
-	static.currentTime += deltaTime * 1000.0;
+	static.currentTime += (deltaTime * 1000.0);
 
 	// update camera with time
 	var viewMat = ZtfCC.ztf_getViewMatrix(pCameraController);
@@ -890,11 +890,11 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 		var parentMat = ZtfMath.mat4_identity();
 
 		if (gPlanetInfoData[i].mRotationSpeed > 0.0)
-			rotSelf = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, gRotSelfScale * (static.currentTime + gTimeOffset / gPlanetInfoData[i].mRotationSpeed), 0.0));
+			rotSelf = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, gRotSelfScale * (static.currentTime + gTimeOffset) / gPlanetInfoData[i].mRotationSpeed, 0.0));
 		if (gPlanetInfoData[i].mYOrbitSpeed > 0.0)
-			rotOrbitY = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, gRotOrbitYScale * (static.currentTime + gTimeOffset / gPlanetInfoData[i].mYOrbitSpeed), 0.0));
+			rotOrbitY = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, gRotOrbitYScale * (static.currentTime + gTimeOffset) / gPlanetInfoData[i].mYOrbitSpeed, 0.0));
 		if (gPlanetInfoData[i].mZOrbitSpeed > 0.0)
-			rotOrbitZ = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, 0.0, gRotOrbitZScale * (static.currentTime + gTimeOffset / gPlanetInfoData[i].mZOrbitSpeed)));
+			rotOrbitZ = ZtfMath.mat4_from_rotationXYZ(&ZtfMath.make_vec3(0.0, 0.0, gRotOrbitZScale * (static.currentTime + gTimeOffset) / gPlanetInfoData[i].mZOrbitSpeed));
 		if (gPlanetInfoData[i].mParentIndex > 0)
 			parentMat = gPlanetInfoData[gPlanetInfoData[i].mParentIndex].mSharedMat;
 
@@ -912,7 +912,7 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 		ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &rotOrbitZ, &gUniformData.mToWorldMat[i]);
 		ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &trans, &gUniformData.mToWorldMat[i]);
 		ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &rotSelf, &gUniformData.mToWorldMat[i]);
-		//ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &scale, &gUniformData.mToWorldMat[i]);
+		ZtfMath.mat4_mul(&gUniformData.mToWorldMat[i], &scale, &gUniformData.mToWorldMat[i]);
 		
 		gUniformData.mColor[i] = gPlanetInfoData[i].mColor;
 
