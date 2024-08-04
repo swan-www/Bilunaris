@@ -59,7 +59,8 @@ const UniformBlock_C = extern struct
     mProjectView : ZtfCC.ZTF_CameraMatrix = std.mem.zeroes(ZtfCC.ZTF_CameraMatrix),
     mToWorldMat : [MAX_PLANETS]ZtfMath.ztf_Matrix4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Matrix4),
     mColor : [MAX_PLANETS]ZtfMath.ztf_Vector4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Vector4),
-    mGeometryWeight : [MAX_PLANETS]ZtfMath.ztf_Float4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Float4),
+    //mGeometryWeight : [MAX_PLANETS]ZtfMath.ztf_Float4 = std.mem.zeroes([MAX_PLANETS]ZtfMath.ztf_Float4),
+	mGeometryWeight : [MAX_PLANETS][4]f32 = std.mem.zeroes([MAX_PLANETS][4]f32),
 
     // Point Light Information
     mLightPosition : ZtfMath.ztf_Vector3 = std.mem.zeroes(ZtfMath.ztf_Vector3),
@@ -917,26 +918,26 @@ pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 		gUniformData.mColor[i] = gPlanetInfoData[i].mColor;
 
 		var phase : f32 = 0.0;
-		const step = std.math.modf(static.currentTime * gPlanetInfoData[i].mMorphingSpeed / 2000.0);
-		if (step.ipart > 0.5)
+		const phaseFraction = std.math.modf(static.currentTime * gPlanetInfoData[i].mMorphingSpeed / 2000.0);
+		if (phaseFraction.fpart > 0.5)
 		{
-			phase = 2.0 - step.ipart * 2.0;
+			phase = 2.0 - phaseFraction.fpart * 2.0;
 		}
 		else
 		{
-			phase = step.ipart * 2.0;
+			phase = phaseFraction.fpart * 2.0;
 		}
 
-		//gUniformData.mGeometryWeight[i].x = phase;
+		gUniformData.mGeometryWeight[i][0] = phase;
 	}
+
+	const debugView = &gUniformData;
+	_ = &debugView;
 
 	const translation = ZtfMath.make_vec3(0.0, 0.0, 0.0);
 	ZtfMath.mat4_set_translation( @ptrCast(&viewMat), @ptrCast(&translation));
 	gUniformDataSky = UniformBlockSky_C{};
 	gUniformDataSky.mProjectView = ZtfCC.ztf_camera_matrix_mul_mat(&projMat, &viewMat);
-
-	//const phase = (currentTime * gPlanetInfoData[i].mMorphingSpeed / 2000.f) % &step;
-	//gUniformData.mGeometryWeight[i][0] = phase;
 }
 
 pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
