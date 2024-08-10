@@ -305,7 +305,6 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 
 	// Initialize Forge User Interface Rendering
 	var uiRenderDesc = ZtfUI.ztf_defaultInitUserInterfaceDesc();
-	//ZtfUI.ztf_defaultInitUserInterfaceDesc(&uiRenderDesc);
 	uiRenderDesc.pRenderer = @ptrCast(pRenderer);
 	ZtfUI.ztf_initUserInterface(&uiRenderDesc);
 
@@ -353,19 +352,6 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	}
 
 	ZtfRL.ztf_waitForAllResourceLoads();
-
-	//Input System
-	var input_desc = ZtfInput.ztf_InputSystemDesc{
-		.pRenderer = @ptrCast(pRenderer),
-		.pWindow =  @ptrCast(window_desc),
-		.pJoystickTexture = "circlepad.tex",
-	};
-	_ = &input_desc;
-	if (!ZtfInput.ztf_initInputSystem(&input_desc))
-	{
-		ZtfExt.LOGF(ZtfLog.ztf_eERROR, "Input System failed to initialise.", .{});
-		return false;
-	}
 
 	// Setup planets (Rotation speeds are relative to Earth's, some values randomly given)
 	// Sun
@@ -521,6 +507,183 @@ pub export fn ztf_appInit(pApp: ?*ztf_App) callconv(.C) bool
 	ZtfCC.ztf_setMotionParameters(pCameraController, &cmp);
 
 	//TODO input actions
+	var inputDesc = ZtfInput.ztf_InputSystemDesc{
+		.pRenderer = @ptrCast(pRenderer),
+		.pWindow = @ptrCast(window_desc),
+		.pJoystickTexture = "circlepad.tex",
+	};
+	if (!ZtfInput.ztf_initInputSystem(&inputDesc))
+		return false;	
+	// App Actions
+	
+	//Dump profile data
+	const DumpProfileDataLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			ZtfProfiler.ztf_dumpProfileData(@as(*ZtfGfx.ztf_Renderer, @alignCast(@ptrCast(ctx.*.pUserData))).*.pName, 64);
+			return true;
+		}
+	};
+	const dumpProfileActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_DUMP_PROFILE_DATA,
+		.pFunction = DumpProfileDataLambda.Do,
+		.pUserData = pRenderer,
+	};
+	ZtfInput.ztf_addInputAction(&dumpProfileActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+	
+	//toggle fullscreen
+	const ToggleFullscreenLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			const app = @as(*ZtfApp.ztf_App, @alignCast(@ptrCast(ctx.*.pUserData)));
+			const winDesc = ZtfApp.ztf_getWindowDesc(app);
+			if (winDesc.*.fullScreen)
+			{
+				const clientRec = @as(*const ZtfOS.ztf_RectDesc, @ptrCast(&winDesc.*.clientRect));
+	
+				if (winDesc.*.borderlessWindow)
+					ZtfApp.ztf_setBorderless(winDesc, @intCast(ZtfOS.ztf_getRectWidth(clientRec)), @intCast(ZtfOS.ztf_getRectHeight(clientRec)))
+					else ZtfApp.ztf_setWindowed(winDesc, @intCast(ZtfOS.ztf_getRectWidth(clientRec)), @intCast(ZtfOS.ztf_getRectHeight(clientRec)));
+			}
+			else
+			{
+				ZtfApp.ztf_setFullscreen(winDesc);
+			}
+			return true;
+		}
+	};
+	const toggleFullscreenActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_TOGGLE_FULLSCREEN,
+		.pFunction = ToggleFullscreenLambda.Do,
+		.pUserData = pApp,
+	};
+	ZtfInput.ztf_addInputAction(&toggleFullscreenActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+	
+	//Exit app
+	const ExitLambda = struct {
+		pub fn Do(_: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			ZtfApp.ztf_requestShutdown();
+			return true;
+		}
+	};
+	const exitActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_TOGGLE_FULLSCREEN,
+		.pFunction = ExitLambda.Do,
+		.pUserData = null,
+	};
+	ZtfInput.ztf_addInputAction(&exitActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+	
+	//Capture input
+	const CaptureInputLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			_ = ZtfInput.ztf_setEnableCaptureInput((!ZtfUI.ztf_uiIsFocused()) and ZtfInput.ZTF_INPUT_ACTION_PHASE_CANCELED != ctx.*.mPhase);
+			return true;
+		}
+	};
+	const captureInputActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_CAPTURE_INPUT,
+		.pFunction = CaptureInputLambda.Do,
+		.pUserData = null,
+	};
+	ZtfInput.ztf_addInputAction(&captureInputActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+	
+	//Camera input
+	const OnCameraInputLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext, action: ZtfInput.ztf_DefaultInputAction) callconv(.C) bool
+		{
+			if (ctx.*.pCaptured != null and ctx.*.pCaptured.*)
+	        {
+	            const delta = if (ZtfUI.ztf_uiIsFocused()) ZtfInput.ztf_Float2{.x = 0.0, .y = 0.0} else ctx.*.unnamed_0.mFloat2;
+	            switch (action)
+	            {
+					ZtfInput.ZTF_ROTATE_CAMERA => ZtfCC.ztf_onRotate(pCameraController, @bitCast(delta)),
+					ZtfInput.ZTF_TRANSLATE_CAMERA =>  ZtfCC.ztf_onMove(pCameraController, @bitCast(delta)),
+					ZtfInput.ZTF_TRANSLATE_CAMERA_VERTICAL =>  ZtfCC.ztf_onMoveY(pCameraController, delta.x),
+					else => unreachable,
+	            }
+	        }
+	        return true;
+		}
+	};
+	
+	//Camera Rotate
+	const CameraRotateLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			return OnCameraInputLambda.Do(ctx, ZtfInput.ZTF_ROTATE_CAMERA);
+		}
+	};
+	const cameraRotateActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_ROTATE_CAMERA,
+		.pFunction = CameraRotateLambda.Do,
+		.pUserData = null,
+	};
+	ZtfInput.ztf_addInputAction(&cameraRotateActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+	
+	//Camera Translate
+	const CameraTranslateLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			return OnCameraInputLambda.Do(ctx, ZtfInput.ZTF_TRANSLATE_CAMERA);
+		}
+	};
+	const cameraTranslateActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_TRANSLATE_CAMERA,
+		.pFunction = CameraTranslateLambda.Do,
+		.pUserData = null,
+	};
+	ZtfInput.ztf_addInputAction(&cameraTranslateActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+	
+	//Camera Translate Vertical
+	const CameraTranslateVerticalLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			return OnCameraInputLambda.Do(ctx, ZtfInput.ZTF_TRANSLATE_CAMERA_VERTICAL);
+		}
+	};
+	const cameraTranslateVerticalActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_TRANSLATE_CAMERA_VERTICAL,
+		.pFunction = CameraTranslateVerticalLambda.Do,
+		.pUserData = null,
+	};
+	ZtfInput.ztf_addInputAction(&cameraTranslateVerticalActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+	
+	//Reset Camera
+	const ResetCameraLambda = struct {
+		pub fn Do(_: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			if (ZtfUI.ztf_uiWantTextInput() != 0)
+				ZtfCC.ztf_resetView(pCameraController);
+			return true;
+		}
+	};
+	const resetCameraActionDesc = ZtfInput.ztf_InputActionDesc{
+		.mActionId = ZtfInput.ZTF_RESET_CAMERA,
+		.pFunction = ResetCameraLambda.Do,
+		.pUserData = null,
+	};
+	ZtfInput.ztf_addInputAction(&resetCameraActionDesc, ZtfInput.ZTF_INPUT_ACTION_MAPPING_TARGET_ALL);
+
+	//Any button action
+	const OnAnyInputLambda = struct {
+		pub fn Do(ctx: [*c]ZtfInput.ztf_InputActionContext) callconv(.C) bool
+		{
+			if (ctx.*.mActionId > ZtfInput.ZTF_UI_ACTION_START_ID_)
+            {
+                ZtfUI.ztf_uiOnInput(ctx.*.mActionId, ctx.*.unnamed_0.mBool, @ptrCast(ctx.*.pPosition), @ptrCast(&ctx.*.unnamed_0.mFloat2));
+            }
+
+            return true;
+		}
+	};
+	const anyButtonActionDesc = ZtfInput.ztf_GlobalInputActionDesc{
+		.mGlobalInputActionType = ZtfInput.ZTF_ANY_BUTTON_ACTION,
+		.pFunction = OnAnyInputLambda.Do,
+		.pUserData = null,
+	};
+	ZtfInput.ztf_setGlobalInputAction(&anyButtonActionDesc);
 
 	gFrameIndex = 0;
 
@@ -533,10 +696,10 @@ fn rendererExit(_: ?*ztf_App) void
 	{
 		return;
 	}
+	
+	ZtfInput.ztf_exitInputSystem();
 
 	ZtfCC.ztf_exitCameraController(pCameraController);
-
-	ZtfInput.ztf_exitInputSystem();
 	
 	ZtfProfiler.ztf_exitProfiler();
 	
@@ -577,6 +740,7 @@ fn rendererExit(_: ?*ztf_App) void
 
 	ZtfGfx.ztf_exitRenderer(pRenderer);
 	pRenderer = undefined;
+	pRendererOpt = null;
 }
 
 pub export fn ztf_appExit(ztf_app: ?*ztf_App) callconv(.C) void
@@ -813,12 +977,31 @@ pub export fn ztf_appLoad(pApp: ?*ztf_App, pReloadDesc: [*c]ZtfRL.ztf_ReloadDesc
         }
 	}
 
+	const uiLoad = ZtfUI.ztf_UserInterfaceLoadDesc{
+		.mColorFormat = @intCast(pSwapChain.?.ppRenderTargets[0].*.mFormat),
+		.mHeight = @intCast(app_settings.*.mHeight),
+		.mWidth = @intCast(app_settings.*.mWidth),
+		.mLoadType = @bitCast(pReloadDesc.*.mType),
+	};
+	ZtfUI.ztf_loadUserInterface(&uiLoad);
+
+	const fontLoad = ZtfFont.ztf_FontSystemLoadDesc{
+		.mColorFormat = @intCast(pSwapChain.?.ppRenderTargets[0].*.mFormat),
+		.mHeight = @intCast(app_settings.*.mHeight),
+		.mWidth = @intCast(app_settings.*.mWidth),
+		.mLoadType = @bitCast(pReloadDesc.*.mType),
+	};
+	ZtfFont.ztf_loadFontSystem(&fontLoad);
+
 	return true;
 }
 
 pub export fn ztf_appUnload(_: ?*ztf_App, pReloadDesc: [*c]ztf_ReloadDesc) callconv(.C) void
 {
 	ZtfGfx.ztf_waitQueueIdle(pGraphicsQueue);
+
+	ZtfFont.ztf_unloadFontSystem(@bitCast(pReloadDesc.*.mType));
+	ZtfUI.ztf_unloadUserInterface(@bitCast(pReloadDesc.*.mType));
 
 	if (pReloadDesc.*.mType & (ZtfRL.ZTF_RELOAD_TYPE_SHADER | ZtfRL.ZTF_RELOAD_TYPE_RENDERTARGET) != 0)
 	{
@@ -858,6 +1041,8 @@ pub export fn ztf_appUnload(_: ?*ztf_App, pReloadDesc: [*c]ztf_ReloadDesc) callc
 pub export fn ztf_appUpdate(pApp: ?*ztf_App, deltaTime: f32) callconv(.C) void
 {
 	const app_settings = ZtfApp.ztf_getAppSettings(pApp);
+
+	ZtfInput.ztf_updateInputSystem(deltaTime, @intCast(app_settings.*.mWidth), @intCast(app_settings.*.mHeight));
 
 	ZtfCC.ztf_update(pCameraController, deltaTime);
 
@@ -988,32 +1173,43 @@ pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 		var data2D = ZtfGfx.ztf_QueryData{};
 		ZtfGfx.ztf_getQueryData(pRenderer, pPipelineStatsQueryPool[gFrameIndex], 0, &data3D);
 		ZtfGfx.ztf_getQueryData(pRenderer, pPipelineStatsQueryPool[gFrameIndex], 1, &data2D);
-		//const fmt_msg = \\\n
-		//	\\Pipeline Stats 3D:\n
-		//	\\    VS invocations:      %u\n
-		//	\\    PS invocations:      %u\n
-		//	\\    Clipper invocations: %u\n
-		//	\\    IA primitives:       %u\n
-		//	\\    Clipper primitives:  %u\n
-		//	\\\n
-		//	\\Pipeline Stats 2D UI:\n
-		//	\\    VS invocations:      %u\n
-		//	\\    PS invocations:      %u\n
-		//	\\    Clipper invocations: %u\n
-		//	\\    IA primitives:       %u\n
-		//	\\    Clipper primitives:  %u\n
-		//;
-//
-		//const data3DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
-		//const data2DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
+		const fmt_msg = \\
+			\\Pipeline Stats 3D:
+			\\    VS invocations:      {d}
+			\\    PS invocations:      {d}
+			\\    Clipper invocations: {d}
+			\\    IA primitives:       {d}
+			\\    Clipper primitives:  {d}
+			\\
+			\\Pipeline Stats 2D UI:
+			\\    VS invocations:      {d}
+			\\    PS invocations:      {d}
+			\\    Clipper invocations: {d}
+			\\    IA primitives:       {d}
+			\\    Clipper primitives:  {d}
+		;
 
-		//const formatted_msg = std.fmt.printf()
-		//_ = ZtfExt.bformat(&gPipelineStats,
-		//		fmt_msg,
-		//		.{data3DPipeStats.*.mVSInvocations, data3DPipeStats.*.mPSInvocations, data3DPipeStats.*.mCInvocations,
-		//		data3DPipeStats.*.mIAPrimitives, data3DPipeStats.*.mCPrimitives, data2DPipeStats.*.mVSInvocations,
-		//		data2DPipeStats.*.mPSInvocations, data2DPipeStats.*.mCInvocations, data2DPipeStats.*.mIAPrimitives,
-		//		data2DPipeStats.*.mCPrimitives});
+		const data3DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
+		const data2DPipeStats = &data3D.unnamed_0.unnamed_0.mPipelineStats;
+
+		const result = std.fmt.bufPrint(
+			gPipelineStatsCharArraySlice,
+			fmt_msg,
+			.{
+				data3DPipeStats.*.mVSInvocations,
+				data3DPipeStats.*.mPSInvocations,
+				data3DPipeStats.*.mCInvocations,
+				data3DPipeStats.*.mIAPrimitives,
+				data3DPipeStats.*.mCPrimitives,
+
+				data2DPipeStats.*.mVSInvocations,
+				data2DPipeStats.*.mPSInvocations,
+				data2DPipeStats.*.mCInvocations,
+				data2DPipeStats.*.mIAPrimitives,
+				data2DPipeStats.*.mCPrimitives
+			}
+		);
+		_ = &result;
 	}
 
 	const cmd = elem.pCmds[0];
@@ -1086,11 +1282,33 @@ pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 	{
 		var queryDesc = ZtfGfx.ztf_QueryDesc{ .mIndex = 0 };
 		ZtfGfx.ztf_cmdEndQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], &queryDesc);
-		//queryDesc.mIndex = 1;
-		//ZtfGfx.ztf_cmdBeginQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], &queryDesc);
+		queryDesc.mIndex = 1;
+		ZtfGfx.ztf_cmdBeginQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], &queryDesc);
 	}
 
-	ZtfGfx.ztf_cmdBindRenderTargets(cmd, null);
+	_ = ZtfProfiler.ztf_cmdBeginGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken, "Draw UI", true);
+	bindRenderTargets = ZtfGfx.ztf_BindRenderTargetsDesc{
+		.mRenderTargetCount = 1,
+		.mDepthStencil = ZtfGfx.ztf_BindDepthTargetDesc{
+			.pDepthStencil = null,
+			.mLoadAction = ZtfGfx.ZTF_LOAD_ACTION_DONTCARE
+		},
+	};
+	bindRenderTargets.mRenderTargets[0] = ZtfGfx.ztf_BindRenderTargetDesc{
+		.pRenderTarget = pRenderTarget,
+		.mLoadAction = ZtfGfx.ZTF_LOAD_ACTION_LOAD
+	};
+	ZtfGfx.ztf_cmdBindRenderTargets(cmd, &bindRenderTargets);
+
+	gFrameTimeDraw.mFontColor = 0xff00ffff;
+	gFrameTimeDraw.mFontSize = 18.0;
+	gFrameTimeDraw.mFontID = gFontID;
+	const txtSizePx = ZtfProfiler.ztf_cmdDrawCpuProfile(@ptrCast(cmd), ZtfProfiler.ztf_Float2{.x=8.0, .y=15.0}, @ptrCast(&gFrameTimeDraw));
+	_ = ZtfProfiler.ztf_cmdDrawGpuProfile(@ptrCast(cmd), ZtfProfiler.ztf_Float2{.x=8.0, .y=txtSizePx.y + 75.0}, gGpuProfileToken, @ptrCast(&gFrameTimeDraw));
+
+	ZtfUI.ztf_cmdDrawUserInterface(@ptrCast(cmd), null);
+	ZtfProfiler.ztf_cmdEndGpuTimestampQuery(@ptrCast(cmd), gGpuProfileToken);
+    ZtfGfx.ztf_cmdBindRenderTargets(cmd, null);
 
 	barriers[0] = ZtfGfx.ztf_RenderTargetBarrier{
 			.pRenderTarget = pRenderTarget,
@@ -1100,6 +1318,13 @@ pub export fn ztf_appDraw(pApp: ?*ztf_App) callconv(.C) void
 	ZtfGfx.ztf_cmdResourceBarrier(cmd, 0, null, 0, null, 1, &barriers);
 
 	ZtfProfiler.ztf_cmdEndGpuFrameProfile(@ptrCast(cmd), gGpuProfileToken);
+
+	if (pipelineStatsQueries != 0)
+	{
+		var queryDesc = ZtfGfx.ztf_QueryDesc{ .mIndex = 1 };
+		ZtfGfx.ztf_cmdEndQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], &queryDesc);
+		ZtfGfx.ztf_cmdResolveQuery(cmd, pPipelineStatsQueryPool[gFrameIndex], 0, 2);
+	}
 
 	ZtfGfx.ztf_endCmd(cmd);
 

@@ -61,6 +61,7 @@ ZTF_C_API void ztf_setViewRotationXY(ICameraController* pCamera, ztf_Vector2 con
 ZTF_C_API void ztf_resetView(ICameraController* pCamera);
 
 ZTF_C_API void ztf_onMove(ICameraController* pCamera, ztf_Float2 vec);
+ZTF_C_API void ztf_onMoveY(ICameraController* pCamera, float y);
 ZTF_C_API void ztf_onRotate(ICameraController* pCamera, ztf_Float2 vec);
 ZTF_C_API void ztf_onZoom(ICameraController* pCamera, ztf_Float2 vec);
 

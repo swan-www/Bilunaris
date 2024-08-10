@@ -63,6 +63,7 @@ ZTF_C_API ztf_Float2 ztf_cmdDrawGpuProfile(ztf_Cmd* pCmd, ztf_Float2 screenCoord
 ZTF_C_API ztf_Float2 ztf_cmdDrawCpuProfile(ztf_Cmd* pCmd, ztf_Float2 screenCoordsInPx, ztf_FontDrawDesc* pDrawDesc)
 {
 	float2 result = cmdDrawCpuProfile((Cmd*) pCmd, float2{screenCoordsInPx.x, screenCoordsInPx.y}, (FontDrawDesc*) pDrawDesc);
+	return ztf_Float2{result.x, result.y};
 }
 
 // Toggle profiler display on/off.

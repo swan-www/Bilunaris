@@ -54,8 +54,7 @@ ZTF_C_API void ztf_loadFontSystem(const ztf_FontSystemLoadDesc* pDesc)
 
 ZTF_C_API void ztf_unloadFontSystem(ztf_ReloadType unloadType)
 {
-	ReloadType mappedType = ReloadType::RELOAD_TYPE_ALL;
-	assert(false); //TODO
+	ReloadType mappedType = *(ReloadType*)&unloadType;
 	unloadFontSystem(mappedType);
 }
 

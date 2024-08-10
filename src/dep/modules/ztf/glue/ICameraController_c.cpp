@@ -106,6 +106,11 @@ ZTF_C_API void ztf_onMove(ICameraController* pCamera, ztf_Float2 vec)
 	pCamera->onMove(float2{vec.x, vec.y});
 }
 
+ZTF_C_API void ztf_onMoveY(ICameraController* pCamera, float y)
+{
+	pCamera->onMoveY(y);
+}
+
 ZTF_C_API void ztf_onRotate(ICameraController* pCamera, ztf_Float2 vec)
 {
 	pCamera->onRotate(float2{vec.x, vec.y});
