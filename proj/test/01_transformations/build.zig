@@ -62,9 +62,9 @@ pub fn build(b: *std.Build) !void {
 	
 	exe.step.dependOn(ztf_pkg.builder.getInstallStep());
 	exe.root_module.addImport("ztf", ztf_pkg.module("ztf"));
-	for (ztf.ztf_headers) |h| 
+	//for (ztf.ztf_headers) |h| 
 	{
-		exe.root_module.addImport(h.outputName, ztf_pkg.module(h.outputName));
+		exe.root_module.addImport("Ztf", ztf_pkg.module("Ztf"));
 	}
 
 	const zmath_pkg = b.dependency("zmath", .{

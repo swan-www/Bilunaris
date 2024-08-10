@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "ztf_bind_common.h"
+#include "IThread_c.h"
 
 #include "MathTypes_glue.h"
 
@@ -20,7 +21,6 @@ typedef struct ztf_Queue ztf_Queue;
 typedef struct ztf_FontDrawDesc ztf_FontDrawDesc;
 typedef struct ztf_UserInterface ztf_UserInterface;
 typedef struct ztf_ProfilerDesc ztf_ProfilerDesc;
-typedef struct ztf_ThreadID ztf_ThreadID;
 typedef struct ztf_AppSettings ztf_AppSettings;
 typedef struct ztf_Float2 ztf_Float2;
 

@@ -24,7 +24,7 @@ ZTF_C_API void ztf_exitLog(void)
     exitLog();
 }
 
-ZTF_C_API void ztf_addLogFile(const char* filename, ztf_LogFileMode file_mode, ztf_LogLevel log_level)
+ZTF_C_API void ztf_addLogFile(const char* filename, ztf_FileMode file_mode, ztf_LogLevel log_level)
 {
     addLogFile(filename, (FileMode)file_mode, (LogLevel)log_level);
 }

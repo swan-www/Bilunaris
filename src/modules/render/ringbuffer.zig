@@ -4,8 +4,8 @@ const ztf = @import("ztf");
 const builtin = @import("builtin");
 const dbg = (builtin.mode == std.builtin.OptimizeMode.Debug);
 
-const ZtfGfx = ztf.gfx;
-const ZtfResourceLoader = ztf.resource_loader;
+const ZtfGfx = ztf;
+const ZtfResourceLoader = ztf;
 const GfxRenderer = ZtfGfx.ztf_Renderer;
 const GfxBuffer = ZtfGfx.ztf_Buffer;
 const GfxBufferDesc = ZtfGfx.ztf_BufferDesc;

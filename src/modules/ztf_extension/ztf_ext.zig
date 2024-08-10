@@ -1,10 +1,10 @@
 const std = @import("std");
 const c_builtin = std.zig.c_builtins;
 const ztf = @import("ztf");
-const ZtfBString = ztf.bstring;
+const ZtfBString = ztf;
 const BString = ZtfBString.bstring;
-const ZtfMath = ztf.math;
-const ZtfLog= ztf.log;
+const ZtfMath = ztf;
+const ZtfLog= ztf;
 const LogLevel = ZtfLog.ztf_LogLevel;
 const LogFileMode = ZtfLog.ztf_LogFileMode;
 
