@@ -100,7 +100,10 @@ pub fn build(b: *std.Build) !void
 		.target = target,
 		.optimize = optimize,
 	});
-	translateCOfHeader.defineCMacroRaw("_WINDOWS=");
+	if(target.result.os.tag == .windows)
+	{
+		translateCOfHeader.defineCMacroRaw("_WINDOWS=");
+	}
 	translateCOfHeader.step.dependOn(&ztf.step);
 	translateCOfHeader.step.dependOn(&translate_fixup_exe.step);
 
