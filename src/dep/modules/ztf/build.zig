@@ -60,7 +60,7 @@ pub fn build(b: *std.Build) !void
 			.file = .{ .path = h.srcPath},
 			.flags = &.{
 				"-Wno-unused-command-line-argument",
-				windowsFlag
+				windowsFlag,
 			},
 		});
 
@@ -138,4 +138,77 @@ pub fn build(b: *std.Build) !void
 	installFile.step.dependOn(&translate_fixup_run.step);
 	translate_ztf_step.dependOn(&installFile.step);
 	translate_ztf_step.dependOn(&translate_fixup_run.step);
+
+	{
+		const api_files_to_verify = [_][]const u8{
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Graphics/Interfaces/IGraphics.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Graphics/Interfaces/IRay.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/IApp.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/ICameraController.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/IFont.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/IInput.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/IMiddleware.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/IProfiler.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/IScreenshot.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces/IUI.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/OS/Interfaces/IOperatingSystem.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Renderer/Interfaces/IVisibilityBuffer.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Resources/ResourceLoader/Interfaces/IResourceLoader.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces/ITime.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces/IFileSystem.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces/ILog.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces/IMemory.h",
+			"../../../../dep/ztf/src/dep/common/tfalias/Common_3/Utilities/Interfaces/IThread.h",
+		};
+
+		const capi_verifier = b.addSystemCommand(&.{
+			"toolchain/bin/CAPID_V.exe"
+		});
+
+		for(api_files_to_verify) |input_filename|
+		{
+			_ = capi_verifier.addPrefixedFileArg("inputFile=", .{ .path = input_filename} );
+		}
+
+		const clang_args = [_][]const u8{
+			"clang_arg=--include-directory=../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces",
+			"clang_arg=-target",
+			"clang_arg=x86_64-pc-windows-msvc",
+			"clang_arg=-D_WINDOWS",
+			"clang_arg=-x",
+			"clang_arg=c++",
+			"clang_arg=-D_CRT_USE_BUILTIN_OFFSETOF",
+		};
+		for(clang_args) |clang_arg|
+		{
+			_ = capi_verifier.addArg(clang_arg);
+		}
+
+		const assert_filename = "ztf_bind_verify_1_57.cpp";
+		const generated_assert_file = capi_verifier.addPrefixedOutputFileArg("outputFile=", assert_filename);
+		const install_generated_file = b.addInstallFile(generated_assert_file, "assert_file/"++assert_filename);
+
+		const generate_verifier_step = b.step("generate_verifier", "Generate a source file full of assertions for the current version.");
+		generate_verifier_step.dependOn(&capi_verifier.step);
+		generate_verifier_step.dependOn(&install_generated_file.step);
+	
+		const verify_step = b.step("verify", "Compile the verifier files.");
+
+		const assertion_object = b.addObject(.{
+			.name = "main",
+			.target = target,
+			.optimize = optimize,
+		});
+		assertion_object.addCSourceFile(.{
+			.file = .{ .path = "verify/ztf_bind_verify.cpp" },
+			.flags = &.{
+				"--include-directory=../../../../dep/ztf/src/dep/common/tfalias",
+				"-Wno-unused-command-line-argument",
+				"-Werror=return-type",
+				"-std=c++20",
+			}
+		});
+		assertion_object.linkLibC();
+		verify_step.dependOn(&assertion_object.step);
+	}
 }
