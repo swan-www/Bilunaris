@@ -175,6 +175,7 @@ xcuserdata/
 toolchain/common/ziglang/*
 !toolchain/common/ziglang/satellite.json
 toolchain/common/zls/*
+toolchain/common/ziglang*/
 /**/zig-cache/
 /**/.zig-cache/
 /**/zig-out/
