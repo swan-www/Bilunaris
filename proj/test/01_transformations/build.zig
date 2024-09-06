@@ -14,7 +14,7 @@ pub fn build(b: *std.Build) !void {
         .name = "bilunaris",
 		.target = target,
         .optimize = optimize,
-        .root_source_file = .{ .path = "../../../src/test/01_transformations/01_transformations.zig" },
+        .root_source_file = alias_build_util.lazy_from_path("../../../src/test/01_transformations/01_transformations.zig", b),
 	});
 
 	//Need a cpp entry point for the IApp interface
@@ -22,10 +22,10 @@ pub fn build(b: *std.Build) !void {
         .name = "main",
         .target = target,
         .optimize = optimize,
-		.root_source_file = .{ .path = "../../../src/test/01_transformations/01_transformations.zig" },
+		.root_source_file = alias_build_util.lazy_from_path("../../../src/test/01_transformations/01_transformations.zig", b),
     });
 	exe.addCSourceFile(.{
-		.file = .{ .path = "../../../src/test/01_transformations/main.cpp" },
+		.file = alias_build_util.lazy_from_path("../../../src/test/01_transformations/main.cpp", b),
 		.flags = &.{
 			"-Wno-unused-command-line-argument",
             "-fno-sanitize=undefined"
@@ -66,12 +66,6 @@ pub fn build(b: *std.Build) !void {
 	{
 		exe.root_module.addImport("Ztf", ztf_pkg.module("Ztf"));
 	}
-
-	const zmath_pkg = b.dependency("zmath", .{
-		.target = target,
-		.optimize = optimize
-	});
-	exe.root_module.addImport("zmath", zmath_pkg.module("root"));
 
 	exe.linkLibrary(ztf_pkg.artifact("tfalias_gainput"));
 	exe.linkLibrary(ztf_pkg.artifact("tfalias_os"));

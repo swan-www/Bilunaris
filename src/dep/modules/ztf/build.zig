@@ -1,6 +1,7 @@
 const std = @import("std");
 const unicode = std.unicode;
 const tfalias = @import("tfalias");
+pub const alias_build_util = tfalias.alias_build_util;
 
 pub const HeaderInfo = struct {
 	srcPath: []const u8,
@@ -52,12 +53,12 @@ pub fn build(b: *std.Build) !void
 	const windowsFlag = if(target.result.os.tag == .windows) "-D_WINDOWS" else "";
 
     ztf.linkLibC();
-	ztf.addIncludePath(.{ .path = "../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces" });
+	ztf.addIncludePath(alias_build_util.lazy_from_path("../../../../dep/ztf/src/dep/common/tfalias/Common_3/Application/Interfaces", b));
 
 	for (ztf_headers) |h| 
 	{
 		ztf.addCSourceFile(.{
-			.file = .{ .path = h.srcPath},
+			.file = alias_build_util.lazy_from_path(h.srcPath, b),
 			.flags = &.{
 				"-Wno-unused-command-line-argument",
 				windowsFlag,
@@ -66,7 +67,7 @@ pub fn build(b: *std.Build) !void
 
 		const header_src_path = try std.fs.path.join(b.allocator, &.{ "glue", h.headerName});
 		defer b.allocator.free(header_src_path);
-		ztf.installHeader(header_src_path, header_src_path);
+		ztf.installHeader(alias_build_util.install_header_path_fn(header_src_path, b), header_src_path);
 	}
 	b.installArtifact(ztf);
 
@@ -76,7 +77,7 @@ pub fn build(b: *std.Build) !void
 	const ztf_cpp_include = b.addModule("ztf_cpp_include", .{
 		.target = target,
         .optimize = optimize,
-		.root_source_file = .{ .path = b.pathFromRoot("include_cpp")},
+		.root_source_file = alias_build_util.install_header_path_fn(b.pathFromRoot("include_cpp"), b),
 	});
 	_ = &ztf_cpp_include;
 
@@ -84,7 +85,7 @@ pub fn build(b: *std.Build) !void
         .name = "translate_fixup_exe",
 		.target = target,
         .optimize = optimize,
-        .root_source_file = .{ .path = "append_file.zig"},
+        .root_source_file = alias_build_util.install_header_path_fn("append_file.zig", b),
     });
 
 	const h = HeaderInfo{
@@ -96,7 +97,7 @@ pub fn build(b: *std.Build) !void
 	const header_src_path = try std.fs.path.join(b.allocator, &.{ "glue", h.headerName});
 	defer b.allocator.free(header_src_path);
 	const translateCOfHeader = b.addTranslateC(.{
-		.root_source_file = .{ .path = header_src_path },
+		.root_source_file = alias_build_util.install_header_path_fn(header_src_path, b),
 		.target = target,
 		.optimize = optimize,
 	});
@@ -167,7 +168,7 @@ pub fn build(b: *std.Build) !void
 
 		for(api_files_to_verify) |input_filename|
 		{
-			_ = capi_verifier.addPrefixedFileArg("inputFile=", .{ .path = input_filename} );
+			_ = capi_verifier.addPrefixedFileArg("inputFile=", alias_build_util.install_header_path_fn(input_filename, b));
 		}
 
 		const clang_args = [_][]const u8{
@@ -200,7 +201,7 @@ pub fn build(b: *std.Build) !void
 			.optimize = optimize,
 		});
 		assertion_object.addCSourceFile(.{
-			.file = .{ .path = "verify/ztf_bind_verify.cpp" },
+			.file = alias_build_util.install_header_path_fn("verify/ztf_bind_verify.cpp", b),
 			.flags = &.{
 				"--include-directory=../../../../dep/ztf/src/dep/common/tfalias",
 				"-Wno-unused-command-line-argument",
