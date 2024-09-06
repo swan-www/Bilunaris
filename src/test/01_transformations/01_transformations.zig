@@ -1556,7 +1556,7 @@ pub fn generate_complex_mesh() void
 
 	gSphereIndexCount = @sizeOf(@TypeOf(static.indices)) / @sizeOf(u16);
 
-	const sphereVbDesc = Ztf.ztf_BufferLoadDesc{
+	var sphereVbDesc = Ztf.ztf_BufferLoadDesc{
 		.mDesc = .{
 			.mDescriptors = Ztf.ZTF_DESCRIPTOR_TYPE_VERTEX_BUFFER,
 			.mMemoryUsage = Ztf.ZTF_RESOURCE_MEMORY_USAGE_GPU_ONLY,
@@ -1565,9 +1565,9 @@ pub fn generate_complex_mesh() void
 		.pData = bufferData.ptr,
 		.ppBuffer = @ptrCast(&pSphereVertexBuffer),
 	};
-	Ztf.ztf_addResource(@constCast(&sphereVbDesc), null);
+	Ztf.ztf_addResource(&sphereVbDesc, null);
 
-	const sphereIbDesc = Ztf.ztf_BufferLoadDesc{
+	var sphereIbDesc = Ztf.ztf_BufferLoadDesc{
 		.mDesc = .{
 			.mDescriptors = Ztf.ZTF_DESCRIPTOR_TYPE_INDEX_BUFFER,
 			.mMemoryUsage = Ztf.ZTF_RESOURCE_MEMORY_USAGE_GPU_ONLY,
@@ -1576,7 +1576,7 @@ pub fn generate_complex_mesh() void
 		.pData = &static.indices,
 		.ppBuffer = @ptrCast(&pSphereIndexBuffer),
 	};
-	Ztf.ztf_addResource(@constCast(&sphereIbDesc), null);
+	Ztf.ztf_addResource(&sphereIbDesc, null);
 
 	Ztf.ztf_waitForAllResourceLoads();
 
