@@ -203,6 +203,7 @@ pub fn build(b: *std.Build) !void
 		assertion_object.addCSourceFile(.{
 			.file = alias_build_util.install_header_path_fn("verify/ztf_bind_verify.cpp", b),
 			.flags = &.{
+				"-ferror-limit=0",
 				"--include-directory=../../../../dep/ztf/src/dep/common/tfalias",
 				"-Wno-unused-command-line-argument",
 				"-Werror=return-type",

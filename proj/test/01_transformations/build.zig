@@ -17,13 +17,17 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = alias_build_util.lazy_from_path("../../../src/test/01_transformations/01_transformations.zig", b),
 	});
 
+	const default_win32_manifest = try tfalias.getDefaultWin32ManifestFile(b.allocator);
+	defer default_win32_manifest.close();
+
 	//Need a cpp entry point for the IApp interface
     const exe = b.addExecutable(.{
         .name = "main",
         .target = target,
         .optimize = optimize,
 		.root_source_file = alias_build_util.lazy_from_path("../../../src/test/01_transformations/01_transformations.zig", b),
-    });
+		.win32_manifest = alias_build_util.lazy_from_path(default_win32_manifest.str, b),
+	});
 	exe.addCSourceFile(.{
 		.file = alias_build_util.lazy_from_path("../../../src/test/01_transformations/main.cpp", b),
 		.flags = &.{
@@ -122,7 +126,7 @@ pub fn build(b: *std.Build) !void {
 	const copy_resources_step = b.step("copy-resources", "Copies the resources associated with this application to the output directory.");
 	b.getInstallStep().dependOn(copy_resources_step);
 
-	const tfalias_unit_test_resources_directory = try std.fs.path.join(b.allocator, &.{tfalias_dir.str, "Examples_3/Unit_Tests/UnitTestResources"});
+	const tfalias_unit_test_resources_directory = try std.fs.path.join(b.allocator, &.{tfalias_dir.str, "Art"});
 	defer b.allocator.free(tfalias_unit_test_resources_directory);
 
 	const Kind = std.fs.File.Kind;

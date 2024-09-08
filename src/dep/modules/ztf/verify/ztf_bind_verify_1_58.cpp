@@ -323,6 +323,7 @@ static_assert(TextureCreationFlags::TEXTURE_CREATION_FLAG_FAST_CLEAR == 4096, "A
 static_assert(TextureCreationFlags::TEXTURE_CREATION_FLAG_FRAG_MASK == 8192, "API_Verifier: 'TextureCreationFlags::TEXTURE_CREATION_FLAG_FRAG_MASK == 8192' evaluated to false.");
 static_assert(TextureCreationFlags::TEXTURE_CREATION_FLAG_VR_MULTIVIEW == 16384, "API_Verifier: 'TextureCreationFlags::TEXTURE_CREATION_FLAG_VR_MULTIVIEW == 16384' evaluated to false.");
 static_assert(TextureCreationFlags::TEXTURE_CREATION_FLAG_VR_FOVEATED_RENDERING == 32768, "API_Verifier: 'TextureCreationFlags::TEXTURE_CREATION_FLAG_VR_FOVEATED_RENDERING == 32768' evaluated to false.");
+static_assert(TextureCreationFlags::TEXTURE_CREATION_FLAG_SAMPLE_LOCATIONS_COMPATIBLE == 131072, "API_Verifier: 'TextureCreationFlags::TEXTURE_CREATION_FLAG_SAMPLE_LOCATIONS_COMPATIBLE == 131072' evaluated to false.");
 
 static_assert(std::is_same_v<std::underlying_type_t<ColorSpace>,int>, "API_Verifier: 'std::is_same_v<std::underlying_type_t<ColorSpace>,int>' evaluated to false.");
 static_assert(ColorSpace::COLOR_SPACE_SDR_LINEAR == 0, "API_Verifier: 'ColorSpace::COLOR_SPACE_SDR_LINEAR == 0' evaluated to false.");
@@ -2316,10 +2317,16 @@ static_assert(std::is_same_v<uint32_t, decltype(GPUSettings::mSoftwareVRSSupport
 static_assert(alignof( decltype(GPUSettings::mPrimitiveIdSupported)) == 4, "API_Verifier: 'alignof( decltype(GPUSettings::mPrimitiveIdSupported)) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(GPUSettings::mPrimitiveIdSupported)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(GPUSettings::mPrimitiveIdSupported)>' evaluated to false.");
 
+static_assert(alignof( decltype(GPUSettings::m64BitAtomicsSupported)) == 4, "API_Verifier: 'alignof( decltype(GPUSettings::m64BitAtomicsSupported)) == 4' evaluated to false.");
+static_assert(std::is_same_v<uint32_t, decltype(GPUSettings::m64BitAtomicsSupported)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(GPUSettings::m64BitAtomicsSupported)>' evaluated to false.");
+
 static_assert(alignof( decltype(GPUSettings::mFeatureLevel)) == 4, "API_Verifier: 'alignof( decltype(GPUSettings::mFeatureLevel)) == 4' evaluated to false.");
 static_assert(offsetof( GPUSettings, mFeatureLevel) == 1104, "API_Verifier: 'offsetof( GPUSettings, mFeatureLevel) == 1104' evaluated to false.");
 static_assert(sizeof(GPUSettings::mFeatureLevel) == 4, "API_Verifier: 'sizeof(GPUSettings::mFeatureLevel) == 4' evaluated to false.");
 static_assert(std::is_same_v<D3D_FEATURE_LEVEL, decltype(GPUSettings::mFeatureLevel)>, "API_Verifier: 'std::is_same_v<D3D_FEATURE_LEVEL, decltype(GPUSettings::mFeatureLevel)>' evaluated to false.");
+
+static_assert(alignof( decltype(GPUSettings::mSuppressInvalidSubresourceStateAfterExit)) == 4, "API_Verifier: 'alignof( decltype(GPUSettings::mSuppressInvalidSubresourceStateAfterExit)) == 4' evaluated to false.");
+static_assert(std::is_same_v<uint32_t, decltype(GPUSettings::mSuppressInvalidSubresourceStateAfterExit)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(GPUSettings::mSuppressInvalidSubresourceStateAfterExit)>' evaluated to false.");
 
 static_assert(alignof( decltype(GPUSettings::mDynamicRenderingSupported)) == 4, "API_Verifier: 'alignof( decltype(GPUSettings::mDynamicRenderingSupported)) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(GPUSettings::mDynamicRenderingSupported)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(GPUSettings::mDynamicRenderingSupported)>' evaluated to false.");
@@ -5362,35 +5369,40 @@ static_assert(std::is_same_v<char[256], decltype(OSInfo::osDeviceName)>, "API_Ve
 #include "D:\devspace\Bilunaris\dep\ztf\src\dep\common\tfalias\Common_3\Renderer\Interfaces\IVisibilityBuffer.h"
 
 static_assert(alignof(VisibilityBuffer) == 8, "API_Verifier: 'alignof(VisibilityBuffer) == 8' evaluated to false.");
-static_assert(sizeof(VisibilityBuffer) == 40, "API_Verifier: 'sizeof(VisibilityBuffer) == 40' evaluated to false.");
+static_assert(sizeof(VisibilityBuffer) == 48, "API_Verifier: 'sizeof(VisibilityBuffer) == 48' evaluated to false.");
 
-static_assert(alignof( decltype(VisibilityBuffer::ppUncompactedDrawArgumentsBuffer)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::ppUncompactedDrawArgumentsBuffer)) == 8' evaluated to false.");
-static_assert(offsetof( VisibilityBuffer, ppUncompactedDrawArgumentsBuffer) == 0, "API_Verifier: 'offsetof( VisibilityBuffer, ppUncompactedDrawArgumentsBuffer) == 0' evaluated to false.");
-static_assert(sizeof(VisibilityBuffer::ppUncompactedDrawArgumentsBuffer) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::ppUncompactedDrawArgumentsBuffer) == 8' evaluated to false.");
-static_assert(std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppUncompactedDrawArgumentsBuffer)>, "API_Verifier: 'std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppUncompactedDrawArgumentsBuffer)>' evaluated to false.");
-
-static_assert(alignof( decltype(VisibilityBuffer::ppFilteredIndirectDrawArgumentsBuffers)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::ppFilteredIndirectDrawArgumentsBuffers)) == 8' evaluated to false.");
-static_assert(offsetof( VisibilityBuffer, ppFilteredIndirectDrawArgumentsBuffers) == 8, "API_Verifier: 'offsetof( VisibilityBuffer, ppFilteredIndirectDrawArgumentsBuffers) == 8' evaluated to false.");
-static_assert(sizeof(VisibilityBuffer::ppFilteredIndirectDrawArgumentsBuffers) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::ppFilteredIndirectDrawArgumentsBuffers) == 8' evaluated to false.");
-static_assert(std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppFilteredIndirectDrawArgumentsBuffers)>, "API_Verifier: 'std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppFilteredIndirectDrawArgumentsBuffers)>' evaluated to false.");
+static_assert(alignof( decltype(VisibilityBuffer::pVBConstantBuffer)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::pVBConstantBuffer)) == 8' evaluated to false.");
+static_assert(offsetof( VisibilityBuffer, pVBConstantBuffer) == 0, "API_Verifier: 'offsetof( VisibilityBuffer, pVBConstantBuffer) == 0' evaluated to false.");
+static_assert(sizeof(VisibilityBuffer::pVBConstantBuffer) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::pVBConstantBuffer) == 8' evaluated to false.");
+static_assert(std::is_same_v<Buffer*, decltype(VisibilityBuffer::pVBConstantBuffer)>, "API_Verifier: 'std::is_same_v<Buffer*, decltype(VisibilityBuffer::pVBConstantBuffer)>' evaluated to false.");
 
 static_assert(alignof( decltype(VisibilityBuffer::ppFilteredIndexBuffer)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::ppFilteredIndexBuffer)) == 8' evaluated to false.");
-static_assert(offsetof( VisibilityBuffer, ppFilteredIndexBuffer) == 16, "API_Verifier: 'offsetof( VisibilityBuffer, ppFilteredIndexBuffer) == 16' evaluated to false.");
+static_assert(offsetof( VisibilityBuffer, ppFilteredIndexBuffer) == 8, "API_Verifier: 'offsetof( VisibilityBuffer, ppFilteredIndexBuffer) == 8' evaluated to false.");
 static_assert(sizeof(VisibilityBuffer::ppFilteredIndexBuffer) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::ppFilteredIndexBuffer) == 8' evaluated to false.");
 static_assert(std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppFilteredIndexBuffer)>, "API_Verifier: 'std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppFilteredIndexBuffer)>' evaluated to false.");
+
+static_assert(alignof( decltype(VisibilityBuffer::ppIndirectDataBuffer)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::ppIndirectDataBuffer)) == 8' evaluated to false.");
+static_assert(offsetof( VisibilityBuffer, ppIndirectDataBuffer) == 16, "API_Verifier: 'offsetof( VisibilityBuffer, ppIndirectDataBuffer) == 16' evaluated to false.");
+static_assert(sizeof(VisibilityBuffer::ppIndirectDataBuffer) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::ppIndirectDataBuffer) == 8' evaluated to false.");
+static_assert(std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppIndirectDataBuffer)>, "API_Verifier: 'std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppIndirectDataBuffer)>' evaluated to false.");
 
 static_assert(alignof( decltype(VisibilityBuffer::ppFilterDispatchGroupDataBuffer)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::ppFilterDispatchGroupDataBuffer)) == 8' evaluated to false.");
 static_assert(offsetof( VisibilityBuffer, ppFilterDispatchGroupDataBuffer) == 24, "API_Verifier: 'offsetof( VisibilityBuffer, ppFilterDispatchGroupDataBuffer) == 24' evaluated to false.");
 static_assert(sizeof(VisibilityBuffer::ppFilterDispatchGroupDataBuffer) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::ppFilterDispatchGroupDataBuffer) == 8' evaluated to false.");
 static_assert(std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppFilterDispatchGroupDataBuffer)>, "API_Verifier: 'std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppFilterDispatchGroupDataBuffer)>' evaluated to false.");
 
-static_assert(alignof( decltype(VisibilityBuffer::ppIndirectDataIndexBuffer)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::ppIndirectDataIndexBuffer)) == 8' evaluated to false.");
-static_assert(offsetof( VisibilityBuffer, ppIndirectDataIndexBuffer) == 32, "API_Verifier: 'offsetof( VisibilityBuffer, ppIndirectDataIndexBuffer) == 32' evaluated to false.");
-static_assert(sizeof(VisibilityBuffer::ppIndirectDataIndexBuffer) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::ppIndirectDataIndexBuffer) == 8' evaluated to false.");
-static_assert(std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppIndirectDataIndexBuffer)>, "API_Verifier: 'std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppIndirectDataIndexBuffer)>' evaluated to false.");
+static_assert(alignof( decltype(VisibilityBuffer::ppIndirectDrawArgBuffer)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::ppIndirectDrawArgBuffer)) == 8' evaluated to false.");
+static_assert(offsetof( VisibilityBuffer, ppIndirectDrawArgBuffer) == 32, "API_Verifier: 'offsetof( VisibilityBuffer, ppIndirectDrawArgBuffer) == 32' evaluated to false.");
+static_assert(sizeof(VisibilityBuffer::ppIndirectDrawArgBuffer) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::ppIndirectDrawArgBuffer) == 8' evaluated to false.");
+static_assert(std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppIndirectDrawArgBuffer)>, "API_Verifier: 'std::is_same_v<Buffer **, decltype(VisibilityBuffer::ppIndirectDrawArgBuffer)>' evaluated to false.");
 
-static_assert(alignof(VisibilityBufferDesc) == 4, "API_Verifier: 'alignof(VisibilityBufferDesc) == 4' evaluated to false.");
-static_assert(sizeof(VisibilityBufferDesc) == 52, "API_Verifier: 'sizeof(VisibilityBufferDesc) == 52' evaluated to false.");
+static_assert(alignof( decltype(VisibilityBuffer::pVBConstants)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBuffer::pVBConstants)) == 8' evaluated to false.");
+static_assert(offsetof( VisibilityBuffer, pVBConstants) == 40, "API_Verifier: 'offsetof( VisibilityBuffer, pVBConstants) == 40' evaluated to false.");
+static_assert(sizeof(VisibilityBuffer::pVBConstants) == 8, "API_Verifier: 'sizeof(VisibilityBuffer::pVBConstants) == 8' evaluated to false.");
+static_assert(std::is_same_v<VBConstants*, decltype(VisibilityBuffer::pVBConstants)>, "API_Verifier: 'std::is_same_v<VBConstants*, decltype(VisibilityBuffer::pVBConstants)>' evaluated to false.");
+
+static_assert(alignof(VisibilityBufferDesc) == 8, "API_Verifier: 'alignof(VisibilityBufferDesc) == 8' evaluated to false.");
+static_assert(sizeof(VisibilityBufferDesc) == 40, "API_Verifier: 'sizeof(VisibilityBufferDesc) == 40' evaluated to false.");
 
 static_assert(alignof( decltype(VisibilityBufferDesc::mNumFrames)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mNumFrames)) == 4' evaluated to false.");
 static_assert(offsetof( VisibilityBufferDesc, mNumFrames) == 0, "API_Verifier: 'offsetof( VisibilityBufferDesc, mNumFrames) == 0' evaluated to false.");
@@ -5402,58 +5414,38 @@ static_assert(offsetof( VisibilityBufferDesc, mNumBuffers) == 4, "API_Verifier: 
 static_assert(sizeof(VisibilityBufferDesc::mNumBuffers) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mNumBuffers) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mNumBuffers)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mNumBuffers)>' evaluated to false.");
 
-static_assert(alignof( decltype(VisibilityBufferDesc::mIndirectElementCount)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mIndirectElementCount)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mIndirectElementCount) == 8, "API_Verifier: 'offsetof( VisibilityBufferDesc, mIndirectElementCount) == 8' evaluated to false.");
-static_assert(sizeof(VisibilityBufferDesc::mIndirectElementCount) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mIndirectElementCount) == 4' evaluated to false.");
-static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mIndirectElementCount)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mIndirectElementCount)>' evaluated to false.");
-
-static_assert(alignof( decltype(VisibilityBufferDesc::mDrawArgCount)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mDrawArgCount)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mDrawArgCount) == 12, "API_Verifier: 'offsetof( VisibilityBufferDesc, mDrawArgCount) == 12' evaluated to false.");
-static_assert(sizeof(VisibilityBufferDesc::mDrawArgCount) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mDrawArgCount) == 4' evaluated to false.");
-static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mDrawArgCount)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mDrawArgCount)>' evaluated to false.");
-
-static_assert(alignof( decltype(VisibilityBufferDesc::mIndexCount)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mIndexCount)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mIndexCount) == 16, "API_Verifier: 'offsetof( VisibilityBufferDesc, mIndexCount) == 16' evaluated to false.");
-static_assert(sizeof(VisibilityBufferDesc::mIndexCount) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mIndexCount) == 4' evaluated to false.");
-static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mIndexCount)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mIndexCount)>' evaluated to false.");
-
-static_assert(alignof( decltype(VisibilityBufferDesc::mMaxDrawsIndirect)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mMaxDrawsIndirect)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mMaxDrawsIndirect) == 20, "API_Verifier: 'offsetof( VisibilityBufferDesc, mMaxDrawsIndirect) == 20' evaluated to false.");
-static_assert(sizeof(VisibilityBufferDesc::mMaxDrawsIndirect) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mMaxDrawsIndirect) == 4' evaluated to false.");
-static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mMaxDrawsIndirect)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mMaxDrawsIndirect)>' evaluated to false.");
-
-static_assert(alignof( decltype(VisibilityBufferDesc::mMaxPrimitivesPerDrawIndirect)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mMaxPrimitivesPerDrawIndirect)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mMaxPrimitivesPerDrawIndirect) == 24, "API_Verifier: 'offsetof( VisibilityBufferDesc, mMaxPrimitivesPerDrawIndirect) == 24' evaluated to false.");
-static_assert(sizeof(VisibilityBufferDesc::mMaxPrimitivesPerDrawIndirect) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mMaxPrimitivesPerDrawIndirect) == 4' evaluated to false.");
-static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mMaxPrimitivesPerDrawIndirect)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mMaxPrimitivesPerDrawIndirect)>' evaluated to false.");
-
 static_assert(alignof( decltype(VisibilityBufferDesc::mComputeThreads)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mComputeThreads)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mComputeThreads) == 28, "API_Verifier: 'offsetof( VisibilityBufferDesc, mComputeThreads) == 28' evaluated to false.");
+static_assert(offsetof( VisibilityBufferDesc, mComputeThreads) == 8, "API_Verifier: 'offsetof( VisibilityBufferDesc, mComputeThreads) == 8' evaluated to false.");
 static_assert(sizeof(VisibilityBufferDesc::mComputeThreads) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mComputeThreads) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mComputeThreads)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mComputeThreads)>' evaluated to false.");
 
 static_assert(alignof( decltype(VisibilityBufferDesc::mNumGeometrySets)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mNumGeometrySets)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mNumGeometrySets) == 32, "API_Verifier: 'offsetof( VisibilityBufferDesc, mNumGeometrySets) == 32' evaluated to false.");
+static_assert(offsetof( VisibilityBufferDesc, mNumGeometrySets) == 12, "API_Verifier: 'offsetof( VisibilityBufferDesc, mNumGeometrySets) == 12' evaluated to false.");
 static_assert(sizeof(VisibilityBufferDesc::mNumGeometrySets) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mNumGeometrySets) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mNumGeometrySets)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mNumGeometrySets)>' evaluated to false.");
 
+static_assert(alignof( decltype(VisibilityBufferDesc::pMaxIndexCountPerGeomSet)) == 8, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::pMaxIndexCountPerGeomSet)) == 8' evaluated to false.");
+static_assert(offsetof( VisibilityBufferDesc, pMaxIndexCountPerGeomSet) == 16, "API_Verifier: 'offsetof( VisibilityBufferDesc, pMaxIndexCountPerGeomSet) == 16' evaluated to false.");
+static_assert(sizeof(VisibilityBufferDesc::pMaxIndexCountPerGeomSet) == 8, "API_Verifier: 'sizeof(VisibilityBufferDesc::pMaxIndexCountPerGeomSet) == 8' evaluated to false.");
+static_assert(std::is_same_v<uint32_t*, decltype(VisibilityBufferDesc::pMaxIndexCountPerGeomSet)>, "API_Verifier: 'std::is_same_v<uint32_t*, decltype(VisibilityBufferDesc::pMaxIndexCountPerGeomSet)>' evaluated to false.");
+
 static_assert(alignof( decltype(VisibilityBufferDesc::mNumViews)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mNumViews)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mNumViews) == 36, "API_Verifier: 'offsetof( VisibilityBufferDesc, mNumViews) == 36' evaluated to false.");
+static_assert(offsetof( VisibilityBufferDesc, mNumViews) == 24, "API_Verifier: 'offsetof( VisibilityBufferDesc, mNumViews) == 24' evaluated to false.");
 static_assert(sizeof(VisibilityBufferDesc::mNumViews) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mNumViews) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mNumViews)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mNumViews)>' evaluated to false.");
 
 static_assert(alignof( decltype(VisibilityBufferDesc::mEnablePreSkinPass)) == 1, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mEnablePreSkinPass)) == 1' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mEnablePreSkinPass) == 40, "API_Verifier: 'offsetof( VisibilityBufferDesc, mEnablePreSkinPass) == 40' evaluated to false.");
+static_assert(offsetof( VisibilityBufferDesc, mEnablePreSkinPass) == 28, "API_Verifier: 'offsetof( VisibilityBufferDesc, mEnablePreSkinPass) == 28' evaluated to false.");
 static_assert(sizeof(VisibilityBufferDesc::mEnablePreSkinPass) == 1, "API_Verifier: 'sizeof(VisibilityBufferDesc::mEnablePreSkinPass) == 1' evaluated to false.");
 static_assert(std::is_same_v<bool, decltype(VisibilityBufferDesc::mEnablePreSkinPass)>, "API_Verifier: 'std::is_same_v<bool, decltype(VisibilityBufferDesc::mEnablePreSkinPass)>' evaluated to false.");
 
 static_assert(alignof( decltype(VisibilityBufferDesc::mPreSkinBatchSize)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mPreSkinBatchSize)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mPreSkinBatchSize) == 44, "API_Verifier: 'offsetof( VisibilityBufferDesc, mPreSkinBatchSize) == 44' evaluated to false.");
+static_assert(offsetof( VisibilityBufferDesc, mPreSkinBatchSize) == 32, "API_Verifier: 'offsetof( VisibilityBufferDesc, mPreSkinBatchSize) == 32' evaluated to false.");
 static_assert(sizeof(VisibilityBufferDesc::mPreSkinBatchSize) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mPreSkinBatchSize) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mPreSkinBatchSize)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mPreSkinBatchSize)>' evaluated to false.");
 
 static_assert(alignof( decltype(VisibilityBufferDesc::mPreSkinBatchCount)) == 4, "API_Verifier: 'alignof( decltype(VisibilityBufferDesc::mPreSkinBatchCount)) == 4' evaluated to false.");
-static_assert(offsetof( VisibilityBufferDesc, mPreSkinBatchCount) == 48, "API_Verifier: 'offsetof( VisibilityBufferDesc, mPreSkinBatchCount) == 48' evaluated to false.");
+static_assert(offsetof( VisibilityBufferDesc, mPreSkinBatchCount) == 36, "API_Verifier: 'offsetof( VisibilityBufferDesc, mPreSkinBatchCount) == 36' evaluated to false.");
 static_assert(sizeof(VisibilityBufferDesc::mPreSkinBatchCount) == 4, "API_Verifier: 'sizeof(VisibilityBufferDesc::mPreSkinBatchCount) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mPreSkinBatchCount)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VisibilityBufferDesc::mPreSkinBatchCount)>' evaluated to false.");
 
@@ -5495,7 +5487,7 @@ static_assert(sizeof(VBPreFilterStats::mTotalMaxDrawCount) == 4, "API_Verifier: 
 static_assert(std::is_same_v<uint32_t, decltype(VBPreFilterStats::mTotalMaxDrawCount)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(VBPreFilterStats::mTotalMaxDrawCount)>' evaluated to false.");
 
 static_assert(alignof(TriangleFilteringPassDesc) == 8, "API_Verifier: 'alignof(TriangleFilteringPassDesc) == 8' evaluated to false.");
-static_assert(sizeof(TriangleFilteringPassDesc) == 96, "API_Verifier: 'sizeof(TriangleFilteringPassDesc) == 96' evaluated to false.");
+static_assert(sizeof(TriangleFilteringPassDesc) == 80, "API_Verifier: 'sizeof(TriangleFilteringPassDesc) == 80' evaluated to false.");
 
 static_assert(alignof( decltype(TriangleFilteringPassDesc::pPipelineClearBuffers)) == 8, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::pPipelineClearBuffers)) == 8' evaluated to false.");
 static_assert(offsetof( TriangleFilteringPassDesc, pPipelineClearBuffers) == 0, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pPipelineClearBuffers) == 0' evaluated to false.");
@@ -5507,48 +5499,38 @@ static_assert(offsetof( TriangleFilteringPassDesc, pPipelineTriangleFiltering) =
 static_assert(sizeof(TriangleFilteringPassDesc::pPipelineTriangleFiltering) == 8, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::pPipelineTriangleFiltering) == 8' evaluated to false.");
 static_assert(std::is_same_v<Pipeline*, decltype(TriangleFilteringPassDesc::pPipelineTriangleFiltering)>, "API_Verifier: 'std::is_same_v<Pipeline*, decltype(TriangleFilteringPassDesc::pPipelineTriangleFiltering)>' evaluated to false.");
 
-static_assert(alignof( decltype(TriangleFilteringPassDesc::pPipelineBatchCompaction)) == 8, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::pPipelineBatchCompaction)) == 8' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, pPipelineBatchCompaction) == 16, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pPipelineBatchCompaction) == 16' evaluated to false.");
-static_assert(sizeof(TriangleFilteringPassDesc::pPipelineBatchCompaction) == 8, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::pPipelineBatchCompaction) == 8' evaluated to false.");
-static_assert(std::is_same_v<Pipeline*, decltype(TriangleFilteringPassDesc::pPipelineBatchCompaction)>, "API_Verifier: 'std::is_same_v<Pipeline*, decltype(TriangleFilteringPassDesc::pPipelineBatchCompaction)>' evaluated to false.");
-
 static_assert(alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFiltering)) == 8, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFiltering)) == 8' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFiltering) == 24, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFiltering) == 24' evaluated to false.");
+static_assert(offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFiltering) == 16, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFiltering) == 16' evaluated to false.");
 static_assert(sizeof(TriangleFilteringPassDesc::pDescriptorSetTriangleFiltering) == 8, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::pDescriptorSetTriangleFiltering) == 8' evaluated to false.");
 static_assert(std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFiltering)>, "API_Verifier: 'std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFiltering)>' evaluated to false.");
 
 static_assert(alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFilteringPerFrame)) == 8, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFilteringPerFrame)) == 8' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFilteringPerFrame) == 32, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFilteringPerFrame) == 32' evaluated to false.");
+static_assert(offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFilteringPerFrame) == 24, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pDescriptorSetTriangleFilteringPerFrame) == 24' evaluated to false.");
 static_assert(sizeof(TriangleFilteringPassDesc::pDescriptorSetTriangleFilteringPerFrame) == 8, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::pDescriptorSetTriangleFilteringPerFrame) == 8' evaluated to false.");
 static_assert(std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFilteringPerFrame)>, "API_Verifier: 'std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetTriangleFilteringPerFrame)>' evaluated to false.");
 
 static_assert(alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetClearBuffers)) == 8, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetClearBuffers)) == 8' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, pDescriptorSetClearBuffers) == 40, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pDescriptorSetClearBuffers) == 40' evaluated to false.");
+static_assert(offsetof( TriangleFilteringPassDesc, pDescriptorSetClearBuffers) == 32, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pDescriptorSetClearBuffers) == 32' evaluated to false.");
 static_assert(sizeof(TriangleFilteringPassDesc::pDescriptorSetClearBuffers) == 8, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::pDescriptorSetClearBuffers) == 8' evaluated to false.");
 static_assert(std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetClearBuffers)>, "API_Verifier: 'std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetClearBuffers)>' evaluated to false.");
 
-static_assert(alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetBatchCompaction)) == 8, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::pDescriptorSetBatchCompaction)) == 8' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, pDescriptorSetBatchCompaction) == 48, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, pDescriptorSetBatchCompaction) == 48' evaluated to false.");
-static_assert(sizeof(TriangleFilteringPassDesc::pDescriptorSetBatchCompaction) == 8, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::pDescriptorSetBatchCompaction) == 8' evaluated to false.");
-static_assert(std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetBatchCompaction)>, "API_Verifier: 'std::is_same_v<DescriptorSet*, decltype(TriangleFilteringPassDesc::pDescriptorSetBatchCompaction)>' evaluated to false.");
-
 static_assert(alignof( decltype(TriangleFilteringPassDesc::mGpuProfileToken)) == 8, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::mGpuProfileToken)) == 8' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, mGpuProfileToken) == 56, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mGpuProfileToken) == 56' evaluated to false.");
+static_assert(offsetof( TriangleFilteringPassDesc, mGpuProfileToken) == 40, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mGpuProfileToken) == 40' evaluated to false.");
 static_assert(sizeof(TriangleFilteringPassDesc::mGpuProfileToken) == 8, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::mGpuProfileToken) == 8' evaluated to false.");
 static_assert(std::is_same_v<uint64_t, decltype(TriangleFilteringPassDesc::mGpuProfileToken)>, "API_Verifier: 'std::is_same_v<uint64_t, decltype(TriangleFilteringPassDesc::mGpuProfileToken)>' evaluated to false.");
 
 static_assert(alignof( decltype(TriangleFilteringPassDesc::mFrameIndex)) == 4, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::mFrameIndex)) == 4' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, mFrameIndex) == 64, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mFrameIndex) == 64' evaluated to false.");
+static_assert(offsetof( TriangleFilteringPassDesc, mFrameIndex) == 48, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mFrameIndex) == 48' evaluated to false.");
 static_assert(sizeof(TriangleFilteringPassDesc::mFrameIndex) == 4, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::mFrameIndex) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(TriangleFilteringPassDesc::mFrameIndex)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(TriangleFilteringPassDesc::mFrameIndex)>' evaluated to false.");
 
 static_assert(alignof( decltype(TriangleFilteringPassDesc::mBuffersIndex)) == 4, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::mBuffersIndex)) == 4' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, mBuffersIndex) == 68, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mBuffersIndex) == 68' evaluated to false.");
+static_assert(offsetof( TriangleFilteringPassDesc, mBuffersIndex) == 52, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mBuffersIndex) == 52' evaluated to false.");
 static_assert(sizeof(TriangleFilteringPassDesc::mBuffersIndex) == 4, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::mBuffersIndex) == 4' evaluated to false.");
 static_assert(std::is_same_v<uint32_t, decltype(TriangleFilteringPassDesc::mBuffersIndex)>, "API_Verifier: 'std::is_same_v<uint32_t, decltype(TriangleFilteringPassDesc::mBuffersIndex)>' evaluated to false.");
 
 static_assert(alignof( decltype(TriangleFilteringPassDesc::mVBPreFilterStats)) == 4, "API_Verifier: 'alignof( decltype(TriangleFilteringPassDesc::mVBPreFilterStats)) == 4' evaluated to false.");
-static_assert(offsetof( TriangleFilteringPassDesc, mVBPreFilterStats) == 72, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mVBPreFilterStats) == 72' evaluated to false.");
+static_assert(offsetof( TriangleFilteringPassDesc, mVBPreFilterStats) == 56, "API_Verifier: 'offsetof( TriangleFilteringPassDesc, mVBPreFilterStats) == 56' evaluated to false.");
 static_assert(sizeof(TriangleFilteringPassDesc::mVBPreFilterStats) == 20, "API_Verifier: 'sizeof(TriangleFilteringPassDesc::mVBPreFilterStats) == 20' evaluated to false.");
 static_assert(std::is_same_v<VBPreFilterStats, decltype(TriangleFilteringPassDesc::mVBPreFilterStats)>, "API_Verifier: 'std::is_same_v<VBPreFilterStats, decltype(TriangleFilteringPassDesc::mVBPreFilterStats)>' evaluated to false.");
 

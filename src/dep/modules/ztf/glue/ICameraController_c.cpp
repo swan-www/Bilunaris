@@ -64,7 +64,7 @@ ZTF_C_API ztf_Matrix4 ztf_getViewMatrix(ICameraController const* pCamera)
 {
 	Matrix4 src = pCamera->getViewMatrix();
 	ztf_Matrix4 dst{};
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(dst));
 	return dst;
 }
@@ -72,7 +72,7 @@ ZTF_C_API ztf_Vector3 ztf_getViewPosition(ICameraController const* pCamera)
 {
 	Vector3 src = pCamera->getViewPosition();
 	ztf_Vector3 dst{};
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(dst));
 	return dst;
 }
@@ -80,7 +80,7 @@ ZTF_C_API ztf_Vector2 ztf_getRotationXY(ICameraController const* pCamera)
 {
 	Vector2 src = pCamera->getRotationXY();
 	ztf_Vector2 dst{};
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(dst));
 	return dst;
 }
@@ -128,7 +128,7 @@ ZTF_C_API ZTF_CameraMatrix ztf_camera_matrix_mul_mat(ZTF_CameraMatrix const* pCa
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src =  ((CameraMatrix const*)pCameraMatrix)->operator*(*(Matrix4 const*)(mat));
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
 	return dst;
 
@@ -137,18 +137,8 @@ ZTF_C_API ZTF_CameraMatrix ztf_camera_matrix_mul_cam_mat(ZTF_CameraMatrix const*
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src =  ((CameraMatrix const*)pCameraMatrix)->operator*(*(CameraMatrix const*)(mat));
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
-	return dst;
-}
-
-// Returns the camera matrix or the left eye matrix on VR platforms.
-ZTF_C_API ztf_Matrix4 ztf_getPrimaryMatrix(ZTF_CameraMatrix const* pCameraMatrix)
-{
-	Matrix4 src = ((CameraMatrix const*)pCameraMatrix)->getPrimaryMatrix();
-	ztf_Matrix4 dst{};
-	static_assert(sizeof(dst) == sizeof(src));
-	memcpy(&dst, &src, sizeof(dst));
 	return dst;
 }
 
@@ -162,7 +152,7 @@ ZTF_C_API ZTF_CameraMatrix ztf_inverse(const ZTF_CameraMatrix* mat)
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src = CameraMatrix::inverse((*(CameraMatrix const*)mat));
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
 	return dst;
 }
@@ -171,7 +161,7 @@ ZTF_C_API ZTF_CameraMatrix ztf_transpose(const ZTF_CameraMatrix* mat)
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src = CameraMatrix::transpose((*(CameraMatrix const*)mat));
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
 	return dst;
 }
@@ -180,7 +170,7 @@ ZTF_C_API ZTF_CameraMatrix ztf_perspective(float fovxRadians, float aspectInvers
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src = CameraMatrix::perspective(fovxRadians, aspectInverse, zNear, zFar);
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
 	return dst;
 }
@@ -189,7 +179,7 @@ ZTF_C_API ZTF_CameraMatrix ztf_perspectiveReverseZ(float fovxRadians, float aspe
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src = CameraMatrix::perspectiveReverseZ(fovxRadians, aspectInverse, zNear, zFar);
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
 	return dst;
 }
@@ -198,7 +188,7 @@ ZTF_C_API ZTF_CameraMatrix ztf_orthographic(float left, float right, float botto
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src = CameraMatrix::orthographic(left, right, bottom, top, zNear, zFar);
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
 	return dst;
 }
@@ -207,7 +197,7 @@ ZTF_C_API ZTF_CameraMatrix ztf_identity()
 {
 	ZTF_CameraMatrix dst{};
 	CameraMatrix src = CameraMatrix::identity();
-	static_assert(sizeof(dst) == sizeof(src));
+	static_assert(sizeof(dst) == sizeof(src), "sizeof(dst) == sizeof(src)");
 	memcpy(&dst, &src, sizeof(CameraMatrix));
 	return dst;
 }
