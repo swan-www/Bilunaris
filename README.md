@@ -3,7 +3,7 @@
 There's 3 repos, Bilunaris is the "topmost" one, the others are referenced as git submodules:
 * Bilunaris (01_transformations + C and Zig bindings)
 * ZigTheForge (this is just the zig build system support for TheForge) [https://github.com/swan-www/ZigTheForge](https://github.com/swan-www/ZigTheForge)
-* TheForge-ZigMod (this is a fork of TheForge with very minor modifications to better support the other two repos) [https://github.com/swan-www/ZigTheForge](https://github.com/swan-www/ZigTheForge)
+* TheForge-ZigMod (this is a fork of TheForge with very minor modifications to better support the other two repos) [https://github.com/swan-www/TheForge-ZigMod](https://github.com/swan-www/TheForge-ZigMod)
 
 Make sure you run the appropriate git commands to retrieve all the submodules when/after you clone Bilunaris.
 
