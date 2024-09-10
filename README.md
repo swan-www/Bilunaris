@@ -7,7 +7,7 @@ There's 3 repos, Bilunaris is the "topmost" one, the others are referenced as gi
 
 Make sure you run the appropriate git commands to retrieve all the submodules when/after you clone Bilunaris.
 
-the `build.zig` for `01_transformations` is under `proj/test/01_transformations/build.zig`
+The `build.zig` for `01_transformations` is under `proj/test/01_transformations/build.zig`.
 In order to build the only things that should need doing is running the prebuild bat file in TheForge itself to grab the art files, downloading the zig compiler, and then running `zig.exe build --summary all -Dtarget=x86_64-windows-msvc -Doptimize=Debug` while current working directory is `proj/test/01_transformations`.
 
 The zig source for 01_transformations is here:
