@@ -1,3 +1,4 @@
 [submodule "dep/ztf"]
 	path = dep/ztf
 	url = https://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@github.com/swan-www/ZigTheForge.git
+	update = merge
